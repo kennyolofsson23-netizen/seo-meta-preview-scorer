@@ -1,56 +1,112 @@
 # SEO Meta Preview & Scorer — Test Plan
 
-## Table of Contents
-
-1. [Test Strategy & Pyramid](#1-test-strategy--pyramid)
-2. [Unit Tests](#2-unit-tests)
-3. [Integration Tests](#3-integration-tests)
-4. [E2E Tests](#4-e2e-tests)
-5. [Property-Based Test Candidates](#5-property-based-test-candidates)
-6. [Per-Module Coverage Targets](#6-per-module-coverage-targets)
-7. [Acceptance Criteria Traceability Matrix](#7-acceptance-criteria-traceability-matrix)
+> **Generated**: 2026-03-19
+> **Stack**: Vitest 2 + React Testing Library + Playwright
+> **Coverage tool**: `@vitest/coverage-v8`
 
 ---
 
-## 1. Test Strategy & Pyramid
+## 1. Test Strategy
 
-### Project Profile
+### 1.1 Guiding Principles
 
-This is a **client-side-dominant** tool. Core business logic (`scoring.ts`, `truncation.ts`, `bulk.ts`, `embed.ts`, `history.ts`) consists almost entirely of pure, synchronous functions with no I/O. Only two API routes exist: one edge function for OG image generation, one Node.js proxy for URL fetching. There is no database, no auth, and no mutation API surface.
+This is a **100% client-side tool** with two thin API routes. The architecture dictates the strategy:
 
-This profile drives a **bottom-heavy pyramid**: thorough unit coverage of pure logic, focused component tests for rendering fidelity, and slim but high-value E2E tests for full user journeys.
+- **Pure library functions** (`scoring.ts`, `truncation.ts`, `history.ts`, `bulk.ts`, `embed.ts`) are the core of the product — they get the most intensive unit test coverage.
+- **React components** render derived state; they are tested with RTL for behaviour, not implementation details.
+- **API routes** are Next.js Route Handlers; they are tested via integration tests with a mocked global `fetch`.
+- **E2E tests** validate the complete user journeys from SPEC.md — one scenario per acceptance criterion that cannot be verified at a lower level.
+- **No database, no authentication, no sessions** → no auth scenario matrix needed.
 
-### Test Pyramid
+### 1.2 Test Pyramid Ratios
 
 ```
-         ┌───────────────────────────────┐
-         │      E2E  (Playwright)        │  ~12%   ≈ 20 scenarios
-         │  Full user flows, a11y, perf  │
-         ├───────────────────────────────┤
-         │  Component (Vitest + RTL)     │  ~28%   ≈ 45 test cases
-         │  Rendering, interaction, UI   │
-         ├───────────────────────────────┤
-         │  Unit (Vitest)                │  ~60%   ≈ 100 test cases
-         │  Pure fns, hooks, API routes  │
-         └───────────────────────────────┘
+        ┌──────────────────┐
+        │    E2E (10%)     │  ~25 scenarios · Playwright
+        │                  │  Full user flows, file download, iframe
+        ├──────────────────┤
+        │Integration (25%) │  ~60 tests · Vitest + RTL + MSW
+        │                  │  React components, API route handlers
+        ├──────────────────┤
+        │   Unit (65%)     │  ~180 tests · Vitest
+        │                  │  Pure functions, hooks (jsdom), edge cases
+        └──────────────────┘
 ```
 
-### Tool Assignments
+| Layer       | Runner     | Files                                                        | Approx. count |
+|-------------|------------|--------------------------------------------------------------|---------------|
+| Unit        | Vitest     | `src/lib/**/*.test.ts`                                       | ~180 tests    |
+| Integration | Vitest+RTL | `src/components/**/*.test.tsx` + `src/app/api/**/*.test.ts`  | ~60 tests     |
+| E2E         | Playwright | `e2e/**/*.spec.ts`                                           | ~25 scenarios |
 
-| Layer | Tool | Location |
-|---|---|---|
-| Unit | Vitest | `src/lib/**/*.test.ts`, `src/app/api/**/*.test.ts` |
-| Component | Vitest + React Testing Library | `src/components/**/*.test.tsx` |
-| E2E | Playwright | `e2e/**/*.spec.ts` |
-| Property-based | `fast-check` via Vitest | `src/lib/**/*.property.test.ts` |
+### 1.3 Test File Inventory
 
-### Key Testing Principles
+```
+src/
+├── lib/
+│   ├── scoring.test.ts            ✅ exists — extend with missing boundary cases
+│   ├── truncation.test.ts         ✅ exists — extend with word-boundary + Unicode
+│   ├── history.test.ts            ✅ exists — extend with error paths
+│   ├── embed.test.ts              ✅ exists — extend with round-trip
+│   ├── bulk.test.ts               ✅ exists — extend with quoted fields + perf
+│   ├── screenshot.test.ts         ✅ exists — extend with watermark + error paths
+│   └── hooks/
+│       ├── useMetaInput.test.ts   🆕 create
+│       ├── useScores.test.ts      🆕 create
+│       ├── useTheme.test.ts       🆕 create
+│       └── useHistory.test.ts     🆕 create
+├── components/
+│   ├── input/
+│   │   ├── MetaInputForm.test.tsx          🆕 create
+│   │   └── CharacterCounter.test.tsx       🆕 create
+│   ├── preview/
+│   │   ├── GoogleDesktopPreview.test.tsx   🆕 create
+│   │   ├── GoogleMobilePreview.test.tsx    🆕 create
+│   │   ├── BingPreview.test.tsx            🆕 create
+│   │   └── SocialCardPreview.test.tsx      🆕 create
+│   ├── scoring/
+│   │   ├── ScoreDashboard.test.tsx         🆕 create
+│   │   ├── ScoreCard.test.tsx              🆕 create
+│   │   ├── OverallScoreGauge.test.tsx      🆕 create
+│   │   └── MobileTruncationWarning.test.tsx 🆕 create
+│   ├── export/
+│   │   └── ScreenshotButton.test.tsx       🆕 create
+│   ├── history/
+│   │   └── HistoryPanel.test.tsx           🆕 create
+│   ├── bulk/
+│   │   └── BulkCheckPanel.test.tsx         🆕 create
+│   └── embed/
+│       └── EmbedCodeGenerator.test.tsx     🆕 create
+├── app/api/
+│   ├── fetch-meta/route.test.ts   🆕 create
+│   └── og/route.test.ts           🆕 create
+└── test/
+    ├── setup.ts                   ✅ exists — add localStorage + matchMedia mocks
+    └── fixtures/
+        └── meta-samples.ts        ✅ exists — extend (see §9)
+e2e/
+├── main-flow.spec.ts       🆕 create
+├── previews.spec.ts        🆕 create
+├── scoring.spec.ts         🆕 create
+├── screenshot.spec.ts      🆕 create
+├── embed.spec.ts           🆕 create
+├── dark-mode.spec.ts       🆕 create
+├── history.spec.ts         🆕 create
+├── bulk.spec.ts            🆕 create
+├── url-fetch.spec.ts       🆕 create
+├── accessibility.spec.ts   🆕 create
+└── mobile.spec.ts          🆕 create
+```
 
-1. **Scoring logic is pure** — test every branch in isolation without React or mocks.
-2. **Previews are render tests** — assert that truncated text, keyword bolding, and styled dimensions are present in the DOM, not that pixels match visually.
-3. **localStorage** — test with a real in-memory mock (`vi.stubGlobal` + fake storage); also test the unavailable-storage path.
-4. **html2canvas** — always mock it in unit/component tests; verify integration with a real dynamic import only in E2E.
-5. **API routes** — use `msw` or `vi.fn` stubs for `fetch` in unit tests; test actual HTTP responses in E2E or with Next.js test server.
+### 1.4 CI Gate
+
+| Stage       | Command                         | Blocks merge? |
+|-------------|---------------------------------|---------------|
+| Unit + Int. | `vitest run --coverage`         | Yes           |
+| E2E         | `playwright test`               | Yes           |
+| Type check  | `tsc --noEmit`                  | Yes           |
+| Lint        | `eslint . --max-warnings 0`     | Yes           |
+| Bundle size | `next build` + size check       | Yes           |
 
 ---
 
@@ -58,1254 +114,1497 @@ This profile drives a **bottom-heavy pyramid**: thorough unit coverage of pure l
 
 ### 2.1 `src/lib/scoring.ts`
 
-File: `src/lib/scoring.test.ts`
+**Mock boundaries**: None — pure functions, no I/O.
 
-#### `scoreTitle(title: string): ScoringResult`
+#### `scoreTitle(title: string)`
 
-| Test ID | Input | Expected `status` | Expected `score` | Notes |
-|---|---|---|---|---|
-| ST-01 | `""` (empty) | `"error"` | `0` | AC: F004-1 |
-| ST-02 | `"Hi"` (2 chars) | `"error"` | `40` | < 10 chars branch |
-| ST-03 | `"A".repeat(9)` (9 chars) | `"error"` | `40` | boundary: 9 < 10 |
-| ST-04 | `"A".repeat(10)` (10 chars) | `"good"` | `100` | boundary: exactly 10 |
-| ST-05 | `"A".repeat(30)` (30 chars) | `"good"` | `100` | AC: F004-1 green lower bound |
-| ST-06 | `"A".repeat(60)` (60 chars) | `"good"` | `100` | AC: F004-1 green upper bound |
-| ST-07 | `"A".repeat(61)` (61 chars) | `"warning"` | `80` | AC: F004-1 yellow range start |
-| ST-08 | `"A".repeat(70)` (70 chars) | `"warning"` | `80` | AC: F004-1 yellow range end |
-| ST-09 | `"A".repeat(71)` (71 chars) | `"error"` | `50` | AC: F004-1 red > 70 |
-| ST-10 | `"A".repeat(150)` (150 chars) | `"error"` | `50` | long title |
-| ST-11 | message contains char count | — | — | message includes `length` for debugging |
+| Test case | Input | Expected `status` | Expected `score` | AC ref |
+|-----------|-------|-------------------|------------------|--------|
+| Empty string | `""` | `"error"` | `0` | F004-AC1 |
+| 1 character | `"A"` | `"error"` | `40` | F004-AC1 |
+| Exactly 9 chars (boundary below min) | `"123456789"` | `"error"` | `40` | F004-AC1 |
+| Exactly 10 chars (good start) | `"1234567890"` | `"good"` | `100` | F004-AC1 |
+| 30 chars (optimal start) | `"A".repeat(30)` | `"good"` | `100` | F004-AC1 |
+| 45 chars (mid-optimal) | `"A".repeat(45)` | `"good"` | `100` | F004-AC1 |
+| Exactly 60 chars (optimal end) | `"A".repeat(60)` | `"good"` | `100` | F004-AC1 |
+| 61 chars (warning start) | `"A".repeat(61)` | `"warning"` | `80` | F004-AC1 |
+| Exactly 70 chars (warning end) | `"A".repeat(70)` | `"warning"` | `80` | F004-AC1 |
+| 71 chars (error start) | `"A".repeat(71)` | `"error"` | `50` | F004-AC1 |
+| 200 chars | `"A".repeat(200)` | `"error"` | `50` | F004-AC1 |
+| Whitespace-only | `"   "` | `"good"` (length=3, treated as chars) | — | F004-AC1 |
+| Unicode emoji (JS length counts UTF-16) | `"🚀".repeat(5)` (length=10) | `"good"` | `100` | F004-AC1 |
+| Message includes actual char count | 65-char title | `message` contains `"65"` | — | F004-AC1 |
 
-**Edge cases**: Unicode characters (emoji) count as single chars in JS `.length`; multi-word title at exactly 60 chars.
+**Edge cases beyond existing tests**:
+- Title with emoji: `"🚀"` has `.length === 2` (surrogate pair). Document that scoring uses JS `.length`. Test explicitly so future Unicode-aware changes are intentional.
+- Very long string (500 chars) — no crash, returns `{score: 50, status: "error"}`.
 
-#### `scoreDescription(description: string): ScoringResult`
+#### `scoreDescription(description: string)`
 
-| Test ID | Input | Expected `status` | Expected `score` |
-|---|---|---|---|
-| SD-01 | `""` | `"error"` | `0` |
-| SD-02 | `"Too short."` (10 chars) | `"warning"` | `60` |
-| SD-03 | `"A".repeat(119)` | `"warning"` | `60` |
-| SD-04 | `"A".repeat(120)` | `"good"` | `100` | AC: F004-2 green lower bound |
-| SD-05 | `"A".repeat(160)` | `"good"` | `100` | AC: F004-2 green upper bound |
-| SD-06 | `"A".repeat(161)` | `"warning"` | `80` | AC: F004-2 yellow range |
-| SD-07 | `"A".repeat(200)` | `"warning"` | `80` | AC: F004-2 yellow upper |
-| SD-08 | `"A".repeat(201)` | `"error"` | `50` | AC: F004-2 red > 200 |
-| SD-09 | `"A".repeat(250)` | `"error"` | `50` | very long |
+| Test case | Input length | Expected `status` | Expected `score` | AC ref |
+|-----------|-------------|-------------------|------------------|--------|
+| Empty | 0 | `"error"` | `0` | F004-AC2 |
+| 1 char | 1 | `"warning"` | `60` | F004-AC2 |
+| 119 chars (one below good range) | 119 | `"warning"` | `60` | F004-AC2 |
+| Exactly 120 chars (good start) | 120 | `"good"` | `100` | F004-AC2 |
+| 140 chars | 140 | `"good"` | `100` | F004-AC2 |
+| Exactly 160 chars (good end) | 160 | `"good"` | `100` | F004-AC2 |
+| 161 chars (warning start) | 161 | `"warning"` | `80` | F004-AC2 |
+| 200 chars (warning end) | 200 | `"warning"` | `80` | F004-AC2 |
+| 201 chars (error start) | 201 | `"error"` | `50` | F004-AC2 |
+| 500 chars | 500 | `"error"` | `50` | F004-AC2 |
+| Error message includes chars 155-160 snippet | 250-char desc | `message` contains substring from position 155 | F004-AC2 |
 
-#### `scoreKeywordPresence(title, description, keyword): ScoringResult`
+#### `scoreKeywordPresence(title, description, keyword)`
 
-| Test ID | Scenario | Expected `score` | Expected `status` |
-|---|---|---|---|
-| SK-01 | Empty keyword | `0` | `"error"` | AC: F004-3 |
-| SK-02 | Keyword only whitespace | `0` | `"error"` |
-| SK-03 | Keyword in title AND description (exact phrase) | `100` | `"good"` | AC: F004-3 |
-| SK-04 | Keyword in title AND description (any word from phrase in desc) | `100` | `"good"` |
-| SK-05 | Keyword in title only | `90` | `"good"` |
-| SK-06 | Keyword in description only | `70` | `"warning"` |
-| SK-07 | Keyword absent from both | `0` | `"error"` |
-| SK-08 | Case-insensitive match (`"SEO"` vs `"seo"`) | `100` | `"good"` |
-| SK-09 | Multi-word keyword (`"SEO tips"`) in title | `90` | `"good"` |
-| SK-10 | Keyword match is substring of larger word (e.g. `"seo"` in `"seoa"`) — should still match | check `.includes()` behavior | — |
+| Test case | Expected `score` | Expected `status` | AC ref |
+|-----------|-----------------|-------------------|--------|
+| Keyword (phrase) in title + description | `100` | `"good"` | F004-AC3 |
+| Keyword in title + one keyword word in description | `100` | `"good"` | F004-AC3 |
+| Keyword only in title | `90` | `"good"` | F004-AC3 |
+| Keyword only in description (exact phrase) | `70` | `"warning"` | F004-AC3 |
+| Keyword absent from both | `0` | `"error"` | F004-AC3 |
+| Empty keyword | `0` | `"error"` | F004-AC3 |
+| Whitespace-only keyword | `0` | `"error"` | F004-AC3 |
+| Case-insensitive: `"KEYWORD"` vs `"keyword"` | `100` | `"good"` | F004-AC3 |
+| Multi-word keyword, all words in title | `100` | `"good"` | F004-AC3 |
+| Regex special chars in keyword (`c++`) | does not throw | any valid status | F004-AC3 |
+| Keyword with parentheses (`(java)`) | does not throw | any valid status | F004-AC3 |
+| Unicode keyword | correct match | — | F004-AC3 |
 
 #### `checkMobileTruncation(title, description)`
 
-| Test ID | title.length | desc.length | titleTruncated | descriptionTruncated | totalIssues |
-|---|---|---|---|---|---|
-| CM-01 | 50 | 120 | `false` | `false` | `0` | AC: F004-4 boundary |
-| CM-02 | 51 | 120 | `true` | `false` | `1` |
-| CM-03 | 50 | 121 | `false` | `true` | `1` |
-| CM-04 | 51 | 121 | `true` | `true` | `2` |
-| CM-05 | 0 | 0 | `false` | `false` | `0` |
+| Test case | `titleTruncated` | `descriptionTruncated` | `totalIssues` | AC ref |
+|-----------|-----------------|----------------------|---------------|--------|
+| Both empty | `false` | `false` | `0` | F004-AC4 |
+| Title exactly 50 chars | `false` | `false` | `0` | F004-AC4 |
+| Title 51 chars | `true` | `false` | `1` | F004-AC4 |
+| Desc exactly 120 chars | `false` | `false` | `0` | F004-AC4 |
+| Desc 121 chars | `false` | `true` | `1` | F004-AC4 |
+| Both over limit | `true` | `true` | `2` | F004-AC4 |
+| Both at exact limits | `false` | `false` | `0` | F004-AC4 |
 
-#### `calculateOverallScore(titleScore, descriptionScore, keywordScore): number`
+#### `calculateOverallScore(titleScore, descScore, keywordScore)`
 
-| Test ID | titleScore | descScore | kwScore | Expected overall |
-|---|---|---|---|---|
-| CO-01 | 100 | 100 | 100 | `100` | AC: F004-5 |
-| CO-02 | 100 | 100 | 0 | `80` | 40+40+0 |
-| CO-03 | 0 | 0 | 0 | `0` |
-| CO-04 | 80 | 60 | 50 | `66` | 32+24+10 |
-| CO-05 | 50 | 50 | 50 | `50` | flat mid |
-| CO-06 | 100 | 80 | 90 | `90` | 40+32+18 |
+| Test case | Inputs | Expected | AC ref |
+|-----------|--------|----------|--------|
+| All 100 | `(100, 100, 100)` | `100` | F004-AC5 |
+| All 0 | `(0, 0, 0)` | `0` | F004-AC5 |
+| `(100, 80, 60)` → 40+32+12 | — | `84` | F004-AC5 |
+| `(0, 0, 100)` → keyword only | — | `20` | F004-AC5 |
+| `(100, 0, 0)` → title only | — | `40` | F004-AC5 |
+| `(0, 100, 0)` → desc only | — | `40` | F004-AC5 |
+| Fractional rounds correctly `(33,33,33)` | — | `33` | F004-AC5 |
+| Result is always integer (no decimals) | any inputs | `Number.isInteger(result)` | F004-AC5 |
 
-**Assert**: Always returns integer (Math.round applied), range [0, 100].
+#### `validateUrl(url)`
 
-#### `validateUrl(url: string)`
+| Test case | Expected `valid` | AC ref |
+|-----------|-----------------|--------|
+| Empty string | `true` (URL is optional) | F001-AC3 |
+| Whitespace-only | `true` | F001-AC3 |
+| `"https://example.com"` | `true` | F001-AC3 |
+| `"http://example.com/path?q=1#hash"` | `true` | F001-AC3 |
+| `"ftp://example.com"` | `false` | F001-AC3 |
+| `"//example.com"` (protocol-relative) | `false` | F001-AC3 |
+| `"not a url"` | `false` | F001-AC3 |
+| `"javascript:alert(1)"` | `false` | Security |
+| `"data:text/html,..."` | `false` | Security |
+| URL with spaces | `false` | F001-AC3 |
 
-| Test ID | Input | `valid` | Has `error` |
-|---|---|---|---|
-| VU-01 | `""` | `true` | no (optional) |
-| VU-02 | `"https://example.com"` | `true` | no |
-| VU-03 | `"http://example.com/path"` | `true` | no |
-| VU-04 | `"not-a-url"` | `false` | yes |
-| VU-05 | `"example.com/page"` (no protocol) | `false` | yes |
-| VU-06 | `"ftp://example.com"` | `true` | no (URL constructor accepts ftp) |
+#### `extractDomain(url)` and `extractSlug(url)`
 
-#### `extractDomain(url: string)` / `extractSlug(url: string)`
+| Test case | Expected `domain` | Expected `slug` | AC ref |
+|-----------|-------------------|-----------------|--------|
+| `"https://example.com"` | `"example.com"` | `""` | F002-AC2 |
+| `"https://www.example.com/blog/post"` | `"www.example.com"` | `"post"` | F002-AC2 |
+| `"https://sub.example.com/a/b/c"` | `"sub.example.com"` | `"c"` | F002-AC2 |
+| Empty string | `"example.com"` | `""` | F002-AC2 |
+| Invalid URL | `"example.com"` | `""` | F002-AC2 |
 
-| Test ID | Input | `extractDomain` | `extractSlug` |
-|---|---|---|---|
-| ED-01 | `""` | `"example.com"` | `""` |
-| ED-02 | `"https://example.com"` | `"example.com"` | `""` |
-| ED-03 | `"https://myblog.com/seo/guide"` | `"myblog.com"` | `"guide"` |
-| ED-04 | `"not-a-url"` | `"example.com"` | `""` |
+#### `getScoreColor(status)` and `formatScore(score)`
 
-#### `getScoreColor(status)` / `formatScore(score)`
-
-- `getScoreColor("good")` → contains `"green"`
-- `getScoreColor("warning")` → contains `"yellow"`
-- `getScoreColor("error")` → contains `"red"`
-- `formatScore(85)` → `"85%"`; `formatScore(0)` → `"0%"`; `formatScore(100)` → `"100%"`; `formatScore(-5)` → `"0%"` (clamp); `formatScore(105)` → `"100%"` (clamp)
+| Test case | Expected output | AC ref |
+|-----------|----------------|--------|
+| `getScoreColor("good")` | string contains `"green"` | F004-AC1 |
+| `getScoreColor("warning")` | string contains `"yellow"` | F004-AC1 |
+| `getScoreColor("error")` | string contains `"red"` | F004-AC1 |
+| `formatScore(0)` | `"0%"` | F004-AC5 |
+| `formatScore(85)` | `"85%"` | F004-AC5 |
+| `formatScore(100)` | `"100%"` | F004-AC5 |
+| `formatScore(-10)` | `"0%"` (clamped at 0) | F004-AC5 |
+| `formatScore(150)` | `"100%"` (clamped at 100) | F004-AC5 |
+| `formatScore(85.7)` | `"86%"` (rounded) | F004-AC5 |
 
 ---
 
 ### 2.2 `src/lib/truncation.ts`
 
-File: `src/lib/truncation.test.ts`
+**Mock boundaries**: None — pure string functions.
 
 #### `truncateAtChars(text, maxChars)`
 
-| Test ID | Input | maxChars | Expected |
-|---|---|---|---|
-| TA-01 | `"Hello"` | 10 | `"Hello"` (no truncation) |
-| TA-02 | `"A".repeat(60)` | 60 | `"A".repeat(60)` (exactly at limit) |
-| TA-03 | `"A".repeat(61)` | 60 | `"AAAAAA…"` (hard cut + ellipsis) |
-| TA-04 | `"Hello world foo bar"` | 12 | `"Hello world…"` (break at word boundary at pos 11) |
-| TA-05 | `"Helloworld"` (no spaces) | 5 | `"Hello…"` (hard cut: no word boundary) |
-| TA-06 | Word boundary > 10 chars before limit | — | falls back to hard cut |
-| TA-07 | `""` | 60 | `""` |
+| Test case | Input | Max | Expected | AC ref |
+|-----------|-------|-----|----------|--------|
+| Shorter than limit | `"Hello"` | `10` | `"Hello"` (no `…`) | F002-AC3 |
+| Exactly at limit | `"A".repeat(60)` | `60` | no ellipsis appended | F002-AC3 |
+| One over limit, mid-word | `"AAAAAAA"` | `5` | `"AAAAA…"` | F002-AC3 |
+| Word boundary within 10 of limit | `"the quick brown fox jumps"` | `20` | breaks at last space before pos 20 | F002-AC3 |
+| Word boundary > 10 from limit | `"thequickbrownfoxjumps over"` | `10` | hard cut + `…` | F002-AC3 |
+| Empty string | `""` | `60` | `""` | F002-AC3 |
+| Single-word string over limit | `"superlongword"` | `5` | `"super…"` | F002-AC3 |
+| Space at exact boundary | `"hello world"` | `5` | `"hello…"` (no leading space before `…`) | F002-AC3 |
 
-**Derived platform functions**: Each just delegates to `truncateAtChars` with a fixed limit. Verify limits:
+#### Per-engine truncation functions (boundary-value table)
 
-| Function | Expected `maxChars` |
-|---|---|
-| `truncateGoogleDesktopTitle` | 60 | AC: F002-3 |
-| `truncateGoogleDesktopDescription` | 160 | AC: F002-4 |
-| `truncateGoogleMobileTitle` | 50 | AC: F003-1 |
-| `truncateGoogleMobileDescription` | 120 | AC: F003-2 |
-| `truncateBingTitle` | 65 | AC: F005-2 |
-| `truncateBingDescription` | 160 | AC: F005-3 |
+| Function | Input length | Has `…` in output? | Max allowed length | AC ref |
+|----------|-------------|--------------------|--------------------|--------|
+| `truncateGoogleDesktopTitle` | 59 | No | 59 | F002-AC3 |
+| `truncateGoogleDesktopTitle` | 60 | No | 60 | F002-AC3 |
+| `truncateGoogleDesktopTitle` | 61 | Yes | 61 | F002-AC3 |
+| `truncateGoogleDesktopDescription` | 160 | No | 160 | F002-AC4 |
+| `truncateGoogleDesktopDescription` | 161 | Yes | 161 | F002-AC4 |
+| `truncateGoogleMobileTitle` | 50 | No | 50 | F003-AC1 |
+| `truncateGoogleMobileTitle` | 51 | Yes | 51 | F003-AC1 |
+| `truncateGoogleMobileDescription` | 120 | No | 120 | F003-AC2 |
+| `truncateGoogleMobileDescription` | 121 | Yes | 121 | F003-AC2 |
+| `truncateBingTitle` | 65 | No | 65 | F005-AC2 |
+| `truncateBingTitle` | 66 | Yes | 66 | F005-AC2 |
+| `truncateBingDescription` | 160 | No | 160 | F005-AC3 |
+| `truncateBingDescription` | 161 | Yes | 161 | F005-AC3 |
 
-For each: test at limit (no ellipsis), at limit+1 (ellipsis added).
+#### `highlightKeyword(text, keyword)`
 
-#### `highlightKeyword(text, keyword): TextSegment[]`
-
-| Test ID | text | keyword | Expected segments |
-|---|---|---|---|
-| HK-01 | `"Best SEO tips"` | `""` | `[{text:"Best SEO tips", isKeyword:false}]` |
-| HK-02 | `"Best SEO tips"` | `"SEO"` | `[{…"Best ",false},{…"SEO",true},{…" tips",false}]` |
-| HK-03 | `"SEO SEO"` | `"SEO"` | two keyword segments |
-| HK-04 | Case: `"best seo"` | `"SEO"` | `isKeyword:true` on `"seo"` (case-insensitive) |
-| HK-05 | Regex special chars in keyword (`"C++"`) | `"C++"` | escaped correctly, no throw |
-| HK-06 | Keyword not in text | `"blockchain"` | single non-keyword segment |
-| HK-07 | Empty text | `"SEO"` | `[]` (or single empty-filtered segment) |
+| Test case | Expected result | AC ref |
+|-----------|----------------|--------|
+| Keyword absent | single segment `{text: originalText, isKeyword: false}` | F002-AC5 |
+| Empty keyword | single segment `{isKeyword: false}` | F002-AC5 |
+| Whole string is keyword | single segment `{isKeyword: true}` | F002-AC5 |
+| Keyword in middle | 3 segments: pre / `{isKeyword:true}` / post | F002-AC5 |
+| Multiple occurrences | alternating segments | F002-AC5 |
+| Case-insensitive: `"SEO"` in `"best seo tips"` | segment with `isKeyword:true` | F002-AC5 |
+| Regex special chars in keyword (`c++`) | does not throw; returns segments | F002-AC5 |
+| Empty text | returns empty or `[{text:"", isKeyword:false}]` | F002-AC5 |
+| Segments reconstruct original text | `segments.map(s=>s.text).join('') === text` | F002-AC5 |
 
 #### `formatGoogleBreadcrumb(url)`
 
-| Test ID | Input | `domain` | `breadcrumb` |
-|---|---|---|---|
-| GB-01 | `""` | `"example.com"` | `""` |
-| GB-02 | `"https://example.com"` | `"example.com"` | `""` |
-| GB-03 | `"https://www.example.com/blog/post"` | `"example.com"` | `"blog › post"` | www stripped |
-| GB-04 | `"https://myblog.com/a/b/c"` | `"myblog.com"` | `"a › b › c"` |
-| GB-05 | `"not-a-url"` | `"example.com"` | `""` |
+| Test case | Expected `domain` | Expected `breadcrumb` | AC ref |
+|-----------|-------------------|-----------------------|--------|
+| Empty string | `"example.com"` | `""` | F002-AC2 |
+| `"https://example.com"` | `"example.com"` | `""` | F002-AC2 |
+| `"https://www.example.com/blog/post"` | `"example.com"` (strips `www.`) | `"blog › post"` | F002-AC2 |
+| `"https://example.com/a/b/c"` | `"example.com"` | `"a › b › c"` | F002-AC2 |
+| Invalid URL string | `"example.com"` | `""` | F002-AC2 |
+| URL with query string | domain only; no `?` in breadcrumb | — | F002-AC2 |
 
 ---
 
 ### 2.3 `src/lib/history.ts`
 
-File: `src/lib/history.test.ts`
+**Mock boundaries**: `localStorage` — use `vitest-localstorage-mock` or inline `vi.stubGlobal`.
 
-**Mock strategy**: Use `vi.stubGlobal` to replace `localStorage` with an in-memory fake before each test; restore after.
+#### `readHistory()`
 
-| Test ID | Scenario | Expected |
-|---|---|---|
-| HI-01 | `readHistory()` when localStorage empty | `[]` |
-| HI-02 | `readHistory()` with corrupt JSON | `[]` (graceful) |
-| HI-03 | `readHistory()` with non-array JSON | `[]` |
-| HI-04 | `saveHistoryEntry(entry)` — first entry | returns entry with `id` and `timestamp` |
-| HI-05 | `saveHistoryEntry` — 20 entries then one more | oldest dropped, length === 20 | AC: F010-1 |
-| HI-06 | `saveHistoryEntry` — duplicate (same title+desc+url) | old duplicate removed, new entry at front | dedup |
-| HI-07 | `deleteHistoryEntry(id)` — existing id | entry removed from list |
-| HI-08 | `deleteHistoryEntry(id)` — non-existent id | list unchanged |
-| HI-09 | `clearHistory()` | `readHistory()` returns `[]` |
-| HI-10 | `saveHistoryEntry` when localStorage throws | returns `null` (graceful) | AC: F010-4 |
-| HI-11 | `readHistory()` when localStorage throws | `[]` (graceful) | AC: F010-4 |
+| Test case | Setup | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Empty localStorage | nothing stored | `[]` | F010-AC3 |
+| Valid JSON array | stored valid entries | parsed array | F010-AC3 |
+| Corrupt JSON | `localStorage.setItem(key, "not json")` | `[]` (no throw) | F010-AC4 |
+| Non-array JSON | `localStorage.setItem(key, '{"a":1}')` | `[]` | F010-AC4 |
+| localStorage.getItem throws | `vi.fn().mockImplementation(() => { throw new Error() })` | `[]` | F010-AC4 |
+
+#### `saveHistoryEntry(entry)`
+
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| First entry stored | `readHistory()` returns 1-element array after save | F010-AC3 |
+| Generated `id` is a string with timestamp prefix | `id` matches `/^\d+-[a-z0-9]{5}$/` | F010-AC3 |
+| `timestamp` is near `Date.now()` | `|timestamp - Date.now()| < 1000` | F010-AC3 |
+| Newest entry at index 0 | save two entries; first saved is at index 0 | F010-AC1 |
+| Deduplication: same title+desc+url | existing entry removed; new one inserted at 0 | F010-AC1 |
+| Cap at 20: saving 21st entry | array length = 20; oldest dropped | F010-AC1 |
+| localStorage throws | returns `null` (no crash) | F010-AC4 |
+
+#### `deleteHistoryEntry(id)`, `clearHistory()`
+
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Delete existing id | entry removed; others remain | F010-AC1 |
+| Delete non-existent id | no-op; no crash | F010-AC1 |
+| Delete with localStorage throws | no crash | F010-AC4 |
+| `clearHistory()` removes the key | `readHistory()` returns `[]` after | F010-AC1 |
+| `clearHistory()` with localStorage throws | no crash | F010-AC4 |
 
 #### `formatHistoryDate(timestamp)`
 
-| Test ID | Input | Expected |
-|---|---|---|
-| FD-01 | `Date.now()` | `"Just now"` |
-| FD-02 | 30 minutes ago | `"30m ago"` |
-| FD-03 | 2 hours ago | `"2h ago"` |
-| FD-04 | 3 days ago | `"3d ago"` |
-| FD-05 | 10 days ago | locale date string (e.g. `"Mar 9"`) |
+| Elapsed time | Expected output | AC ref |
+|-------------|----------------|--------|
+| < 60 seconds | `"Just now"` | F010-AC1 |
+| 1 minute exactly | `"1m ago"` | F010-AC1 |
+| 90 minutes | `"1h ago"` | F010-AC1 |
+| 23 hours | `"23h ago"` | F010-AC1 |
+| 1 day | `"1d ago"` | F010-AC1 |
+| 6 days | `"6d ago"` | F010-AC1 |
+| 7+ days | locale date string e.g. `"Jan 1"` | F010-AC1 |
 
 ---
 
-### 2.4 `src/lib/embed.ts`
+### 2.4 `src/lib/bulk.ts`
 
-File: `src/lib/embed.test.ts`
-
-#### `generateEmbedCode(options)`
-
-| Test ID | Options | Expected snippet contains |
-|---|---|---|
-| GE-01 | `{}` (defaults) | `src="…/embed"`, `width="100%"`, `height="700"` | AC: F008-1 |
-| GE-02 | `{ compactMode: true }` | `?compact=true`, `height="450"` |
-| GE-03 | `{ showScores: false }` | `?showScores=false` |
-| GE-04 | `{ showPreviews: false }` | `?showPreviews=false` |
-| GE-05 | `{ defaultTitle: "My Title" }` | `title=My+Title` (URL-encoded) |
-| GE-06 | `{ defaultTitle: "Hello World" }` | title param present |
-| GE-07 | defaults with no options set to false | no `showScores=false` or `showPreviews=false` in URL |
-| GE-08 | Always | `title="SEO Meta Preview & Scorer"`, `loading="lazy"` |
-| GE-09 | Always | `min-width: 320px`, `max-width: 100%` in style | AC: F008-4 |
-| GE-10 | "Powered by" link | widget page includes `Powered by` attribution | AC: F008-3 |
-
-#### `parseWidgetOptions(searchParams)`
-
-| Test ID | Params | Expected |
-|---|---|---|
-| PW-01 | `showScores=false` | `{ showScores: false }` |
-| PW-02 | `showPreviews=false` | `{ showPreviews: false }` |
-| PW-03 | `compact=true` | `{ compactMode: true }` |
-| PW-04 | `title=My+Title&url=https://example.com` | `{ defaultTitle: "My Title", defaultUrl: "https://example.com" }` |
-| PW-05 | empty params | `{}` |
-| PW-06 | `showScores=true` (explicit true) | `showScores` NOT set in result (only `false` triggers) |
-
-**Roundtrip test**: `parseWidgetOptions(new URLSearchParams(queryStringFrom(generateEmbedCode(opts))))` reproduces `opts` (covered in §5).
-
----
-
-### 2.5 `src/lib/bulk.ts`
-
-File: `src/lib/bulk.test.ts`
+**Mock boundaries**: `URL.createObjectURL`, `document.createElement` in `downloadCsv`.
 
 #### `parseCsv(csvText)`
 
-| Test ID | Input | Expected |
-|---|---|---|
-| PC-01 | CSV with `title,description,url` header + 1 data row | 1 `BulkInputRow` |
-| PC-02 | Missing `title` column | `[]` |
-| PC-03 | Header only, no data rows | `[]` |
-| PC-04 | Empty string | `[]` |
-| PC-05 | Quoted fields with commas | field correctly parsed |
-| PC-06 | Quoted fields with escaped double quotes (`""`) | `"` decoded correctly |
-| PC-07 | CRLF line endings | parsed correctly |
-| PC-08 | `keyword` column present | `keyword` populated |
-| PC-09 | `keyword` column absent | `keyword: undefined` |
-| PC-10 | Blank data rows skipped | filtered out |
+| Test case | Input | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Fewer than 2 lines | `"title"` | `[]` | F011-AC1 |
+| No `title` column | `"foo,bar\n1,2"` | `[]` | F011-AC1 |
+| Minimal: title only | `"title\nMy Post"` | `[{title:"My Post", description:"", url:"", keyword:undefined}]` | F011-AC1 |
+| All 4 columns, standard order | header + 1 data row | correct field mapping | F011-AC1 |
+| Columns in non-standard order (desc before title) | `"description,title\nD,T"` | `{title:"T", description:"D"}` | F011-AC1 |
+| Quoted field with comma | `'"Hello, World"'` | `"Hello, World"` | F011-AC1 |
+| Escaped double-quote `""` inside quotes | `'"Say ""hi"""'` | `'Say "hi"'` | F011-AC1 |
+| CRLF line endings | rows separated by `\r\n` | same result as `\n` | F011-AC1 |
+| Blank lines between data rows | blank lines skipped | correct row count | F011-AC1 |
+| Header case-insensitive | `"Title,Description"` | maps correctly | F011-AC1 |
+| 500 data rows | 500-line CSV | 500 rows returned | F011-AC2 |
+| 501 data rows | 501-line CSV | 501 returned (slicing done by `processBulkRows`) | F011-AC2 |
 
-#### `processBulkRows(rows)`
+#### `scoreBulkRow(row)` and `processBulkRows(rows)`
 
-| Test ID | Input | Expected |
-|---|---|---|
-| PR-01 | 1 row with perfect metadata | `overallScore === 100` |
-| PR-02 | 501 rows | only 500 processed (slice) | AC: F011-2 |
-| PR-03 | 0 rows | `[]` |
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Good title+desc+kw → all statuses `"good"` | — | F011-AC1 |
+| Empty title → `titleStatus: "error"`, `titleScore: 0` | — | F011-AC1 |
+| No keyword (`undefined`) → `keywordScore: 0` | — | F011-AC1 |
+| `overallScore` equals `calculateOverallScore(titleScore, descScore, kwScore)` | consistency | F011-AC1 |
+| 0 rows → `[]` | — | F011-AC1 |
+| 501 rows → first 500 only | — | F011-AC2 |
+| 500 rows complete in < 5000 ms | `performance.now()` delta | F011-AC2 |
 
 #### `exportResultsToCsv(results)`
 
-| Test ID | Scenario | Expected |
-|---|---|---|
-| EC-01 | Headers present | first row = `Title,Description,URL,...` |
-| EC-02 | Field with comma | wrapped in double quotes |
-| EC-03 | Field with double quote | `""` escaped |
-| EC-04 | `overallScore` column present | AC: F011-3 |
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| First row is header with expected columns | check line 0 | F011-AC3 |
+| Data rows match input | spot-check values | F011-AC3 |
+| Field with comma is quoted | `"Hello, World"` | F011-AC3 |
+| Field with `"` is escaped | `He said "hi"` → `"He said ""hi"""` | F011-AC3 |
+| Field with newline is quoted | `"line1\nline2"` | F011-AC3 |
+| Round-trip: parse CSV → score → export → re-parse | row count integrity | F011-AC3 |
 
 #### `downloadCsv(content, filename)`
 
-**Mock strategy**: `vi.spyOn(document, 'createElement')` and `URL.createObjectURL`.
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Creates `Blob` with `text/csv` MIME | spy on `Blob` constructor | F011-AC3 |
+| `<a>` element has correct `download` attribute | spy on `document.createElement` | F011-AC3 |
+| Revokes object URL after click | `URL.revokeObjectURL` called once | F011-AC3 |
+| Default filename `"seo-bulk-results.csv"` when none given | — | F011-AC3 |
 
-| Test ID | Expected |
-|---|---|
-| DC-01 | Creates `<a>` element with `download` attr |
-| DC-02 | `URL.createObjectURL` called with Blob |
-| DC-03 | `URL.revokeObjectURL` called (no memory leak) |
+---
+
+### 2.5 `src/lib/embed.ts`
+
+**Mock boundaries**: `APP.url` constant (set via `vi.mock` or configure in env).
+
+#### `generateEmbedCode(options)`
+
+| Test case | Expected in output | AC ref |
+|-----------|-------------------|--------|
+| No options → `/embed` with no query string | `src="…/embed"` (no `?`) | F008-AC1 |
+| No options → height `"700"` | `height="700"` | F008-AC1 |
+| `compactMode: true` → `?compact=true` | query param present | F008-AC1 |
+| `compactMode: true` → height `"450"` | `height="450"` | F008-AC1 |
+| `showScores: false` → `?showScores=false` | param present | F008-AC1 |
+| `showScores: true` → no `showScores` param | param absent (default is true) | F008-AC1 |
+| `showPreviews: false` → `?showPreviews=false` | param present | F008-AC1 |
+| `defaultTitle: "My Title"` → `?title=My+Title` | URL-encoded param | F008-AC1 |
+| `defaultUrl: "https://ex.com"` → encoded | URL-encoded | F008-AC1 |
+| All options combined | all params present | F008-AC1 |
+| Output contains `width="100%"` | responsive | F008-AC4 |
+| Output contains `min-width: 320px` in style | min-width spec | F008-AC4 |
+| Output contains `loading="lazy"` | performance | F008-AC1 |
+| Output has `title="SEO Meta Preview & Scorer"` | accessibility | F008-AC1 |
+
+#### `parseWidgetOptions(searchParams)`
+
+| Test case | Input params | Expected options | AC ref |
+|-----------|-------------|-----------------|--------|
+| Empty params | none | `{}` | F008-AC2 |
+| `showScores=false` | — | `{showScores: false}` | F008-AC2 |
+| `showScores=true` | — | `{}` (no explicit false) | F008-AC2 |
+| `showPreviews=false` | — | `{showPreviews: false}` | F008-AC2 |
+| `compact=true` | — | `{compactMode: true}` | F008-AC2 |
+| `title=Hello` | — | `{defaultTitle: "Hello"}` | F008-AC2 |
+| All params combined | — | all options set | F008-AC2 |
+| Unknown param | — | ignored; not in returned object | F008-AC2 |
+| Round-trip: `generateEmbedCode(opts)` → parse src URL → `parseWidgetOptions` | options preserved | F008-AC2 |
 
 ---
 
 ### 2.6 `src/lib/screenshot.ts`
 
-File: `src/lib/screenshot.test.ts`
+**Mock boundaries**: dynamic `import("html2canvas")`, `canvas.toBlob`, `URL.createObjectURL`, `document.body.appendChild`.
 
-**Mock strategy**: `vi.mock('html2canvas')` returning a fake canvas with `toBlob` and `getContext`.
-
-| Test ID | Scenario | Expected |
-|---|---|---|
-| SS-01 | Successful capture | returns `{ success: true }` | AC: F007-1 |
-| SS-02 | `toBlob` returns `null` | returns `{ success: false, error: "…" }` |
-| SS-03 | `html2canvas` throws | returns `{ success: false, error: "…" }` |
-| SS-04 | Watermark drawn | `ctx.fillText` called with text containing `"Generated by SEO Meta Preview"` | AC: F007-3 |
-| SS-05 | Watermark positioned at canvas bottom | `fillRect` y offset = `canvas.height - watermarkHeight` |
-| SS-06 | Default format is `"png"` | mime type `image/png` |
-| SS-07 | `format: "jpg"` | mime type `image/jpeg`, quality passed |
-| SS-08 | `scale` option passed to html2canvas | `scale: options.scale ?? 2` |
-| SS-09 | Download `<a>` element triggered and removed | `click()` called, `removeChild` called |
-
----
-
-### 2.7 `src/lib/utils.ts`
-
-File: (add to existing test or create `src/lib/utils.test.ts`)
-
-| Test ID | Function | Scenario |
-|---|---|---|
-| UT-01 | `cn(...)` | merges Tailwind classes, handles falsy values |
-| UT-02 | `truncate(str, n)` | strings ≤ n unchanged; > n appends `…` |
-| UT-03 | `copyToClipboard(text)` | calls `navigator.clipboard.writeText` |
-| UT-04 | `debounce(fn, ms)` | function called only once after delay |
-| UT-05 | `generateId()` | returns non-empty string |
-| UT-06 | `isBrowser()` | returns `true` in jsdom, would return `false` in Node |
-| UT-07 | `delay(ms)` | resolves after ~ms |
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| `captureAndDownload()` — happy path returns `{success: true}` | mock html2canvas + canvas | F007-AC1 |
+| `captureAndDownload()` — html2canvas called with `scale: 2` (default) | check options | F007-AC1 |
+| `captureAndDownload()` — `addWatermark` writes to canvas context | spy on `ctx.fillText` | F007-AC3 |
+| `captureAndDownload()` — `<a>.download` includes timestamp + `.png` | spy on element | F007-AC1 |
+| `captureAndDownload()` — JPEG format → `image/jpeg`, quality 0.9 | check `toBlob` args | F007-AC1 |
+| `captureAndDownload()` — `toBlob` returns null → `{success: false}` | mock null blob | F007-AC1 |
+| `captureAndDownload()` — html2canvas throws → `{success: false, error}` | mock throw | F007-AC1 |
+| `captureAndDownload()` — `URL.revokeObjectURL` called after click | spy | F007-AC1 |
+| Watermark text contains `APP.url` | spy `ctx.fillText` arg | F007-AC3 |
+| Watermark `fillRect` y-offset = `canvas.height - watermarkHeight` | geometry check | F007-AC3 |
+| Watermark `fillRect` spans full width | `fillRect` width === `canvasWidth` | F007-AC3 |
 
 ---
 
-### 2.8 `src/lib/hooks/useMetaInput.ts`
+### 2.7 Hooks
 
-File: Tested via `renderHook` in Vitest + RTL.
+#### `useMetaInput` — `src/lib/hooks/useMetaInput.ts`
 
-| Test ID | Scenario | Expected |
-|---|---|---|
-| UM-01 | Default state uses `EXAMPLES` constants | `metadata.title === EXAMPLES.title` |
-| UM-02 | `setMetadata` updates all derived scores | `titleScore`, `descriptionScore`, `overall` re-computed |
-| UM-03 | Invalid URL updates `urlValidation.valid = false` | AC: F001-3 |
-| UM-04 | Title > 50 chars → `mobileTruncation.titleTruncated = true` | AC: F004-4 |
-| UM-05 | Description > 120 chars → `mobileTruncation.descriptionTruncated = true` | AC: F004-4 |
-| UM-06 | Both within limits → `mobileTruncation.hasIssues = false` | |
-| UM-07 | `initial` prop overrides defaults | title from initial used |
+**Test env**: jsdom + `renderHook` from `@testing-library/react`
 
----
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Initial state has string fields | `title`, `description`, `url`, `keyword` exist | F001-AC4 |
+| `setTitle("")` → title is `""` | re-render | F001-AC1 |
+| `setTitle("Hello")` → `titleScore.status` updates | scoring recomputes | F004-AC1 |
+| `setDescription("…150 chars…")` → `descScore.status === "good"` | — | F004-AC2 |
+| `setKeyword("SEO")` → `keywordScore` reflects keyword check | — | F004-AC3 |
+| `setTitle` with 55 chars → `mobileTruncation.titleTruncated === true` | — | F004-AC4 |
+| `overallScore` is in `[0, 100]` for any input | — | F004-AC5 |
 
-### 2.9 `src/lib/hooks/useTheme.ts`
+#### `useScores` — `src/lib/hooks/useScores.ts`
 
-File: Tested via `renderHook`.
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Returns all four score fields | `title`, `description`, `keyword`, `overall` | F004-AC5 |
+| No keyword → `keyword.status === "error"` | — | F004-AC3 |
+| Scores consistent with `calculateOverallScore` | `overall === calculateOverallScore(...)` | F004-AC5 |
+| Memoization: same props → same object reference | `useMemo` not re-running unnecessarily | F001-AC5 |
 
-| Test ID | Scenario | Expected |
-|---|---|---|
-| UT-01 | No stored theme, system = light → initial theme `"light"` | AC: F009-1 |
-| UT-02 | No stored theme, system = dark → initial theme `"dark"` | AC: F009-1 |
-| UT-03 | Stored theme `"dark"` in localStorage → initial `"dark"` | AC: F009-4 |
-| UT-04 | `toggleTheme()` from light → `"dark"`, `"dark"` class on `<html>` | AC: F009-2 |
-| UT-05 | `toggleTheme()` persists to `localStorage` | AC: F009-4 |
-| UT-06 | `localStorage` throws on `setItem` → no crash | graceful degradation |
+#### `useTheme` — `src/lib/hooks/useTheme.ts`
 
----
+**Mock boundaries**: `localStorage`, `window.matchMedia`, `document.documentElement.classList`
 
-### 2.10 `src/lib/hooks/useHistory.ts`
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| System dark pref → initial `theme === "dark"` | `matchMedia` returns `matches: true` | F009-AC1 |
+| System light pref → initial `theme === "light"` | `matches: false` | F009-AC1 |
+| localStorage override beats system pref | stored `"light"` while system=dark | F009-AC4 |
+| Toggle light → dark → `classList.add("dark")` called | — | F009-AC2 |
+| Toggle dark → light → `classList.remove("dark")` called | — | F009-AC2 |
+| After toggle, `localStorage.setItem` called with new theme | — | F009-AC4 |
+| localStorage unavailable → falls back to system pref; no crash | `localStorage` throws | F009-AC4 |
 
-File: Tested via `renderHook` with mocked localStorage.
+#### `useHistory` — `src/lib/hooks/useHistory.ts`
 
-| Test ID | Scenario | Expected |
-|---|---|---|
-| UH-01 | Mount: reads existing history | state populated |
-| UH-02 | `save()` calls `saveHistoryEntry` | new entry in state |
-| UH-03 | `remove(id)` removes entry from state | |
-| UH-04 | `clear()` empties state | AC: F010-3 |
-| UH-05 | localStorage unavailable → state `[]` | AC: F010-4 |
-
----
-
-### 2.11 API Route: `GET /api/fetch-meta/route.ts`
-
-File: `src/app/api/fetch-meta/route.test.ts`
-
-**Mock strategy**: `vi.mock('node-fetch')` or `vi.spyOn(globalThis, 'fetch')` to return controlled HTML.
-
-| Test ID | Request | Expected response |
-|---|---|---|
-| FM-01 | No `url` param | `400 { error: "URL parameter is required" }` | AC: F012-3 |
-| FM-02 | `url=not-a-url` | `400 { error: "Invalid URL format" }` | AC: F012-3 |
-| FM-03 | `url=ftp://example.com` | `400 { error: "Only http/https…" }` |
-| FM-04 | Valid URL → upstream returns 404 | `502 { error: "Failed to fetch URL: HTTP 404" }` | AC: F012-3 |
-| FM-05 | Valid URL → upstream returns `Content-Type: application/pdf` | `400 { error: "URL does not return an HTML page" }` |
-| FM-06 | Valid URL → HTML with `<title>My Title</title>` | `200 { title: "My Title", … }` | AC: F012-1 |
-| FM-07 | HTML with meta description | `description` populated |
-| FM-08 | HTML with `og:title`, `og:description`, `og:image` | OG fields populated | AC: F012-1 |
-| FM-09 | HTML entities in title (`&amp;`, `&lt;`) | decoded in response |
-| FM-10 | `attribute-before-content` meta tag order | regex alternate branch matches |
-| FM-11 | `AbortController` fires (timeout simulation) | `504 { error: "Request timed out…" }` | AC: F012-3 |
-| FM-12 | `fetch` throws non-abort error | `502 { error: "Failed to fetch URL…" }` | AC: F012-3 |
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Mount with empty storage → `history === []` | — | F010-AC1 |
+| Mount reads existing entries from localStorage | pre-populate storage | F010-AC1 |
+| `save()` adds entry to front of `history` | — | F010-AC1 |
+| `remove(id)` removes that entry | — | F010-AC1 |
+| `clear()` empties `history` | — | F010-AC1 |
+| localStorage unavailable → `history === []`; no crash | — | F010-AC4 |
 
 ---
 
-### 2.12 API Route: `GET /api/og/route.tsx`
+## 3. Integration Tests (Component + API)
 
-File: `src/app/api/og/route.test.ts`
+### 3.1 `MetaInputForm` Component
 
-**Mock strategy**: Mock `ImageResponse` to return a fixed response object; verify the JSX structure passed to it.
+**File**: `src/components/input/MetaInputForm.test.tsx`
+**Required `data-testid` attrs**: `title-input`, `description-input`, `url-input`, `keyword-input`, `url-error`, `title-char-count`, `description-char-count`
 
-| Test ID | Params | Expected |
-|---|---|---|
-| OG-01 | No params | title defaults to `"SEO Meta Preview & Scorer"` |
-| OG-02 | `?title=Hello` | title `"Hello"` passed to ImageResponse |
-| OG-03 | `?score=85` | score `"85"` rendered; color `#22c55e` (green ≥ 80) |
-| OG-04 | `?score=60` | color `#eab308` (yellow 50-79) |
-| OG-05 | `?score=30` | color `#ef4444` (red < 50) |
-| OG-06 | `?score=85` | description block NOT rendered (score branch) |
-| OG-07 | No `score` param | description block rendered |
-| OG-08 | Response dimensions | `width: 1200, height: 630` |
+| Test case | User action | Expected DOM state | AC ref |
+|-----------|------------|-------------------|--------|
+| Renders title input | initial render | `[data-testid="title-input"]` is in document | F001-AC1 |
+| Title char count reflects typed length | type 45-char title | `[data-testid="title-char-count"]` text contains `"45"` | F001-AC1 |
+| Description char count updates | type 150-char description | counter shows `"150"` | F001-AC2 |
+| Invalid URL shows error | `userEvent.type(urlInput, "not a url")` then blur | `[data-testid="url-error"]` visible with text | F001-AC3 |
+| Valid URL clears error | change to `"https://example.com"` | error element absent | F001-AC3 |
+| Empty URL — no error shown | clear URL field | error element absent | F001-AC3 |
+| `onChange` prop called on title change | spy on callback | called with new title string | F001-AC1 |
+| All 4 inputs have accessible labels | `getByLabelText` | each input found | NFR-A11y |
+| Tab order is logical | `userEvent.tab()` sequence | focus: title → desc → url → keyword | NFR-A11y |
+
+### 3.2 `CharacterCounter` Component
+
+**File**: `src/components/input/CharacterCounter.test.tsx`
+**Required `data-testid`**: `char-counter`
+
+| Test case | Props | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Below optimal range | `{current:5, min:30, max:60}` | red/warning color class | F001-AC1 |
+| Within optimal range | `{current:45, min:30, max:60}` | green color class | F001-AC1 |
+| Between optimal and soft max | `{current:65, min:30, max:60, softMax:70}` | yellow class | F001-AC1 |
+| Above soft max | `{current:75, min:30, max:60, softMax:70}` | red class | F001-AC1 |
+| Shows `current` value | `{current:45, max:60}` | "45" in text content | F001-AC1 |
+
+### 3.3 `GoogleDesktopPreview` Component
+
+**File**: `src/components/preview/GoogleDesktopPreview.test.tsx`
+**Required `data-testid`**: `google-desktop-preview`, `google-title`, `google-url`, `google-description`
+
+| Test case | Props | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Title renders | title="Hello World" | `[data-testid="google-title"]` contains "Hello World" | F002-AC1 |
+| Title has blue colour class | render | title element has Google-blue color style/class | F002-AC1 |
+| URL displays as breadcrumb | url="https://example.com/blog/post" | shows `"example.com › blog › post"` | F002-AC2 |
+| Empty URL → fallback domain | url="" | shows `"example.com"` | F002-AC2 |
+| Title truncated at 60 chars | 70-char title | rendered text ends with `"…"` | F002-AC3 |
+| Title not truncated at exactly 60 | 60-char title | no `"…"` appended | F002-AC3 |
+| Description truncated at 160 | 200-char desc | rendered text ends with `"…"` | F002-AC4 |
+| Keyword bolded in title | title has keyword | `<strong>` or bold `<span>` around keyword | F002-AC5 |
+| Keyword bolded in description | desc has keyword | bold span in description | F002-AC5 |
+| No keyword → no bold spans | keyword="" | no `<strong>` tags | F002-AC5 |
+| Empty title renders without crash | title="" | component renders | F001-AC4 |
+
+### 3.4 `GoogleMobilePreview` Component
+
+**File**: `src/components/preview/GoogleMobilePreview.test.tsx`
+**Required `data-testid`**: `google-mobile-preview`, `google-mobile-title`, `google-mobile-description`
+
+| Test case | Props | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Container width ≤ 360px | render | element has `width: 360px` or `max-width: 360px` in style | F003-AC3 |
+| Title truncated at 50 chars | 60-char title | ends with `"…"` | F003-AC1 |
+| Title not truncated at exactly 50 | 50-char title | no `"…"` | F003-AC1 |
+| Description truncated at 120 | 150-char desc | ends with `"…"` | F003-AC2 |
+| Font size property < 20px | render | CSS font-size smaller than desktop | F003-AC4 |
+| Keyword bolded | keyword present in title | bold span present | F002-AC5 |
+
+### 3.5 `BingPreview` Component
+
+**File**: `src/components/preview/BingPreview.test.tsx`
+**Required `data-testid`**: `bing-preview`, `bing-title`, `bing-url`, `bing-description`
+
+| Test case | Props | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Title colour is Bing blue `#001ba0` | render | title element has `#001ba0` | F005-AC1 |
+| URL colour is Bing green `#006d21` | render | url element has `#006d21` | F005-AC1 |
+| Font family contains `"Segoe UI"` | render | CSS font-family of title | F005-AC1 |
+| Title truncated at 65 chars | 70-char title | ends with `"…"` | F005-AC2 |
+| Title not truncated at exactly 65 | 65-char title | no `"…"` | F005-AC2 |
+| Description truncated at 160 | 180-char desc | ends with `"…"` | F005-AC3 |
+
+### 3.6 `SocialCardPreview` Component
+
+**File**: `src/components/preview/SocialCardPreview.test.tsx`
+**Required `data-testid`**: `social-card-preview`, `og-image-placeholder`, `og-image`, `og-title`, `og-description`, `og-domain`
+
+| Test case | Props | Expected | AC ref |
+|-----------|-------|---------|--------|
+| No OG image → placeholder shown | `ogImage=""` | `[data-testid="og-image-placeholder"]` visible | F006-AC2 |
+| Placeholder mentions 1200×630 or "Add OG Image" | `ogImage=""` | placeholder text contains dimension/prompt | F006-AC2 |
+| OG image URL → `<img>` rendered | `ogImage="https://..."` | `<img src="https://...">` present | F006-AC3 |
+| Image `onError` → placeholder shown | simulate error event | placeholder appears | F006-AC3 |
+| Falls back to `title` if no `ogTitle` | `title="Page", ogTitle=""` | "Page" shown | F006-AC1 |
+| `ogTitle` takes precedence over `title` | `title="A", ogTitle="B"` | "B" shown | F006-AC1 |
+| Domain shown at bottom | `url="https://example.com"` | "example.com" in `[data-testid="og-domain"]` | F006-AC4 |
+| DOM order: image → title → desc → domain | render | correct child order | F006-AC4 |
+
+### 3.7 `ScoreDashboard` Component
+
+**File**: `src/components/scoring/ScoreDashboard.test.tsx`
+**Required `data-testid`**: `score-dashboard`, `title-score-card`, `description-score-card`, `keyword-score-card`, `overall-score`, `mobile-truncation-warning`
+
+| Test case | Props | Expected | AC ref |
+|-----------|-------|---------|--------|
+| Title `"good"` → green badge | titleScore.status="good" | green Tailwind class on title card | F004-AC1 |
+| Title `"warning"` → yellow badge | status="warning" | yellow class | F004-AC1 |
+| Title `"error"` → red badge | status="error" | red class | F004-AC1 |
+| Score message rendered | any score | `titleScore.message` text visible | F004-AC1 |
+| Overall score number shown | overallScore=85 | "85" in `[data-testid="overall-score"]` | F004-AC5 |
+| Mobile warning shown when truncated | `titleTruncated=true` | `[data-testid="mobile-truncation-warning"]` visible | F004-AC4 |
+| Mobile warning hidden when not truncated | both false | warning element absent | F004-AC4 |
+| Keyword card rendered | any keyword score | `[data-testid="keyword-score-card"]` present | F004-AC3 |
+
+### 3.8 `OverallScoreGauge` Component
+
+**File**: `src/components/scoring/OverallScoreGauge.test.tsx`
+
+| Test case | `score` prop | Expected colour indicator | AC ref |
+|-----------|-------------|--------------------------|--------|
+| Score 80–100 | 90 | green class | F004-AC5 |
+| Score 50–79 | 65 | yellow class | F004-AC5 |
+| Score 0–49 | 30 | red class | F004-AC5 |
+| Exact boundary 80 | 80 | green | F004-AC5 |
+| Exact boundary 50 | 50 | yellow | F004-AC5 |
+| Score 0 | 0 | "0" text, red | F004-AC5 |
+| Score 100 | 100 | "100" text, green | F004-AC5 |
+| Has `aria-valuenow` | any | attribute set to score value | NFR-A11y |
+
+### 3.9 `ScreenshotButton` Component
+
+**File**: `src/components/export/ScreenshotButton.test.tsx`
+**Mock**: `vi.mock('@/lib/screenshot')` → `captureAndDownload`
+
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Button renders and is accessible | `getByRole("button", {name: /screenshot/i})` | F007-AC1 |
+| Click calls `captureAndDownload` with element ref | spy resolves | called once | F007-AC1 |
+| Spinner visible during loading | mock slow promise | `[data-testid="screenshot-spinner"]` present | F007-AC4 |
+| Spinner hidden after completion | promise resolves | spinner gone | F007-AC4 |
+| Button disabled during loading | while pending | `disabled` or `aria-disabled` attr | F007-AC4 |
+| Error message on failure | mock rejects with error | error text visible | F007-AC1 |
+
+### 3.10 `EmbedCodeGenerator` Component
+
+**File**: `src/components/embed/EmbedCodeGenerator.test.tsx`
+**Required `data-testid`**: `embed-code-output`, `copy-button`, `compact-toggle`, `show-scores-toggle`, `show-previews-toggle`
+
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| `<iframe` present in initial code output | render | code contains `<iframe` | F008-AC1 |
+| Compact toggle changes height to `"450"` | click toggle | `height="450"` in code | F008-AC1 |
+| Show-scores toggle adds `showScores=false` | toggle off | param in src | F008-AC1 |
+| Copy button calls `navigator.clipboard.writeText` | click, mock clipboard | called with embed code | F008-AC1 |
+| Copy success shows feedback | mock resolves | "Copied!" or similar text | F008-AC1 |
+
+### 3.11 `HistoryPanel` Component
+
+**File**: `src/components/history/HistoryPanel.test.tsx`
+**Required `data-testid`**: `history-panel`, `history-entry`, `history-entry-title`, `history-entry-score`, `history-entry-time`, `history-entry-delete`, `history-clear-all`
+
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| Empty history → empty-state message | no localStorage entries | empty state text visible | F010-AC1 |
+| Renders up to 20 entries | 20 entries in storage | 20 `[data-testid="history-entry"]` elements | F010-AC1 |
+| Entry shows title text | mock data | title text in element | F010-AC1 |
+| Entry shows overall score | mock data | score visible | F010-AC1 |
+| Entry shows relative timestamp | mock data | time text visible | F010-AC1 |
+| Click entry → `onSelect` callback | click entry | called with correct `HistoryEntry` | F010-AC2 |
+| Delete button removes entry from DOM | click delete | entry removed | F010-AC1 |
+| Clear all removes all entries | click clear-all | no history entries remain | F010-AC1 |
+| localStorage unavailable → no crash | remove `localStorage` | graceful empty state | F010-AC4 |
+
+### 3.12 `BulkCheckPanel` Component
+
+**File**: `src/components/bulk/BulkCheckPanel.test.tsx`
+**Required `data-testid`**: `bulk-panel`, `csv-file-input`, `bulk-results-table`, `bulk-export-button`, `bulk-error`
+
+| Test case | Description | AC ref |
+|-----------|-------------|--------|
+| File input accepts `.csv` | `accept` attribute | `accept=".csv"` | F011-AC1 |
+| Upload valid 5-row CSV → table with 5 rows | mock FileReader | `bulk-results-table` has 5 rows | F011-AC1 |
+| CSV without title column → error message | upload bad CSV | `[data-testid="bulk-error"]` visible | F011-AC1 |
+| Export button calls `downloadCsv` | click, mock lib | `downloadCsv` called | F011-AC3 |
+| Empty state before upload | initial render | no table | F011-AC1 |
+| Drag-and-drop triggers same processing | mock drop event | table renders | F011-AC1 |
+
+### 3.13 API Route: `GET /api/fetch-meta`
+
+**File**: `src/app/api/fetch-meta/route.test.ts`
+**Approach**: Instantiate `NextRequest`, call handler directly, mock global `fetch`.
+
+| Test case | Request | Status | Body | AC ref |
+|-----------|---------|--------|------|--------|
+| No `url` param | `GET /api/fetch-meta` | 400 | `{error: "URL parameter is required"}` | F012-AC1 |
+| Invalid URL format | `?url=not-a-url` | 400 | `{error: "Invalid URL format"}` | F012-AC1 |
+| Non-http/https protocol (`ftp://`) | `?url=ftp://…` | 400 | `{error: "Only http/https URLs are supported"}` | F012-AC1 |
+| `javascript:` URI | `?url=javascript:alert(1)` | 400 | error | Security |
+| Upstream HTTP 404 | mock fetch → 404 | 502 | `{error: "…HTTP 404"}` | F012-AC3 |
+| Non-HTML content-type | mock → `Content-Type: application/json` | 400 | `{error: "URL does not return an HTML page"}` | F012-AC3 |
+| Abort error (timeout) | mock → throws `AbortError` | 504 | `{error: "Request timed out…"}` | F012-AC3 |
+| Network error | mock → throws generic `Error` | 502 | `{error: "Failed to fetch URL…"}` | F012-AC3 |
+| Happy path — `<title>Hello</title>` | mock → valid HTML | 200 | `{title: "Hello"}` | F012-AC1 |
+| Happy path — meta description | standard `name=description content=…` | 200 | `{description: "Desc"}` | F012-AC1 |
+| Happy path — reversed attr order | `content=… name=description` | 200 | `{description: "Desc"}` | F012-AC1 |
+| Happy path — og:title | `property="og:title" content="OG"` | 200 | `{ogTitle: "OG"}` | F012-AC1 |
+| Happy path — og:description | — | 200 | `{ogDescription: "…"}` | F012-AC1 |
+| Happy path — og:image | — | 200 | `{ogImage: "https://…"}` | F012-AC1 |
+| HTML entity: `&amp;` → `&` | `<title>A &amp; B</title>` | 200 | `{title: "A & B"}` | F012-AC1 |
+| HTML entity: `&quot;` → `"` | — | 200 | decoded | F012-AC1 |
+| HTML entity: `&#39;` → `'` | — | 200 | decoded | F012-AC1 |
+| Empty page (no meta tags) | `<html></html>` | 200 | all fields are `""` | F012-AC1 |
+| Title whitespace trimmed | `<title>  Hello  </title>` | 200 | `{title: "Hello"}` | F012-AC1 |
+| Correct User-Agent sent | spy on `fetch` call args | — | headers contain `SEO-Meta-Preview-Bot` | Security |
+
+### 3.14 API Route: `GET /api/og`
+
+**File**: `src/app/api/og/route.test.ts`
+**Note**: `ImageResponse` is hard to unit-test; use smoke tests.
+
+| Test case | Request | Expected | AC ref |
+|-----------|---------|---------|--------|
+| Valid params render without crash | `?title=Hello&score=85` | Response is not null | NFR-SEO |
+| Content-Type is `image/png` | — | `content-type: image/png` header | NFR-SEO |
 
 ---
 
-## 3. Integration Tests
+## 4. E2E Tests (Playwright)
 
-These test the full HTTP request/response cycle using Next.js test utilities or a test server. They complement the unit tests by verifying real HTTP behavior, headers, and status codes.
-
-### 3.1 `GET /api/fetch-meta`
-
-File: `e2e/api-fetch-meta.spec.ts` (Playwright API testing) or `src/app/api/fetch-meta/route.integration.test.ts`
-
-| Test ID | Scenario | Request | Expected |
-|---|---|---|---|
-| IFM-01 | Missing URL param | `GET /api/fetch-meta` | `400`, JSON body with `error` |
-| IFM-02 | Malformed URL | `GET /api/fetch-meta?url=foo` | `400` |
-| IFM-03 | Non-HTTP protocol | `GET /api/fetch-meta?url=ftp://x.com` | `400` |
-| IFM-04 | Valid HTML page (mocked upstream) | `GET /api/fetch-meta?url=https://example.com` | `200` with `title`, `description`, `ogTitle`, `ogImage`, `url` fields |
-| IFM-05 | Upstream timeout | — | `504` within 10 seconds |
-| IFM-06 | Non-HTML content type | — | `400` |
-| IFM-07 | Upstream HTTP error (e.g. 500) | — | `502` |
-| **Auth** | No auth required | All requests | No `401` or `403` |
-| **CORS** | Request from foreign origin | — | No CORS header needed (server-side proxy) |
-
-### 3.2 `GET /api/og`
-
-File: `src/app/api/og/route.integration.test.ts`
-
-| Test ID | Scenario | Request | Expected |
-|---|---|---|---|
-| IOG-01 | Default params | `GET /api/og` | `200`, `Content-Type: image/png` |
-| IOG-02 | With title and score | `GET /api/og?title=Hello&score=90` | `200`, image |
-| IOG-03 | Image dimensions | Response dimensions | 1200×630 |
-| **Auth** | No auth required | All requests | No `401` |
-| **Runtime** | Edge runtime declared | `export const runtime = "edge"` | Correct |
-
-### 3.3 `GET /embed` (Page Route)
-
-| Test ID | Scenario | Request | Expected |
-|---|---|---|---|
-| IE-01 | Default render | `GET /embed` | `200`, full HTML |
-| IE-02 | With `compact=true` | `GET /embed?compact=true` | compactMode in rendered HTML |
-| IE-03 | With pre-filled title | `GET /embed?title=My+Page` | title pre-populated in widget |
-| IE-04 | Frame headers | `GET /embed` response headers | `X-Frame-Options` NOT `DENY` (embeddable) | AC: Security checklist |
-| IE-05 | Main page frame headers | `GET /` response headers | `X-Frame-Options: DENY` | AC: Security |
-
-### 3.4 Error Scenarios (All Routes)
-
-| Test ID | Scenario | Expected |
-|---|---|---|
-| ERR-01 | `/api/fetch-meta` — URL with `javascript:` scheme | `400` or validation error |
-| ERR-02 | All JSON error responses | include `"error"` key, never stack traces |
-| ERR-03 | Extra unexpected query params | ignored gracefully (no `500`) |
-
----
-
-## 4. E2E Tests
-
-All E2E tests use **Playwright**. Files live in `e2e/`.
-
-### Page Objects
+### 4.1 Shared Page Objects
 
 ```typescript
-// e2e/pages/MainPage.ts
-class MainPage {
-  // Locators
-  titleInput       = page.getByTestId('input-title')
-  descInput        = page.getByTestId('input-description')
-  urlInput         = page.getByTestId('input-url')
-  keywordInput     = page.getByTestId('input-keyword')
-  titleCounter     = page.getByTestId('counter-title')
-  descCounter      = page.getByTestId('counter-description')
-  urlError         = page.getByTestId('error-url')
-  themeToggle      = page.getByTestId('theme-toggle')
-
+// e2e/page-objects/MainPage.ts
+export const sel = {
+  // Input
+  titleInput:       '[data-testid="title-input"]',
+  descInput:        '[data-testid="description-input"]',
+  urlInput:         '[data-testid="url-input"]',
+  keywordInput:     '[data-testid="keyword-input"]',
+  titleCharCount:   '[data-testid="title-char-count"]',
+  descCharCount:    '[data-testid="description-char-count"]',
+  urlError:         '[data-testid="url-error"]',
+  fetchButton:      '[data-testid="url-fetch-button"]',
+  fetchSpinner:     '[data-testid="fetch-spinner"]',
+  fetchError:       '[data-testid="fetch-error"]',
   // Preview tabs
-  tabGoogle        = page.getByTestId('tab-google-desktop')
-  tabMobile        = page.getByTestId('tab-google-mobile')
-  tabBing          = page.getByTestId('tab-bing')
-  tabSocial        = page.getByTestId('tab-social')
-
-  // Preview containers
-  googlePreview    = page.getByTestId('preview-google-desktop')
-  mobilePreview    = page.getByTestId('preview-google-mobile')
-  bingPreview      = page.getByTestId('preview-bing')
-  socialPreview    = page.getByTestId('preview-social')
-
-  // Score dashboard
-  titleScoreBadge  = page.getByTestId('score-title')
-  descScoreBadge   = page.getByTestId('score-description')
-  kwScoreBadge     = page.getByTestId('score-keyword')
-  overallGauge     = page.getByTestId('score-overall')
-  mobileTruncWarn  = page.getByTestId('warning-mobile-truncation')
-
-  // Screenshot
-  screenshotBtn    = page.getByTestId('btn-screenshot')
-
-  // History
-  historyPanel     = page.getByTestId('panel-history')
-  historyToggle    = page.getByTestId('btn-history-toggle')
-}
+  tabGoogleDesktop: '[data-testid="tab-google-desktop"]',
+  tabGoogleMobile:  '[data-testid="tab-google-mobile"]',
+  tabBing:          '[data-testid="tab-bing"]',
+  tabSocial:        '[data-testid="tab-social"]',
+  // Preview content
+  googleDesktop:    '[data-testid="google-desktop-preview"]',
+  googleTitle:      '[data-testid="google-title"]',
+  googleUrl:        '[data-testid="google-url"]',
+  googleDesc:       '[data-testid="google-description"]',
+  googleMobile:     '[data-testid="google-mobile-preview"]',
+  googleMobileTitle:'[data-testid="google-mobile-title"]',
+  bingPreview:      '[data-testid="bing-preview"]',
+  socialPreview:    '[data-testid="social-card-preview"]',
+  ogPlaceholder:    '[data-testid="og-image-placeholder"]',
+  // Scoring
+  overallScore:     '[data-testid="overall-score"]',
+  titleScoreCard:   '[data-testid="title-score-card"]',
+  descScoreCard:    '[data-testid="description-score-card"]',
+  keywordScoreCard: '[data-testid="keyword-score-card"]',
+  mobileWarn:       '[data-testid="mobile-truncation-warning"]',
+  // Actions
+  screenshotBtn:    '[data-testid="screenshot-button"]',
+  screenshotSpinner:'[data-testid="screenshot-spinner"]',
+  themeToggle:      '[data-testid="theme-toggle"]',
+  historyToggle:    '[data-testid="history-toggle"]',
+  historyPanel:     '[data-testid="history-panel"]',
+  historyEntry:     '[data-testid="history-entry"]',
+  historyClearAll:  '[data-testid="history-clear-all"]',
+  bulkPanel:        '[data-testid="bulk-panel"]',
+  csvFileInput:     '[data-testid="csv-file-input"]',
+  bulkResultsTable: '[data-testid="bulk-results-table"]',
+  bulkExport:       '[data-testid="bulk-export-button"]',
+  bulkError:        '[data-testid="bulk-error"]',
+  embedCodeOutput:  '[data-testid="embed-code-output"]',
+  copyButton:       '[data-testid="copy-button"]',
+  poweredByLink:    '[data-testid="powered-by-link"]',
+} as const;
 ```
 
-### Required `data-testid` Attributes
-
-The following `data-testid` values must be present in the DOM for E2E tests to function:
-
-| Component | `data-testid` |
-|---|---|
-| `MetaInputForm` → title `<input>` | `input-title` |
-| `MetaInputForm` → description `<textarea>` | `input-description` |
-| `MetaInputForm` → URL `<input>` | `input-url` |
-| `MetaInputForm` → keyword `<input>` | `input-keyword` |
-| `CharacterCounter` for title | `counter-title` |
-| `CharacterCounter` for description | `counter-description` |
-| URL validation error message | `error-url` |
-| `GoogleDesktopPreview` wrapper | `preview-google-desktop` |
-| `GoogleMobilePreview` wrapper | `preview-google-mobile` |
-| `BingPreview` wrapper | `preview-bing` |
-| `SocialCardPreview` wrapper | `preview-social` |
-| Preview tab triggers | `tab-google-desktop`, `tab-google-mobile`, `tab-bing`, `tab-social` |
-| `ScoreCard` for title | `score-title` |
-| `ScoreCard` for description | `score-description` |
-| `ScoreCard` for keyword | `score-keyword` |
-| `OverallScoreGauge` | `score-overall` |
-| `MobileTruncationWarning` | `warning-mobile-truncation` |
-| `ScreenshotButton` | `btn-screenshot` |
-| `ThemeToggle` | `theme-toggle` |
-| `HistoryPanel` | `panel-history` |
-| History toggle button | `btn-history-toggle` |
-| `EmbedCodeGenerator` textarea/pre | `embed-code-output` |
-| URL fetch button | `btn-fetch-url` |
-| URL fetch spinner | `spinner-fetch` |
-
----
-
-### 4.1 F001: Meta Input Form
-
-File: `e2e/input-form.spec.ts`
-
-**E2E-F001-01: Character counter updates in real time**
-```
-1. Navigate to /
-2. Click title input
-3. Type "Hello World" (11 chars)
-4. Assert counter shows "11"
-5. Clear and type a 60-char title
-6. Assert counter shows "60"
-```
-Covers: F001 AC-1
+### 4.2 `e2e/main-flow.spec.ts` — Primary User Journey
 
-**E2E-F001-02: Description character counter**
-```
-1. Navigate to /
-2. Type 155-char description into description textarea
-3. Assert description counter shows "155"
-```
-Covers: F001 AC-2
+Covers: **F001-AC1, AC2, AC3, AC4, AC5 · F002-AC1, AC2, AC3, AC4, AC5 · F003-AC1, AC3 · F004-AC4 · F005-AC1 · F006-AC2**
 
-**E2E-F001-03: URL validation error**
-```
-1. Navigate to /
-2. Type "not-a-url" into URL input
-3. Blur the field (Tab away)
-4. Assert error-url element is visible with error text
 ```
-Covers: F001 AC-3
+Scenario: Content creator types metadata and sees live previews
+
+Given  I navigate to /
+When   I type "10 Best SEO Tips for 2024" in the title field
+Then   the title char count shows "25"
+And    the Google Desktop preview title shows "10 Best SEO Tips for 2024"
+And    the title score card shows a green badge
 
-**E2E-F001-04: Placeholder values shown on empty form**
-```
-1. Navigate to /
-2. Assert all input fields have placeholder attributes or example content
-3. Assert google-desktop preview is visible with example title
-```
-Covers: F001 AC-4
+When   I type a 155-character description
+Then   the description char count shows "155"
+And    the description score card shows green
 
-**E2E-F001-05: All previews update on input (latency check)**
-```
-1. Navigate to /
-2. Start performance trace
-3. Type single character in title input
-4. Assert google preview title text updated
-5. Assert bing preview title text updated
-6. Assert score badge updated
-(16ms latency validated via performance API: no measurable debounce delay)
-```
-Covers: F001 AC-5
+When   I type "https://example.com/blog/seo-tips" in the URL field
+Then   the Google Desktop URL area shows "example.com › blog › seo-tips"
+And    no URL error message appears
 
----
+When   I type "SEO tips" in the keyword field
+Then   the keyword score card shows "good"
+And    "SEO" or "SEO tips" is bolded in the Google Desktop title
 
-### 4.2 F002: Google SERP Preview (Desktop)
+When   I click the Google Mobile tab
+Then   the mobile preview renders in a container ≤ 360px wide
 
-File: `e2e/previews.spec.ts`
+When   I click the Bing tab
+Then   the Bing preview renders (visually distinct blue shade)
 
-**E2E-F002-01: Title renders as blue link**
-```
-1. Fill title: "Best SEO Tips for 2024"
-2. Assert preview-google-desktop contains element with text "Best SEO Tips for 2024"
-3. Assert element has correct color class or blue styling
-```
-Covers: F002 AC-1
+When   I click the Social Card tab
+Then   the OG image placeholder is visible
 
-**E2E-F002-02: URL renders as green breadcrumb**
-```
-1. Fill URL: "https://myblog.com/seo/guide"
-2. Assert google desktop preview contains "myblog.com › seo › guide" in green
-```
-Covers: F002 AC-2
+Scenario: Placeholder values on empty load (F001-AC4)
 
-**E2E-F002-03: Title truncation at 60 chars**
-```
-1. Fill title with 80-char string
-2. Assert google desktop preview title ends with "…" (ellipsis)
-3. Assert truncated title length ≤ 61 chars (60 + ellipsis)
-```
-Covers: F002 AC-3
+Given  I navigate to / with no stored data
+Then   the previews show default example content (not blank/empty)
+And    score cards show non-zero scores
 
-**E2E-F002-04: Description truncation at 160 chars**
-```
-1. Fill description with 200-char string
-2. Assert google desktop preview description ends with "…"
-```
-Covers: F002 AC-4
+Scenario: Invalid URL validation (F001-AC3)
 
-**E2E-F002-05: Keyword bolded in preview**
-```
-1. Fill title: "Best SEO Tips for 2024", keyword: "SEO"
-2. Assert google desktop preview contains <strong> or bold element with "SEO"
-```
-Covers: F002 AC-5
+Given  I navigate to /
+When   I type "not a url" in the URL field and blur
+Then   an error message appears below the URL field
+When   I change to "https://example.com"
+Then   the error disappears
 
----
+Scenario: Title too long — truncation and score (F002-AC3, F004-AC1)
 
-### 4.3 F003: Google SERP Preview (Mobile)
+Given  I type a 75-character title
+Then   the Google Desktop preview title ends with "…"
+And    the title score card shows a red badge
+And    the score message mentions truncation
 
-File: `e2e/previews.spec.ts` (continued)
+Scenario: Mobile truncation warning (F004-AC4)
 
-**E2E-F003-01: Mobile title truncates at ~50 chars**
-```
-1. Fill title with 70-char string
-2. Click tab-google-mobile
-3. Assert mobile preview title ends with "…"
-4. Assert truncated title is shorter than desktop truncated title
+Given  I type a 55-character title
+Then   the mobile truncation warning is visible
+When   I shorten the title to 45 characters
+Then   the mobile truncation warning is hidden
 ```
-Covers: F003 AC-1
 
-**E2E-F003-02: Mobile description truncates at ~120 chars**
-```
-1. Fill description with 200-char string
-2. Click tab-google-mobile
-3. Assert mobile preview description ends with "…" before desktop equivalent
-```
-Covers: F003 AC-2
+### 4.3 `e2e/scoring.spec.ts` — Score Accuracy (F004)
 
-**E2E-F003-03: Mobile container width 360px**
-```
-1. Click tab-google-mobile
-2. Assert preview-google-mobile container has max-width / width of 360px
 ```
-Covers: F003 AC-3
+Scenario: All green (F004-AC1, AC2, AC3, AC5)
 
----
+Given  title=45 chars, description=150 chars, keyword in both
+Then   title score is "good", description score is "good", keyword score is "good"
+And    overall score ≥ 80 and shows green
 
-### 4.4 F004: SEO Score Dashboard
+Scenario: Overall score is weighted average (F004-AC5)
 
-File: `e2e/scoring.spec.ts`
+Given  title=100pts, description=100pts, no keyword (score=0)
+Then   overall score displays "80" (40+40+0=80)
 
-**E2E-F004-01: Title score colors**
-```
-1. Fill title with 45-char string → assert score-title badge is green
-2. Fill title with 65-char string → assert score-title badge is yellow
-3. Fill title with 80-char string → assert score-title badge is red
-```
-Covers: F004 AC-1
+Scenario: Title length boundary tests (F004-AC1)
 
-**E2E-F004-02: Description score colors**
-```
-1. Fill description with 140-char string → assert score-description badge is green
-2. Fill description with 175-char string → assert score-description badge is yellow
-3. Fill description with 210-char string → assert score-description badge is red
-```
-Covers: F004 AC-2
+title = 30 chars  → green badge
+title = 60 chars  → green badge
+title = 61 chars  → yellow badge
+title = 70 chars  → yellow badge
+title = 71 chars  → red badge
+title = 5 chars   → red badge
 
-**E2E-F004-03: Keyword presence feedback**
-```
-1. Fill title: "Best SEO Tips", description: "Learn SEO today", keyword: "SEO"
-2. Assert score-keyword shows green / "found in both"
-3. Clear description keyword, fill description without "SEO"
-4. Assert keyword score shows "found in title" message
-```
-Covers: F004 AC-3
+Scenario: Description length boundary tests (F004-AC2)
 
-**E2E-F004-04: Mobile truncation warning**
+desc = 119 chars  → yellow badge
+desc = 120 chars  → green badge
+desc = 160 chars  → green badge
+desc = 161 chars  → yellow badge
+desc = 201 chars  → red badge
 ```
-1. Fill title with 55-char string
-2. Assert warning-mobile-truncation is visible
-3. Shorten title to 45 chars
-4. Assert warning-mobile-truncation is not visible (or hidden)
-```
-Covers: F004 AC-4
 
-**E2E-F004-05: Overall score as weighted average**
-```
-1. Fill title with 45-char "Best SEO Guide", description with 150-char text, keyword "SEO"
-2. Read score-overall displayed value
-3. Assert it is between 0 and 100
-4. Assert overall score text equals Math.round(titleS*0.4 + descS*0.4 + kwS*0.2)
+### 4.4 `e2e/screenshot.spec.ts` — Export (F007)
+
 ```
-Covers: F004 AC-5
+Scenario: Download PNG on click (F007-AC1, AC4)
 
----
+Given  I have title + description + URL filled in
+When   I click "Download Screenshot"
+Then   a loading spinner appears
+And    within 2 seconds a file download is triggered
+And    the downloaded filename ends with ".png"
+And    the file size is > 0 bytes
 
-### 4.5 F005: Bing SERP Preview
+Scenario: Only preview area captured (F007-AC2)
 
-File: `e2e/previews.spec.ts` (continued)
+[Use page.route() to intercept html2canvas; verify element passed does not
+ include the form or score containers — check element's data-testid or
+ take a visual screenshot of the preview container only]
 
-**E2E-F005-01: Bing styling differs from Google**
-```
-1. Fill title, description, URL
-2. Assert preview-bing is visible
-3. Assert Bing preview title color is NOT the Google blue (#1a0dab) — visually different
-```
-Covers: F005 AC-1
+Scenario: Watermark appears (F007-AC3)
 
-**E2E-F005-02: Bing title truncation at 65 chars**
+[Visual test: after download, open the image blob URL and verify
+ the bottom row contains watermark text by pixel sampling or text match]
 ```
-1. Fill title with 70-char string
-2. Assert bing preview title ends with "…"
-3. Assert google desktop truncates same title (at 60) earlier than Bing
-```
-Covers: F005 AC-2
 
----
+**Note**: Use `page.waitForEvent('download')` to capture download events.
 
-### 4.6 F006: Social/OG Card Preview
+### 4.5 `e2e/embed.spec.ts` — Embeddable Widget (F008)
 
-File: `e2e/previews.spec.ts` (continued)
-
-**E2E-F006-01: Social card renders with fallback to regular title/description**
-```
-1. Fill title: "My Page", description: "My page description"
-2. Click tab-social
-3. Assert preview-social contains "My Page"
-4. Assert preview-social contains "My page description"
 ```
-Covers: F006 AC-1
+Scenario: Embed code shown at /widget (F008-AC1)
 
-**E2E-F006-02: No OG image shows placeholder**
-```
-1. Navigate to / with no OG image field filled
-2. Click tab-social
-3. Assert social preview shows "1200×630" placeholder text or "Add OG Image URL" prompt
-```
-Covers: F006 AC-2
+Given  I navigate to /widget
+Then   an <iframe> code snippet is displayed
+When   I click "Copy Code"
+Then   the clipboard contains a valid iframe tag with src containing "/embed"
 
-**E2E-F006-03: OG image URL loads image**
-```
-1. Fill OG image URL with a valid image URL
-2. Assert social card preview shows an <img> element with that src
-```
-Covers: F006 AC-3
+Scenario: Compact mode changes height (F008-AC1)
 
----
+Given  I navigate to /widget
+When   I toggle compact mode on
+Then   the embed code height attribute changes to "450"
+When   I toggle it off
+Then   height changes back to "700"
 
-### 4.7 F007: Screenshot Export
+Scenario: Widget renders at /embed (F008-AC2, AC3, AC4, AC5)
 
-File: `e2e/screenshot.spec.ts`
+Given  I navigate to /embed
+Then   the page renders without errors
+And    a "Powered by" link is visible with href containing the tool's domain
+And    the link has target="_blank"
+And    the rendered width is at least 320px
+When   I type a title in the embedded form
+Then   the preview updates (scores and previews respond)
 
-**E2E-F007-01: Download triggered on button click**
-```
-1. Fill title and description
-2. Listen for download event (Playwright download fixture)
-3. Click btn-screenshot
-4. Assert download starts within 2 seconds
-5. Assert downloaded filename matches "seo-preview-*.png"
-```
-Covers: F007 AC-1, F007 AC-4
+Scenario: X-Frame-Options headers (security + F008-AC2)
 
-**E2E-F007-02: Loading spinner during generation**
+Given  I request GET /
+Then   response header "x-frame-options" equals "DENY"
+
+Given  I request GET /embed
+Then   response does NOT include "x-frame-options: deny"
 ```
-1. Click btn-screenshot
-2. Assert loading spinner appears immediately (before download completes)
-3. Assert spinner disappears after download
+
+### 4.6 `e2e/dark-mode.spec.ts` — Dark Mode (F009)
+
 ```
-Covers: F007 AC-4
+Scenario: System dark preference applied on load (F009-AC1)
 
----
+Given  I emulate prefers-color-scheme: dark (page.emulateMedia)
+When   I navigate to /
+Then   the <html> element has class "dark"
 
-### 4.8 F008: Embeddable Widget
+Scenario: Toggle applies dark mode (F009-AC2)
 
-File: `e2e/embed.spec.ts`
+Given  I navigate to / in light mode
+When   I click the theme toggle
+Then   the <html> element gains class "dark"
+And    the change completes within 100ms (no perceptible delay)
 
-**E2E-F008-01: Embed code shown on /widget page**
-```
-1. Navigate to /widget
-2. Assert embed-code-output contains "<iframe"
-3. Assert embed code contains "https://…/embed"
-```
-Covers: F008 AC-1
+Scenario: SERP previews stay light in dark mode (F009-AC3)
 
-**E2E-F008-02: Widget renders in iframe**
-```
-1. Navigate to /embed
-2. Assert page renders without error
-3. Assert MetaInputForm is present in page
-```
-Covers: F008 AC-2, F008 AC-5
+Given  dark mode is active
+Then   the Google Desktop preview has a white background
+And    the Bing preview has a white background
 
-**E2E-F008-03: "Powered by" link present**
-```
-1. Navigate to /embed
-2. Assert page contains "Powered by" text with a link
-3. Assert link opens in new tab (target="_blank")
-```
-Covers: F008 AC-3
+Scenario: Theme persists after reload (F009-AC4)
 
-**E2E-F008-04: Widget responsive minimum width**
+Given  I toggle to dark mode
+When   I reload the page
+Then   dark mode is still active (class "dark" on <html>)
+And    there is no flash of light content before dark mode loads
 ```
-1. Navigate to /embed
-2. Assert main container has min-width: 320px style
-```
-Covers: F008 AC-4
 
-**E2E-F008-05: Pre-filled parameters pass through**
-```
-1. Navigate to /embed?title=My+Page&description=My+desc
-2. Assert title input shows "My Page"
-3. Assert description input shows "My desc"
+### 4.7 `e2e/history.spec.ts` — Recent Checks (F010)
+
 ```
-Covers: F008 AC-2 (widget functionality mirrors main tool)
+Scenario: History saves and displays (F010-AC1, AC3)
 
----
+Given  I navigate to / and fill title + description + URL
+And    history auto-saves (or I trigger save action)
+When   I open the history panel
+Then   an entry with my title appears
+And    an overall score is shown
+And    a timestamp like "Just now" is visible
 
-### 4.9 F009: Dark Mode
+Scenario: History entry reloads data (F010-AC2)
 
-File: `e2e/theme.spec.ts`
+Given  there is a history entry with title "Title A"
+When   I clear all fields and click the history entry for "Title A"
+Then   the title field repopulates with "Title A"
+And    the previews update
 
-**E2E-F009-01: System dark mode preference honored**
-```
-1. Launch Playwright with colorScheme: 'dark'
-2. Navigate to /
-3. Assert <html> element has class "dark"
-```
-Covers: F009 AC-1
+Scenario: Delete individual entry (F010-AC1)
 
-**E2E-F009-02: Theme toggle switches to dark**
-```
-1. Navigate to / (light mode)
-2. Click theme-toggle
-3. Assert <html> element has class "dark" within 100ms
-```
-Covers: F009 AC-2
+Given  there are 3 history entries
+When   I click delete on the first
+Then   2 entries remain
 
-**E2E-F009-03: SERP previews remain light in dark mode**
-```
-1. Toggle to dark mode
-2. Assert google preview background is white/light (not dark)
-3. Assert bing preview background is white/light
-```
-Covers: F009 AC-3
+Scenario: Graceful degradation (F010-AC4)
 
-**E2E-F009-04: Theme persists across page reload**
+Given  localStorage is blocked (page.addInitScript → throw on access)
+When   I navigate to /
+Then   no JavaScript errors are thrown
+And    the history panel shows empty state or is absent
 ```
-1. Click theme-toggle to switch to dark
-2. Reload page
-3. Assert <html> still has class "dark"
-```
-Covers: F009 AC-4
-
----
 
-### 4.10 F010: History / Recent Checks
+### 4.8 `e2e/bulk.spec.ts` — Bulk CSV (F011)
 
-File: `e2e/history.spec.ts`
-
-**E2E-F010-01: History entries appear after filling form**
 ```
-1. Navigate to /
-2. Fill complete metadata
-3. Toggle history panel open
-4. Assert history entry with matching title appears
-5. Assert timestamp shown
-6. Assert overall score shown
-```
-Covers: F010 AC-1
+Scenario: Upload and score CSV (F011-AC1)
 
-**E2E-F010-02: Click history entry repopulates form**
-```
-1. Complete a check (save to history)
-2. Clear the form
-3. Click history entry
-4. Assert form fields repopulated with saved values
-```
-Covers: F010 AC-2
+Given  I open the Bulk Check panel
+When   I upload a 5-row CSV with columns title,description,url,keyword
+Then   a results table appears with 5 scored rows
+And    each row shows title score, description score, and overall score
 
-**E2E-F010-03: History uses localStorage only**
-```
-1. Perform check
-2. Hard reload page (clears JS state)
-3. Assert history entry still present
-4. Assert no network request for history data
-```
-Covers: F010 AC-3
+Scenario: CSV missing title column (F011-AC1)
 
-**E2E-F010-04: Graceful degradation without localStorage**
-```
-1. Block localStorage access via page.addInitScript
-2. Navigate to /
-3. Assert tool loads without error
-4. Assert history panel either hidden or shows empty state
-```
-Covers: F010 AC-4
+Given  I upload a CSV with columns "foo,bar"
+Then   an error message appears
+And    no results table appears
 
----
+Scenario: 500-row CSV completes in time (F011-AC2)
 
-### 4.11 F011: Bulk CSV Check
+Given  I upload a 500-row CSV
+Then   all 500 rows appear in the results table
+And    the total time from upload to table render is < 5 seconds
 
-File: `e2e/bulk.spec.ts`
+Scenario: Export results (F011-AC3)
 
-**E2E-F011-01: CSV upload and scoring table**
+Given  bulk results are displayed
+When   I click "Export Results"
+Then   a file download is triggered with extension ".csv"
 ```
-1. Navigate to / (bulk check section)
-2. Upload CSV file with "title,description,url" columns and 3 rows
-3. Assert results table shows 3 rows with scores
-```
-Covers: F011 AC-1
 
-**E2E-F011-02: 500 rows processed within 5 seconds**
-```
-1. Generate CSV with 500 rows
-2. Upload file; start timer
-3. Assert results table renders within 5000ms
-```
-Covers: F011 AC-2
+### 4.9 `e2e/url-fetch.spec.ts` — URL Auto-fetch (F012)
 
-**E2E-F011-03: Export results CSV**
 ```
-1. Upload and process CSV
-2. Listen for download
-3. Click "Export Results"
-4. Assert CSV file downloaded with score columns
-```
-Covers: F011 AC-3
+Scenario: Fetch populates fields (F012-AC1, AC2)
 
----
+Given  I intercept GET /api/fetch-meta to return:
+       {title:"Fetched Title", description:"Fetched Desc", ogTitle:"", ogDescription:"", ogImage:"", url:"https://ex.com"}
+When   I type "https://ex.com" in the URL field and click "Fetch"
+Then   a loading spinner is displayed
+And    the title field populates with "Fetched Title"
+And    the description field populates with "Fetched Desc"
 
-### 4.12 F012: URL Fetch
+Scenario: Fetch error shows message (F012-AC3)
 
-File: `e2e/url-fetch.spec.ts`
+Given  /api/fetch-meta returns 502
+When   I click "Fetch"
+Then   an error message appears suggesting manual entry
+And    no data is auto-populated
 
-**E2E-F012-01: Fetch URL auto-populates form**
-```
-1. Intercept /api/fetch-meta with mock response returning title/description
-2. Fill URL fetch field with https://example.com
-3. Click btn-fetch-url
-4. Assert title input populated with mocked title
-5. Assert description input populated with mocked description
-```
-Covers: F012 AC-1
+Scenario: Timeout error (F012-AC3)
 
-**E2E-F012-02: Loading spinner during fetch**
+Given  /api/fetch-meta returns 504
+When   I click "Fetch"
+Then   a timeout error message is shown
 ```
-1. Intercept /api/fetch-meta with 500ms delayed response
-2. Click btn-fetch-url
-3. Assert spinner-fetch visible immediately
-4. Await response
-5. Assert spinner-fetch hidden
-```
-Covers: F012 AC-2
 
-**E2E-F012-03: Error state on fetch failure**
-```
-1. Intercept /api/fetch-meta with error response
-2. Click btn-fetch-url
-3. Assert error message visible suggesting manual entry
+### 4.10 `e2e/accessibility.spec.ts` — WCAG 2.2 AA (NFR)
+
 ```
-Covers: F012 AC-3
+Scenario: Axe scan — main page
 
----
+Given  I navigate to /
+Then   @axe-core/playwright reports 0 violations at WCAG 2.2 AA
 
-### 4.13 Accessibility
+Scenario: Axe scan — embed page
 
-File: `e2e/accessibility.spec.ts`
+Given  I navigate to /embed
+Then   0 axe violations
 
-**E2E-A11Y-01: Zero axe violations on home page**
-```
-1. Navigate to /
-2. Run axe-core via @axe-core/playwright
-3. Assert violations.length === 0
-```
-Covers: NFR Accessibility — WCAG 2.2 AA
+Scenario: Full keyboard navigation
 
-**E2E-A11Y-02: Zero axe violations on /embed**
-```
-1. Navigate to /embed
-2. Run axe-core
-3. Assert violations.length === 0
-```
+Given  I navigate to /
+When   I Tab through the entire page
+Then   focus visits: title → description → URL → keyword → fetch button →
+       tab list (Desktop/Mobile/Bing/Social) → screenshot button →
+       theme toggle → history toggle → bulk panel toggle
+And    every focused element has a visible focus ring
 
-**E2E-A11Y-03: Full keyboard navigation**
-```
-1. Navigate to /
-2. Press Tab repeatedly
-3. Assert every interactive element receives visible focus ring
-4. Assert all four preview tabs reachable by keyboard
-5. Assert screenshot button reachable
-6. Assert theme toggle reachable
-```
-Covers: NFR — Full keyboard navigation
+Scenario: Score gauge has ARIA attributes
 
----
+Given  I inspect the overall score gauge element
+Then   it has aria-valuenow, aria-valuemin, aria-valuemax attributes
 
-### 4.14 Performance / Non-Functional
+Scenario: Score status is announced
 
-File: `e2e/performance.spec.ts`
+Given  score status changes from good to error
+Then   the change is communicated via aria-live or role="status"
 
-**E2E-PERF-01: First Contentful Paint < 1500ms (throttled)**
-```
-1. Launch with network: 'Slow3G' via devtools
-2. Navigate to /
-3. Assert FCP from PerformanceObserver < 1500ms
+Scenario: Contrast ratio ≥ 4.5:1
+
+Given  axe scan runs with contrast rule enabled
+Then   zero color-contrast violations
 ```
-Covers: NFR Performance — FCP
+
+### 4.11 `e2e/mobile.spec.ts` — Responsive (NFR)
 
-**E2E-PERF-02: Input-to-preview latency < 16ms**
 ```
-1. Navigate to /
-2. Record performance entry before and after single keystroke in title
-3. Assert React re-render completes within 16ms (single frame)
+Scenario: 375px mobile viewport
+
+Given  viewport = 375×812 (iPhone 14)
+When   I navigate to /
+Then   no horizontal scroll bar
+And    all inputs are full-width
+And    score cards are visible
+
+Scenario: 320px minimum width at /embed
+
+Given  viewport = 320×568
+When   I navigate to /embed
+Then   no content overflows horizontally
+And    no elements are clipped
 ```
-Covers: NFR — 16ms input latency, F001 AC-5
 
 ---
 
 ## 5. Property-Based Test Candidates
 
-Use `fast-check` via Vitest. File pattern: `*.property.test.ts`.
+Use **fast-check** (`npm install -D fast-check`) for the following:
 
-### PBT-01: `truncateAtChars` — output never exceeds limit
-
-```typescript
-// File: src/lib/truncation.property.test.ts
-fc.property(fc.string(), fc.integer({ min: 1, max: 200 }), (text, maxChars) => {
-  const result = truncateAtChars(text, maxChars);
-  // Result content is never longer than maxChars characters (ellipsis is 1 char)
-  expect(result.replace('…', '').length).toBeLessThanOrEqual(maxChars);
-});
-```
-
-### PBT-02: `truncateAtChars` — input ≤ limit is returned unchanged
+### 5.1 `scoreTitle` — Score Always in `[0, 100]`
 
 ```typescript
-fc.property(fc.string({ maxLength: 60 }), (text) => {
-  expect(truncateAtChars(text, 60)).toBe(text);
-});
-```
-
-### PBT-03: `calculateOverallScore` — output always in [0, 100]
-
-```typescript
-fc.property(
-  fc.integer({ min: 0, max: 100 }),
-  fc.integer({ min: 0, max: 100 }),
-  fc.integer({ min: 0, max: 100 }),
-  (t, d, k) => {
-    const score = calculateOverallScore(t, d, k);
-    expect(score).toBeGreaterThanOrEqual(0);
-    expect(score).toBeLessThanOrEqual(100);
-    expect(Number.isInteger(score)).toBe(true);
-  }
-);
-```
-
-### PBT-04: `scoreTitle` / `scoreDescription` — score always in [0, 100]
-
-```typescript
-fc.property(fc.string(), (title) => {
+fc.assert(fc.property(fc.string(), (title) => {
   const { score } = scoreTitle(title);
-  expect(score).toBeGreaterThanOrEqual(0);
-  expect(score).toBeLessThanOrEqual(100);
-});
+  return score >= 0 && score <= 100;
+}));
+
+fc.assert(fc.property(fc.string(), (title) => {
+  const { status } = scoreTitle(title);
+  return ["good", "warning", "error"].includes(status);
+}));
 ```
 
-### PBT-05: `generateEmbedCode` + `parseWidgetOptions` roundtrip
+### 5.2 `scoreDescription` — Same Properties
 
 ```typescript
-fc.property(
+fc.assert(fc.property(fc.string(), (desc) => {
+  const { score, status } = scoreDescription(desc);
+  return score >= 0 && score <= 100 && ["good","warning","error"].includes(status);
+}));
+```
+
+### 5.3 `calculateOverallScore` — Result Always in `[0, 100]`
+
+```typescript
+fc.assert(fc.property(
+  fc.integer({min:0, max:100}),
+  fc.integer({min:0, max:100}),
+  fc.integer({min:0, max:100}),
+  (t, d, k) => {
+    const overall = calculateOverallScore(t, d, k);
+    return overall >= 0 && overall <= 100 && Number.isInteger(overall);
+  }
+));
+```
+
+### 5.4 `truncateAtChars` — Output Length Never Exceeds `maxChars + 1`
+
+```typescript
+fc.assert(fc.property(
+  fc.string(),
+  fc.integer({min:1, max:200}),
+  (text, max) => {
+    const result = truncateAtChars(text, max);
+    // At most max chars + 1 ellipsis character
+    return result.length <= max + 1;
+  }
+));
+
+// Output always starts with the first chars of input
+fc.assert(fc.property(
+  fc.string({minLength:1}),
+  fc.integer({min:1, max:200}),
+  (text, max) => {
+    const result = truncateAtChars(text, max);
+    return text.startsWith(result.replace('…', ''));
+  }
+));
+```
+
+### 5.5 `highlightKeyword` — Segments Reconstruct Original Text
+
+```typescript
+fc.assert(fc.property(
+  fc.string(),
+  fc.string(),
+  (text, keyword) => {
+    const segments = highlightKeyword(text, keyword);
+    const reconstructed = segments.map(s => s.text).join('');
+    return reconstructed === text;
+  }
+));
+```
+
+### 5.6 `parseCsv` / `exportResultsToCsv` — Row Count Round-trip
+
+```typescript
+fc.assert(fc.property(
+  fc.array(
+    fc.record({
+      title: fc.string({maxLength: 100}),
+      description: fc.string({maxLength: 200}),
+      url: fc.constant('https://example.com'),
+      keyword: fc.option(fc.string({maxLength: 30}), {nil: undefined}),
+    }),
+    {minLength: 1, maxLength: 50}
+  ),
+  (rows) => {
+    const scored = processBulkRows(rows);
+    const csv = exportResultsToCsv(scored);
+    const lines = csv.trim().split('\n');
+    return lines.length === rows.length + 1; // header + data rows
+  }
+));
+```
+
+### 5.7 `generateEmbedCode` / `parseWidgetOptions` — Serialization Round-trip
+
+```typescript
+fc.assert(fc.property(
   fc.record({
-    showScores: fc.option(fc.constant(false)),
-    showPreviews: fc.option(fc.constant(false)),
-    compactMode: fc.option(fc.constant(true)),
-    defaultTitle: fc.option(fc.string({ maxLength: 100 })),
+    showScores:   fc.boolean(),
+    showPreviews: fc.boolean(),
+    compactMode:  fc.boolean(),
   }),
   (opts) => {
     const code = generateEmbedCode(opts);
     const srcMatch = code.match(/src="([^"]+)"/);
-    const src = srcMatch?.[1] ?? '';
-    const url = new URL(src);
-    const parsed = parseWidgetOptions(url.searchParams);
-    // Options that were explicitly set should roundtrip
-    if (opts.showScores === false) expect(parsed.showScores).toBe(false);
-    if (opts.showPreviews === false) expect(parsed.showPreviews).toBe(false);
-    if (opts.compactMode === true) expect(parsed.compactMode).toBe(true);
+    if (!srcMatch) return false;
+    const parsed = parseWidgetOptions(new URL(srcMatch[1]).searchParams);
+    if (opts.showScores === false && parsed.showScores !== false) return false;
+    if (opts.showPreviews === false && parsed.showPreviews !== false) return false;
+    if (opts.compactMode === true && parsed.compactMode !== true) return false;
+    return true;
   }
-);
+));
 ```
 
-### PBT-06: `parseCsv` — never throws on arbitrary string input
+### 5.8 `formatHistoryDate` — Always Returns Non-Empty String
 
 ```typescript
-fc.property(fc.string(), (csv) => {
-  expect(() => parseCsv(csv)).not.toThrow();
-});
-```
-
-### PBT-07: `exportResultsToCsv` — output is valid CSV (row count matches)
-
-```typescript
-fc.property(fc.array(fc.record({ title: fc.string(), description: fc.string(), url: fc.string() }), { maxLength: 20 }), (rows) => {
-  const results = processBulkRows(rows);
-  const csv = exportResultsToCsv(results);
-  const lines = csv.split('\n');
-  expect(lines.length).toBe(results.length + 1); // +1 for header
-});
-```
-
-### PBT-08: `validateUrl` — accepts all valid http/https URLs constructed by `new URL()`
-
-```typescript
-fc.property(fc.webUrl(), (url) => {
-  // fast-check webUrl() always produces valid URLs
-  expect(validateUrl(url).valid).toBe(true);
-});
-```
-
-### PBT-09: `formatGoogleBreadcrumb` — never throws on arbitrary string
-
-```typescript
-fc.property(fc.string(), (url) => {
-  expect(() => formatGoogleBreadcrumb(url)).not.toThrow();
-});
-```
-
-### PBT-10: `highlightKeyword` — segments reconstruct original text
-
-```typescript
-fc.property(fc.string(), fc.string({ maxLength: 20 }), (text, keyword) => {
-  const segments = highlightKeyword(text, keyword);
-  const reconstructed = segments.map(s => s.text).join('');
-  expect(reconstructed).toBe(text);
-});
+fc.assert(fc.property(
+  fc.integer({min: 0, max: Date.now()}),
+  (timestamp) => formatHistoryDate(timestamp).length > 0
+));
 ```
 
 ---
 
-## 6. Per-Module Coverage Targets
+## 6. Acceptance Criterion → Test Mapping
 
-| Module | Target | Rationale |
-|---|---|---|
-| `src/lib/scoring.ts` | **100%** | Pure functions, critical business logic, every branch maps to AC |
-| `src/lib/truncation.ts` | **100%** | Pure functions, all SERP platforms covered, ACs are exact char boundaries |
-| `src/lib/history.ts` | **95%** | localStorage error paths partially untestable; graceful-degradation branches covered |
-| `src/lib/embed.ts` | **100%** | Pure functions, simple branching |
-| `src/lib/bulk.ts` | **95%** | `downloadCsv` requires browser DOM; tested via mocks |
-| `src/lib/screenshot.ts` | **85%** | `html2canvas` is mocked; watermark drawing logic fully covered |
-| `src/lib/utils.ts` | **90%** | `isBrowser()` SSR branch only exercisable in non-jsdom env |
-| `src/lib/hooks/useMetaInput.ts` | **90%** | All derived state paths; initial override path |
-| `src/lib/hooks/useScores.ts` | **90%** | Thin `useMemo` wrapper; covered by `useMetaInput` tests |
-| `src/lib/hooks/useTheme.ts` | **90%** | localStorage failure path; SSR guard (`typeof window`) |
-| `src/lib/hooks/useHistory.ts` | **90%** | Covered by hook + localStorage mocks |
-| `src/app/api/og/route.tsx` | **90%** | Score color branches + description/score toggle |
-| `src/app/api/fetch-meta/route.ts` | **95%** | All error branches; HTML entity decoding; both meta attribute orders |
-| `src/components/input/MetaInputForm.tsx` | **90%** | Render, input events, counter display, URL error state |
-| `src/components/input/CharacterCounter.tsx` | **95%** | Color thresholds for each counter variant |
-| `src/components/preview/GoogleDesktopPreview.tsx` | **90%** | Title/desc render, truncation, keyword bolding, breadcrumb |
-| `src/components/preview/GoogleMobilePreview.tsx` | **90%** | Mobile-specific limits, container width |
-| `src/components/preview/BingPreview.tsx` | **90%** | Bing-specific styling and truncation |
-| `src/components/preview/SocialCardPreview.tsx` | **90%** | OG fallback, image placeholder, image load |
-| `src/components/scoring/ScoreDashboard.tsx` | **90%** | Color variants, mobile warning visibility |
-| `src/components/scoring/OverallScoreGauge.tsx` | **90%** | Gauge value range, color coding |
-| `src/components/scoring/ScoreCard.tsx` | **90%** | All three status color variants |
-| `src/components/export/ScreenshotButton.tsx` | **85%** | Click handler, loading state, error state |
-| `src/components/embed/EmbedCodeGenerator.tsx` | **85%** | Code generation, copy to clipboard |
-| `src/components/embed/WidgetWrapper.tsx` | **85%** | Compact mode, Powered By link |
-| `src/components/history/HistoryPanel.tsx` | **85%** | Entry list, click-to-restore, clear |
-| `src/components/bulk/BulkCheckPanel.tsx` | **80%** | Upload, results table, export |
+Every acceptance criterion from SPEC.md §3 maps to at least one test.
 
-### Overall Project Target
-
-| Layer | Line Coverage | Branch Coverage |
-|---|---|---|
-| `src/lib/**` | **≥ 95%** | **≥ 90%** |
-| `src/components/**` | **≥ 85%** | **≥ 80%** |
-| `src/app/api/**` | **≥ 90%** | **≥ 85%** |
-| **Combined** | **≥ 90%** | **≥ 85%** |
-
----
-
-## 7. Acceptance Criteria Traceability Matrix
-
-Every acceptance criterion from SPEC.md §3 maps to at least one test ID below.
-
-| Feature | Acceptance Criterion | Test IDs |
-|---|---|---|
-| **F001** | Title char count updates in real-time | E2E-F001-01, UM-02 |
-| **F001** | Description char count updates in real-time | E2E-F001-02, UM-02 |
-| **F001** | Invalid URL shows error | VU-04, VU-05, UM-03, E2E-F001-03 |
-| **F001** | Empty fields show placeholder values | E2E-F001-04, UM-01 |
-| **F001** | Input-to-preview latency < 16ms | E2E-F001-05, E2E-PERF-02 |
-| **F002** | Title as blue link in Google font 20px | E2E-F002-01 |
-| **F002** | URL as green breadcrumb | GB-01–05, E2E-F002-02 |
-| **F002** | Title > 60 chars truncates with ellipsis | TA-03, TA-04, E2E-F002-03 |
-| **F002** | Description > 160 chars truncates | truncateGoogleDesktopDescription tests, E2E-F002-04 |
-| **F002** | Keyword bolded in preview | HK-02–04, E2E-F002-05 |
-| **F003** | Mobile title truncates at ~50 chars | truncateGoogleMobileTitle tests, E2E-F003-01 |
-| **F003** | Mobile description truncates at ~120 chars | truncateGoogleMobileDescription tests, E2E-F003-02 |
-| **F003** | Mobile-width container 360px | E2E-F003-03 |
-| **F003** | Font sizes match Google mobile SERP | E2E-F003-03 (computed style check) |
-| **F004** | Title score green/yellow/red with feedback | ST-04–11, E2E-F004-01 |
-| **F004** | Description score green/yellow/red | SD-04–09, E2E-F004-02 |
-| **F004** | Keyword presence in title/desc/both/neither | SK-01–10, E2E-F004-03 |
-| **F004** | Mobile truncation warning | CM-01–05, UM-04–06, E2E-F004-04 |
-| **F004** | Overall score weighted 40/40/20 shown 0-100 | CO-01–06, PBT-03, E2E-F004-05 |
-| **F005** | Bing styling differs from Google | E2E-F005-01 |
-| **F005** | Bing title truncates at 65 chars | truncateBingTitle tests, E2E-F005-02 |
-| **F005** | Bing description truncates at ~160 chars | truncateBingDescription tests |
-| **F006** | Social card with OG or fallback to title/desc | E2E-F006-01 |
-| **F006** | No OG image shows placeholder | E2E-F006-02 |
-| **F006** | Valid OG image URL loads in preview | E2E-F006-03 |
-| **F006** | Facebook/LinkedIn card format | E2E-F006-01 (layout assertions) |
-| **F007** | Click Download → PNG downloaded | SS-01, E2E-F007-01 |
-| **F007** | Image contains only preview area | E2E-F007-01 (download target element) |
-| **F007** | Watermark at bottom | SS-04, SS-05, E2E-F007-01 |
-| **F007** | Loading spinner, completes < 2s | E2E-F007-02 |
-| **F008** | "Get Embed Code" shows copyable snippet | GE-01–09, E2E-F008-01 |
-| **F008** | Embed code renders compact tool in iframe | E2E-F008-02 |
-| **F008** | "Powered by" link opens new tab | GE-10, E2E-F008-03 |
-| **F008** | Responsive min-width 320px / max 100% | GE-09, E2E-F008-04 |
-| **F008** | Widget interactions identical to main tool | E2E-F008-05 |
-| **F009** | System dark mode honored on load | UT-02, E2E-F009-01 |
-| **F009** | Toggle light → dark within 100ms | UT-04, E2E-F009-02 |
-| **F009** | SERP previews always light in dark mode | E2E-F009-03 |
-| **F009** | Theme persisted via localStorage | UT-05, E2E-F009-04 |
-| **F010** | Last 20 checks listed with title/score/ts | HI-04, HI-05, E2E-F010-01 |
-| **F010** | Click entry repopulates form | E2E-F010-02 |
-| **F010** | Uses localStorage only | HI-01–09, E2E-F010-03 |
-| **F010** | Graceful degradation without localStorage | HI-10, HI-11, E2E-F010-04 |
-| **F011** | CSV columns scored, results in table | PC-01–10, PR-01, E2E-F011-01 |
-| **F011** | 500 rows within 5 seconds | PR-02, E2E-F011-02 |
-| **F011** | Export results CSV | EC-01–04, DC-01–03, E2E-F011-03 |
-| **F012** | URL fetch populates title/desc/OG | FM-06–10, IFM-04, E2E-F012-01 |
-| **F012** | Spinner during fetch | E2E-F012-02 |
-| **F012** | Error message on CORS/timeout | FM-11, FM-12, IFM-05, E2E-F012-03 |
-| **NFR: Performance** | FCP < 1.5s on 3G | E2E-PERF-01 |
-| **NFR: Performance** | Input latency < 16ms | E2E-PERF-02 |
-| **NFR: Accessibility** | WCAG 2.2 AA | E2E-A11Y-01, E2E-A11Y-02 |
-| **NFR: Accessibility** | Full keyboard navigation | E2E-A11Y-03 |
-| **NFR: Security** | Main site X-Frame-Options: DENY | IE-05 |
-| **NFR: Security** | /embed embeddable (no X-Frame-Options deny) | IE-04 |
-| **NFR: Security** | No data transmitted to server | E2E-F010-03 (network assertions) |
+| AC ID | Description | Unit test | Integration test | E2E test |
+|-------|-------------|-----------|-----------------|---------|
+| F001-AC1 | Title char count updates in real-time | — | `MetaInputForm` title change | `main-flow.spec` |
+| F001-AC2 | Description char count updates | — | `MetaInputForm` desc change | `main-flow.spec` |
+| F001-AC3 | Invalid URL shows validation error | `validateUrl` all cases | `MetaInputForm` url-error | `main-flow.spec` |
+| F001-AC4 | Placeholder values on empty load | — | `GoogleDesktopPreview` empty | `main-flow.spec` |
+| F001-AC5 | Previews update within 16ms | `useScores` (sync) | — | `scoring.spec` timing |
+| F002-AC1 | Title as blue link, correct font | — | `GoogleDesktopPreview` colour | `previews.spec` |
+| F002-AC2 | URL as green breadcrumb | `extractDomain`, `formatGoogleBreadcrumb` | `GoogleDesktopPreview` URL | `main-flow.spec` |
+| F002-AC3 | Title >60 chars truncated with `…` | `truncateGoogleDesktopTitle` BVT | `GoogleDesktopPreview` | `main-flow.spec` |
+| F002-AC4 | Description >160 chars truncated | `truncateGoogleDesktopDescription` BVT | `GoogleDesktopPreview` | `previews.spec` |
+| F002-AC5 | Keyword bolded in preview | `highlightKeyword` all cases | `GoogleDesktopPreview` bold span | `main-flow.spec` |
+| F003-AC1 | Mobile title truncates at ~50 | `truncateGoogleMobileTitle` BVT | `GoogleMobilePreview` | `main-flow.spec` |
+| F003-AC2 | Mobile description truncates at ~120 | `truncateGoogleMobileDescription` BVT | `GoogleMobilePreview` | `previews.spec` |
+| F003-AC3 | Mobile 360px container | — | `GoogleMobilePreview` CSS | `mobile.spec` |
+| F003-AC4 | Mobile font sizes match spec | — | `GoogleMobilePreview` style | `previews.spec` |
+| F004-AC1 | Title score green/yellow/red with feedback | `scoreTitle` BVT | `ScoreDashboard` badge colours | `scoring.spec` |
+| F004-AC2 | Description score green/yellow/red | `scoreDescription` BVT | `ScoreDashboard` | `scoring.spec` |
+| F004-AC3 | Keyword presence score | `scoreKeywordPresence` all cases | `ScoreDashboard` keyword card | `scoring.spec` |
+| F004-AC4 | Mobile truncation warning | `checkMobileTruncation` BVT | `MobileTruncationWarning` | `main-flow.spec` |
+| F004-AC5 | Overall = weighted avg 40/40/20 | `calculateOverallScore` all cases | `OverallScoreGauge` | `scoring.spec` |
+| F005-AC1 | Bing styling: Segoe UI, diff blue, diff URL | — | `BingPreview` colour/font | `previews.spec` |
+| F005-AC2 | Bing title truncates at 65 | `truncateBingTitle` BVT | `BingPreview` | `previews.spec` |
+| F005-AC3 | Bing description truncates at ~160 | `truncateBingDescription` BVT | `BingPreview` | `previews.spec` |
+| F006-AC1 | Social card shows title/desc/domain | — | `SocialCardPreview` | `main-flow.spec` |
+| F006-AC2 | No OG image → placeholder with dimensions | — | `SocialCardPreview` no-image | `main-flow.spec` |
+| F006-AC3 | OG image URL → image loads; error → placeholder | — | `SocialCardPreview` with-image | `previews.spec` |
+| F006-AC4 | Facebook/LinkedIn card format (order) | — | `SocialCardPreview` DOM order | `previews.spec` |
+| F007-AC1 | PNG download on click | `captureAndDownload` mock | `ScreenshotButton` | `screenshot.spec` |
+| F007-AC2 | Only preview area captured | element ref check | — | `screenshot.spec` visual |
+| F007-AC3 | Watermark at bottom of image | `addWatermark` geometry | `ScreenshotButton` | `screenshot.spec` |
+| F007-AC4 | Spinner shows; completes within 2s | — | `ScreenshotButton` loading state | `screenshot.spec` |
+| F008-AC1 | Embed code snippet copyable | `generateEmbedCode` | `EmbedCodeGenerator` | `embed.spec` |
+| F008-AC2 | iframe renders tool at /embed | `parseWidgetOptions` | `WidgetWrapper` | `embed.spec` |
+| F008-AC3 | "Powered by" link in widget | — | — | `embed.spec` /embed page |
+| F008-AC4 | Responsive: min 320px, max 100% | `generateEmbedCode` style check | — | `embed.spec`, `mobile.spec` |
+| F008-AC5 | Widget previews+scores identical to main | — | `WidgetWrapper` renders | `embed.spec` |
+| F009-AC1 | System dark pref → dark mode on load | `useTheme` matchMedia | — | `dark-mode.spec` |
+| F009-AC2 | Toggle switches theme within 100ms | `useTheme` toggle | — | `dark-mode.spec` |
+| F009-AC3 | SERP previews always in light theme | — | Preview components in dark ctx | `dark-mode.spec` |
+| F009-AC4 | Theme persists via localStorage | `useTheme` storage | — | `dark-mode.spec` |
+| F010-AC1 | Last 20 checks listed w/ title+score+time | `saveHistoryEntry`, `readHistory` | `HistoryPanel` | `history.spec` |
+| F010-AC2 | Click entry repopulates form | — | `HistoryPanel` onSelect | `history.spec` |
+| F010-AC3 | Uses localStorage (no server) | all history fns | `useHistory` hook | `history.spec` |
+| F010-AC4 | Graceful degradation when localStorage fails | error cases in all history fns | `HistoryPanel` no-storage | `history.spec` |
+| F011-AC1 | CSV rows scored and shown in table | `parseCsv`, `scoreBulkRow`, `processBulkRows` | `BulkCheckPanel` | `bulk.spec` |
+| F011-AC2 | 500 rows in < 5 seconds | `processBulkRows` perf test | `BulkCheckPanel` | `bulk.spec` |
+| F011-AC3 | Export CSV downloads with scores | `exportResultsToCsv`, `downloadCsv` | `BulkCheckPanel` export btn | `bulk.spec` |
+| F012-AC1 | URL fetch populates title+desc+OG fields | `fetch-meta` route happy paths | `UrlFetchButton` | `url-fetch.spec` |
+| F012-AC2 | Spinner shown during fetch | — | `UrlFetchButton` loading state | `url-fetch.spec` |
+| F012-AC3 | Error shown on CORS/timeout/failure | `fetch-meta` route error paths | `UrlFetchButton` error | `url-fetch.spec` |
 
 ---
 
-*Last updated: 2026-03-19*
+## 7. Per-Module Coverage Targets
+
+| Module | Line % | Branch % | Rationale |
+|--------|--------|----------|-----------|
+| `src/lib/scoring.ts` | **100%** | **100%** | Core business logic; pure functions; all branches reachable |
+| `src/lib/truncation.ts` | **100%** | **100%** | Pure string logic; SERP accuracy is safety-critical |
+| `src/lib/history.ts` | **95%** | **90%** | `localStorage` catch blocks tested; minor defensive combos low-value |
+| `src/lib/bulk.ts` | **95%** | **95%** | CSV parsing is complex; all quoted-field paths required |
+| `src/lib/embed.ts` | **100%** | **100%** | Simple pure functions; full coverage is trivial |
+| `src/lib/screenshot.ts` | **80%** | **75%** | Dynamic import + canvas I/O limits testability |
+| `src/lib/utils.ts` | **90%** | **85%** | Defensive null checks in minor utilities are low-value |
+| `src/lib/hooks/useMetaInput.ts` | **90%** | **85%** | Tested via `renderHook` |
+| `src/lib/hooks/useScores.ts` | **95%** | **90%** | Derived-state; nearly pure |
+| `src/lib/hooks/useTheme.ts` | **90%** | **85%** | DOM side-effects, matchMedia mocking |
+| `src/lib/hooks/useHistory.ts` | **90%** | **85%** | localStorage error branches |
+| `src/components/input/**` | **85%** | **80%** | UI behaviour |
+| `src/components/preview/**` | **85%** | **80%** | Rendering + truncation |
+| `src/components/scoring/**` | **85%** | **80%** | Score display logic |
+| `src/components/export/**` | **80%** | **75%** | html2canvas dependency limits |
+| `src/components/history/**` | **80%** | **75%** | localStorage + interaction |
+| `src/components/bulk/**` | **80%** | **75%** | File upload mocking complexity |
+| `src/components/embed/**` | **85%** | **80%** | Code generation + clipboard |
+| `src/app/api/fetch-meta/route.ts` | **95%** | **90%** | All error branches + happy paths |
+| `src/app/api/og/route.ts` | **70%** | **60%** | `ImageResponse` is not easily introspectable |
+| **Overall project** | **≥ 85%** | **≥ 80%** | Vitest coverage gate in CI |
+
+---
+
+## 8. Non-Functional Test Coverage
+
+### Performance
+
+| Test | Method | Threshold |
+|------|--------|-----------|
+| First-load JS bundle < 80KB gzipped | Parse `.next/build-manifest.json` in CI | < 80 KB |
+| html2canvas NOT in first-load bundle | Chunk analysis via `next build` output | Not in first chunk |
+| Input-to-render latency < 16ms | Playwright: `performance.mark` around type → DOM update | < 16 ms |
+| Lighthouse Performance ≥ 95 | `@lhci/cli` against production URL | ≥ 95 |
+| FCP < 1.5s on simulated 3G | Playwright `throttleDownload` / Lighthouse | < 1500 ms |
+| 500-row bulk scoring < 5s | `processBulkRows` unit perf test | < 5000 ms |
+
+### Security
+
+| Check | How |
+|-------|-----|
+| `X-Frame-Options: DENY` on `/` | E2E header assertion + API route test |
+| `/embed` has no `X-Frame-Options: DENY` | E2E header assertion |
+| `X-Content-Type-Options: nosniff` everywhere | API integration tests |
+| No `dangerouslySetInnerHTML` | `grep -r dangerouslySetInnerHTML src/` in CI (should return 0 lines) |
+| XSS: title `<script>alert(1)</script>` renders as text | E2E: type payload → verify no alert, rendered as literal text |
+| Keyword regex chars (`c++`, `(java)`, `[test]`) don't throw | `highlightKeyword` unit tests |
+| API rejects non-http/https protocols | `fetch-meta` route integration tests |
+| `javascript:` URI rejected | `validateUrl` unit + `fetch-meta` route test |
+
+### Accessibility (WCAG 2.2 Level AA)
+
+| Test | Tool |
+|------|------|
+| Zero axe violations on all pages | `@axe-core/playwright` in `accessibility.spec.ts` |
+| Colour contrast ≥ 4.5:1 | axe rule `color-contrast` |
+| All inputs have labels | axe rule `label` |
+| Focus visible on all interactive elements | Manual Playwright keyboard nav |
+| Score gauge has ARIA value attributes | component unit test |
+| Score status announced via `aria-live` or `role="status"` | component unit test |
+
+---
+
+## 9. Test Fixtures
+
+Extend `src/test/fixtures/meta-samples.ts` with the following:
+
+```typescript
+// Boundary-value title fixtures (maps to SCORING.title thresholds)
+export const TITLES = {
+  empty:       "",
+  tooShort:    "Short",             // 5 chars
+  boundary9:   "123456789",         // 9 chars (error)
+  boundary10:  "1234567890",        // 10 chars (good start)
+  optimal30:   "A".repeat(30),
+  optimal45:   "A".repeat(45),
+  boundary60:  "A".repeat(60),      // good end
+  warning61:   "A".repeat(61),      // warning start
+  warning70:   "A".repeat(70),      // warning end
+  error71:     "A".repeat(71),      // error start
+  tooLong200:  "A".repeat(200),
+};
+
+// Boundary-value description fixtures (maps to SCORING.description thresholds)
+export const DESCRIPTIONS = {
+  empty:       "",
+  tooShort:    "Short desc",
+  boundary119: "A".repeat(119),     // warning end
+  boundary120: "A".repeat(120),     // good start
+  boundary160: "A".repeat(160),     // good end
+  warning161:  "A".repeat(161),     // warning start
+  warning200:  "A".repeat(200),     // warning end
+  error201:    "A".repeat(201),     // error start
+  tooLong500:  "A".repeat(500),
+};
+
+// URL fixtures
+export const URLS = {
+  empty:      "",
+  valid:      "https://example.com",
+  withPath:   "https://example.com/blog/my-post",
+  withQuery:  "https://example.com/search?q=seo&page=2",
+  http:       "http://example.com",
+  invalid:    "not a url",
+  ftp:        "ftp://example.com",
+  javascript: "javascript:alert(1)",
+  dataUri:    "data:text/html,<h1>hi</h1>",
+};
+
+// Keyword fixtures
+export const KEYWORDS = {
+  empty:      "",
+  single:     "SEO",
+  multiWord:  "SEO tips",
+  withPlus:   "c++",
+  withParens: "(java)",
+  withBracket:"[regex]",
+  unicode:    "référencement",
+};
+
+// Complete good metadata (all green scores expected)
+export const FULL_META_GOOD = {
+  title:       "10 Best SEO Tips for Content Creators in 2024",  // 47 chars
+  description: "Discover the top SEO strategies that will help you rank higher in search results, drive more organic traffic, and grow your audience in 2024.", // 145 chars
+  url:         "https://example.com/blog/seo-tips-2024",
+  keyword:     "SEO tips",
+};
+
+// Complete bad metadata (all red scores expected)
+export const FULL_META_BAD = {
+  title:       "A",
+  description: "Short",
+  url:         "bad-url",
+  keyword:     "blockchain",
+};
+
+// CSV string fixtures for bulk tests
+export const CSV = {
+  minimal:        `title\nMy Page Title`,
+  noTitleColumn:  `foo,bar\n1,2`,
+  fullHeader:     `title,description,url,keyword`,
+  validFiveRows:  [
+    "title,description,url,keyword",
+    ...Array(5).fill(
+      `${TITLES.optimal45},${"A".repeat(145)},https://example.com,SEO tips`
+    )
+  ].join("\n"),
+  quotedFields:   `title,description\n"Hello, World","He said ""hi"""`,
+  crlfLineEndings: `title,description\r\nPost 1,Desc 1\r\nPost 2,Desc 2`,
+  fiveHundredRows: [
+    "title,description,url,keyword",
+    ...Array(500).fill(
+      `${TITLES.optimal45},${"A".repeat(145)},https://example.com,SEO`
+    )
+  ].join("\n"),
+};
+
+// HTML strings for fetch-meta route tests
+export const HTML = {
+  withAllMeta: `<html><head>
+    <title>My Page Title</title>
+    <meta name="description" content="My page description">
+    <meta property="og:title" content="OG Title">
+    <meta property="og:description" content="OG Description">
+    <meta property="og:image" content="https://example.com/image.jpg">
+  </head></html>`,
+  empty:       `<html><head></head><body></body></html>`,
+  withEntities:`<html><head><title>A &amp; B &quot;quoted&quot;</title></head></html>`,
+  reversedAttrs: `<html><head>
+    <meta content="Reversed Desc" name="description">
+  </head></html>`,
+};
+```
+
+---
+
+## 10. Mock Strategy
+
+| Dependency | Strategy | Affected test files |
+|-----------|---------|---------------------|
+| `localStorage` | `vitest-localstorage-mock` in `src/test/setup.ts` | `history.test.ts`, `useHistory.test.ts`, `useTheme.test.ts`, `HistoryPanel.test.tsx` |
+| `window.matchMedia` | `vi.stubGlobal('matchMedia', fn)` in setup | `useTheme.test.ts` |
+| `html2canvas` | `vi.mock('html2canvas', () => ({default: vi.fn().mockResolvedValue(mockCanvas)}))` | `screenshot.test.ts`, `ScreenshotButton.test.tsx` |
+| `URL.createObjectURL` | `vi.stubGlobal('URL', {...URL, createObjectURL: vi.fn(() => 'blob:…'), revokeObjectURL: vi.fn()})` | `bulk.test.ts`, `screenshot.test.ts` |
+| `navigator.clipboard` | `vi.stubGlobal('navigator', {clipboard: {writeText: vi.fn().mockResolvedValue(undefined)}})` | `EmbedCodeGenerator.test.tsx` |
+| `global.fetch` (API routes) | `vi.stubGlobal('fetch', vi.fn())` — configured per test | `fetch-meta/route.test.ts` |
+| `/api/fetch-meta` (E2E) | `page.route('/api/fetch-meta**', handler)` | `url-fetch.spec.ts` |
+| System time | `vi.useFakeTimers(); vi.setSystemTime(new Date(...))` | `history.test.ts` (formatHistoryDate) |
+| `FileReader` | Mock class in `BulkCheckPanel.test.tsx` via `Object.defineProperty` | `BulkCheckPanel.test.tsx` |
+| `prefers-color-scheme` (E2E) | `page.emulateMedia({colorScheme: 'dark'})` | `dark-mode.spec.ts` |
+
+---
+
+## 11. `data-testid` Attribute Checklist
+
+All interactive and observable elements need `data-testid` before E2E tests run. Required additions:
+
+```
+Input Form
+  ✅ data-testid="title-input"
+  ✅ data-testid="description-input"
+  ✅ data-testid="url-input"
+  ✅ data-testid="keyword-input"
+  🆕 data-testid="title-char-count"
+  🆕 data-testid="description-char-count"
+  🆕 data-testid="url-error"
+  🆕 data-testid="url-fetch-button"
+  🆕 data-testid="fetch-spinner"
+  🆕 data-testid="fetch-error"
+
+Preview Tabs
+  🆕 data-testid="tab-google-desktop"
+  🆕 data-testid="tab-google-mobile"
+  🆕 data-testid="tab-bing"
+  🆕 data-testid="tab-social"
+
+Preview Content
+  🆕 data-testid="google-desktop-preview"
+  🆕 data-testid="google-title"
+  🆕 data-testid="google-url"
+  🆕 data-testid="google-description"
+  🆕 data-testid="google-mobile-preview"
+  🆕 data-testid="google-mobile-title"
+  🆕 data-testid="google-mobile-description"
+  🆕 data-testid="bing-preview"
+  🆕 data-testid="bing-title"
+  🆕 data-testid="bing-url"
+  🆕 data-testid="bing-description"
+  🆕 data-testid="social-card-preview"
+  🆕 data-testid="og-image"
+  🆕 data-testid="og-image-placeholder"
+  🆕 data-testid="og-title"
+  🆕 data-testid="og-description"
+  🆕 data-testid="og-domain"
+
+Scoring
+  🆕 data-testid="score-dashboard"
+  🆕 data-testid="overall-score"
+  🆕 data-testid="title-score-card"
+  🆕 data-testid="description-score-card"
+  🆕 data-testid="keyword-score-card"
+  🆕 data-testid="mobile-truncation-warning"
+
+Export
+  🆕 data-testid="screenshot-button"
+  🆕 data-testid="screenshot-spinner"
+
+Theme
+  🆕 data-testid="theme-toggle"
+
+History
+  🆕 data-testid="history-toggle"
+  🆕 data-testid="history-panel"
+  🆕 data-testid="history-entry"         (repeating element)
+  🆕 data-testid="history-entry-title"   (repeating element)
+  🆕 data-testid="history-entry-score"   (repeating element)
+  🆕 data-testid="history-entry-time"    (repeating element)
+  🆕 data-testid="history-entry-delete"  (repeating element)
+  🆕 data-testid="history-clear-all"
+
+Bulk Check
+  🆕 data-testid="bulk-panel"
+  🆕 data-testid="csv-file-input"
+  🆕 data-testid="bulk-results-table"
+  🆕 data-testid="bulk-export-button"
+  🆕 data-testid="bulk-error"
+
+Embed
+  🆕 data-testid="embed-code-output"
+  🆕 data-testid="copy-button"
+  🆕 data-testid="compact-toggle"
+  🆕 data-testid="show-scores-toggle"
+  🆕 data-testid="show-previews-toggle"
+  🆕 data-testid="powered-by-link"       (on /embed page)
+```
+
+---
+
+*All 36 acceptance criteria from SPEC.md §3 (F001–F012) map to at least one test in sections 2–4. See §6 for the complete traceability matrix.*
