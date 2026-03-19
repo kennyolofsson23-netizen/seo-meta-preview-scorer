@@ -163,6 +163,7 @@ export function BulkCheckPanel() {
             {/* Results table */}
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-xs">
+                <caption className="sr-only">SEO bulk check results</caption>
                 <thead className="bg-muted">
                   <tr>
                     <th className="text-left p-2 font-medium">Page</th>
@@ -209,16 +210,19 @@ export function BulkCheckPanel() {
                         <td className="p-2 text-center">
                           <TitleIcon
                             className={`h-3.5 w-3.5 mx-auto ${STATUS_COLOR[row.titleStatus]}`}
+                            aria-label={`Title: ${row.titleStatus}`}
                           />
                         </td>
                         <td className="p-2 text-center">
                           <DescIcon
                             className={`h-3.5 w-3.5 mx-auto ${STATUS_COLOR[row.descriptionStatus]}`}
+                            aria-label={`Description: ${row.descriptionStatus}`}
                           />
                         </td>
                         <td className="p-2 text-center">
                           <KwIcon
                             className={`h-3.5 w-3.5 mx-auto ${STATUS_COLOR[row.keywordStatus]}`}
+                            aria-label={`Keyword: ${row.keywordStatus}`}
                           />
                         </td>
                       </tr>

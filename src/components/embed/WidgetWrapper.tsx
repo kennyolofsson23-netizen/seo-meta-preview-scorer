@@ -4,7 +4,7 @@ import { useMetaInput } from "@/lib/hooks/useMetaInput";
 import { MetaInputForm } from "@/components/input/MetaInputForm";
 import { ScoreDashboard } from "@/components/scoring/ScoreDashboard";
 import { PreviewContainer } from "@/components/preview/PreviewContainer";
-import type { WidgetOptions } from "@/types";
+import type { WidgetOptions, PageMetadata } from "@/types";
 import { cn } from "@/lib/utils";
 
 export interface WidgetWrapperProps {
@@ -16,6 +16,11 @@ export interface WidgetWrapperProps {
  * Renders a stripped-down version of the tool inside /embed.
  */
 export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
+  const initial: Partial<PageMetadata> = {};
+  if (options.defaultTitle !== undefined) initial.title = options.defaultTitle;
+  if (options.defaultDescription !== undefined) initial.description = options.defaultDescription;
+  if (options.defaultUrl !== undefined) initial.url = options.defaultUrl;
+
   const {
     metadata,
     setMetadata,
@@ -25,11 +30,7 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
     overall,
     urlValidation,
     mobileTruncation,
-  } = useMetaInput({
-    title: options.defaultTitle,
-    description: options.defaultDescription,
-    url: options.defaultUrl,
-  });
+  } = useMetaInput(initial);
 
   const showScores = options.showScores !== false;
   const showPreviews = options.showPreviews !== false;
@@ -95,6 +96,18 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
           ogDescription={metadata.ogDescription}
         />
       )}
+
+      {/* Powered by backlink — F009 */}
+      <div className="mt-auto pt-2 text-center">
+        <a
+          href="https://seo-meta-preview.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Powered by SEO Meta Preview
+        </a>
+      </div>
     </div>
   );
 }

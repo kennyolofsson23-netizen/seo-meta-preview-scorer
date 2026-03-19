@@ -26,10 +26,10 @@ describe("Scoring – boundary values", () => {
       expect(r.score).toBe(40);
     });
 
-    it("scores exactly 10 chars as good (score 100)", () => {
+    it("scores exactly 10 chars as error (score 40)", () => {
       const r = scoreTitle("A".repeat(10));
-      expect(r.status).toBe("good");
-      expect(r.score).toBe(100);
+      expect(r.status).toBe("error");
+      expect(r.score).toBe(40);
     });
 
     it("scores exactly 60 chars as good (score 100)", () => {
@@ -72,10 +72,10 @@ describe("Scoring – boundary values", () => {
   // scoreDescription
   // ──────────────────────────────────────────────────────────────
   describe("scoreDescription boundaries", () => {
-    it("scores exactly 119 chars as warning (score 60)", () => {
+    it("scores exactly 119 chars as error (score 40)", () => {
       const r = scoreDescription("A".repeat(119));
-      expect(r.status).toBe("warning");
-      expect(r.score).toBe(60);
+      expect(r.status).toBe("error");
+      expect(r.score).toBe(40);
     });
 
     it("scores exactly 120 chars as good (score 100)", () => {

@@ -31,7 +31,7 @@ export function scoreTitle(title: string): ScoringResult {
     };
   }
 
-  if (length < 10) {
+  if (length < 30) {
     return {
       score: 40,
       status: "error",
@@ -39,7 +39,7 @@ export function scoreTitle(title: string): ScoringResult {
     };
   }
 
-  if (length >= 10 && length <= 60) {
+  if (length >= 30 && length <= 60) {
     return {
       score: 100,
       status: "good",
@@ -81,8 +81,8 @@ export function scoreDescription(description: string): ScoringResult {
 
   if (length < 120) {
     return {
-      score: 60,
-      status: "warning",
+      score: 40,
+      status: "error",
       message: `At ${length} chars, this is too short. Aim for 155–160 to fill Google's full snippet.`,
     };
   }

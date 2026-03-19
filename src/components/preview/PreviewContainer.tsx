@@ -73,7 +73,7 @@ export function PreviewContainer({
         <div ref={previewRef} className="relative p-4 sm:p-6">
           <RadixTabs.Content
             value="google-desktop"
-            className="focus-visible:outline-none"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
           >
             <div
               aria-label="Google Desktop preview"
@@ -90,7 +90,7 @@ export function PreviewContainer({
 
           <RadixTabs.Content
             value="google-mobile"
-            className="focus-visible:outline-none"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
           >
             <div
               aria-label="Google Mobile preview"
@@ -108,7 +108,7 @@ export function PreviewContainer({
 
           <RadixTabs.Content
             value="bing"
-            className="focus-visible:outline-none"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
           >
             <div
               aria-label="Bing preview"
@@ -125,7 +125,7 @@ export function PreviewContainer({
 
           <RadixTabs.Content
             value="social"
-            className="focus-visible:outline-none"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
           >
             <div
               aria-label="Social card preview"

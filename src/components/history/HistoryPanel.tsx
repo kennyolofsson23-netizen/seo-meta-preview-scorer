@@ -90,7 +90,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => remove(entry.id)}
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground"
+                className="h-11 w-11 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-muted-foreground"
                 aria-label={`Remove ${entry.title} from history`}
               >
                 <Trash2 className="h-3 w-3" />

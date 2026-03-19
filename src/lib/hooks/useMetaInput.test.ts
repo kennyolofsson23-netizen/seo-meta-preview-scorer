@@ -41,7 +41,7 @@ describe("useMetaInput", () => {
     act(() => {
       result.current.setMetadata({
         ...result.current.metadata,
-        title: "A Good SEO Title Right Here",
+        title: "A Good SEO Title Right Here For Pages",
       });
     });
     expect(result.current.titleScore.status).toBe("good");

@@ -113,7 +113,7 @@ describe("useScores", () => {
       { initialProps: { title: "" } },
     );
     expect(result.current.titleScore.status).toBe("error");
-    rerender({ title: "A Good Title For Testing" });
+    rerender({ title: "A Good Title For SEO Testing Now" });
     expect(result.current.titleScore.status).toBe("good");
   });
 

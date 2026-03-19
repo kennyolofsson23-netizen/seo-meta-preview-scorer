@@ -21,7 +21,7 @@ describe("Scoring Module", () => {
     });
 
     it("should score optimal title as good", () => {
-      const result = scoreTitle("This is a great title");
+      const result = scoreTitle("This is a great title for SEO work");
       expect(result.status).toBe("good");
       expect(result.score).toBe(100);
     });
@@ -62,10 +62,10 @@ describe("Scoring Module", () => {
       expect(result.score).toBe(100);
     });
 
-    it("should score too short description as warning", () => {
+    it("should score too short description as error", () => {
       const result = scoreDescription("Short desc");
-      expect(result.status).toBe("warning");
-      expect(result.score).toBe(60);
+      expect(result.status).toBe("error");
+      expect(result.score).toBe(40);
     });
 
     it("should score too long description as error", () => {
@@ -204,10 +204,10 @@ describe("Scoring Module", () => {
   // ─── scoreTitle boundary cases ──────────────────────────────────────────────
 
   describe("scoreTitle boundary cases", () => {
-    it("scores exactly 10 chars as good (boundary: min good)", () => {
+    it("scores exactly 10 chars as error (below min good of 30)", () => {
       const result = scoreTitle("A".repeat(10));
-      expect(result.status).toBe("good");
-      expect(result.score).toBe(100);
+      expect(result.status).toBe("error");
+      expect(result.score).toBe(40);
     });
 
     it("scores exactly 60 chars as good (boundary: max good)", () => {
@@ -284,10 +284,10 @@ describe("Scoring Module", () => {
       expect(result.score).toBe(50);
     });
 
-    it("scores 119 chars as warning (just under minimum good)", () => {
+    it("scores 119 chars as error (just under minimum good)", () => {
       const result = scoreDescription("A".repeat(119));
-      expect(result.status).toBe("warning");
-      expect(result.score).toBe(60);
+      expect(result.status).toBe("error");
+      expect(result.score).toBe(40);
     });
   });
 

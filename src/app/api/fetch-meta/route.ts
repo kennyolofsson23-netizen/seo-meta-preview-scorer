@@ -1,7 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
+import dns from "dns";
 
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
+const MAX_BODY_BYTES = 1_048_576; // 1 MB
+
+function isPrivateIp(ip: string): boolean {
+  // IPv6 loopback
+  if (ip === "::1") return true;
+
+  // Check IPv4 ranges
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((p) => isNaN(p))) return false;
+
+  const [a, b] = parts;
+
+  // Loopback: 127.0.0.0/8
+  if (a === 127) return true;
+  // RFC-1918: 10.0.0.0/8
+  if (a === 10) return true;
+  // RFC-1918: 172.16.0.0/12
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  // RFC-1918: 192.168.0.0/16
+  if (a === 192 && b === 168) return true;
+  // Link-local: 169.254.0.0/16
+  if (a === 169 && b === 254) return true;
+
+  return false;
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -26,6 +52,29 @@ export async function GET(request: NextRequest) {
     }
   } catch {
     return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
+  }
+
+  // SSRF protection: resolve hostname and block private/internal IP ranges
+  try {
+    const hostname = parsedUrl.hostname;
+    if (hostname === "localhost") {
+      return NextResponse.json(
+        { error: "Requests to private/internal addresses are not allowed" },
+        { status: 400 },
+      );
+    }
+    const { address } = await dns.promises.lookup(hostname);
+    if (isPrivateIp(address)) {
+      return NextResponse.json(
+        { error: "Requests to private/internal addresses are not allowed" },
+        { status: 400 },
+      );
+    }
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch URL. Please enter the meta data manually." },
+      { status: 502 },
+    );
   }
 
   try {
@@ -56,7 +105,51 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const html = await response.text();
+    // Body size limit: check Content-Length header first
+    const contentLengthHeader = response.headers.get("content-length");
+    if (contentLengthHeader !== null) {
+      const contentLength = parseInt(contentLengthHeader, 10);
+      if (!isNaN(contentLength) && contentLength > MAX_BODY_BYTES) {
+        return NextResponse.json(
+          { error: "Response body too large" },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Read body with a 1MB cap via ReadableStream when available,
+    // falling back to response.text() for environments without response.body (e.g. test mocks)
+    let html: string;
+    if (response.body) {
+      const reader = (response.body as ReadableStream<Uint8Array>).getReader();
+      const chunks: Uint8Array[] = [];
+      let totalBytes = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          if (totalBytes + value.byteLength > MAX_BODY_BYTES) {
+            chunks.push(value.slice(0, MAX_BODY_BYTES - totalBytes));
+            totalBytes = MAX_BODY_BYTES;
+            await reader.cancel();
+            break;
+          }
+          chunks.push(value);
+          totalBytes += value.byteLength;
+        }
+      }
+
+      const combined = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      html = new TextDecoder().decode(combined);
+    } else {
+      html = await response.text();
+    }
 
     // Parse meta tags using regex (no DOM parser available in Node.js without jsdom)
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);

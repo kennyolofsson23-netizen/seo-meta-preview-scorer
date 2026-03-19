@@ -1,6 +1,17 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
+
+// Mock dns so SSRF hostname resolution doesn't make real network calls in tests.
+// All test URLs resolve to a non-private IP (93.184.216.34 = example.com).
+vi.mock("dns", () => ({
+  default: {
+    promises: {
+      lookup: vi.fn().mockResolvedValue({ address: "93.184.216.34", family: 4 }),
+    },
+  },
+}));
+
 import { GET } from "./route";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -290,7 +301,7 @@ describe("GET /api/fetch-meta", () => {
       );
 
       const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://slow-site.com",
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
       );
       const res = await GET(req);
       expect(res.status).toBe(504);

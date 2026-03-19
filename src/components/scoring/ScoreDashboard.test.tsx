@@ -104,7 +104,7 @@ describe("ScoreDashboard", () => {
           keyword=""
         />,
       );
-      expect(screen.getByText("Improve")).toBeInTheDocument();
+      expect(screen.getAllByText("Fix It").length).toBeGreaterThan(0);
     });
 
     it("shows good badge when keyword appears in both title and description", () => {
