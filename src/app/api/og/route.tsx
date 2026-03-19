@@ -1,13 +1,16 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
+export const runtime = "edge";
+
 const MAX_TITLE_LEN = 70;
 const MAX_DESC_LEN = 200;
 
 function clampScore(raw: string | null): number | null {
   if (raw === null) return null;
   const n = parseInt(raw, 10);
-  if (!Number.isFinite(n)) return null;
+  // isNaN guard: default invalid (NaN/Infinity) score to 0 so it renders red
+  if (!Number.isFinite(n)) return 0;
   return Math.min(100, Math.max(0, n));
 }
 

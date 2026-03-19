@@ -36,7 +36,17 @@ export function UrlFetchButton({
       const response = await fetch(
         `/api/fetch-meta?url=${encodeURIComponent(url)}`,
       );
-      const data = await response.json();
+
+      // Guard against non-JSON responses (e.g. a 502 HTML error page)
+      let data: Record<string, string>;
+      try {
+        data = (await response.json()) as Record<string, string>;
+      } catch {
+        setError(
+          "Couldn't fetch that URL — try entering your meta tags manually.",
+        );
+        return;
+      }
 
       if (!response.ok) {
         setError(
