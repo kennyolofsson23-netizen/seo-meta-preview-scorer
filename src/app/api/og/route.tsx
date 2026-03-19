@@ -80,9 +80,9 @@ export async function GET(request: NextRequest) {
               fontSize: "96px",
               fontWeight: "bold",
               color:
-                parseInt(score) >= 80
+                scoreNum! >= 80
                   ? "#22c55e"
-                  : parseInt(score) >= 50
+                  : scoreNum! >= 50
                     ? "#eab308"
                     : "#ef4444",
               lineHeight: 1,

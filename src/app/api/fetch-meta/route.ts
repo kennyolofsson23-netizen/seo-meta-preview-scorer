@@ -6,8 +6,22 @@ const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
 
 function isPrivateIp(ip: string): boolean {
+  const ipLower = ip.toLowerCase();
+
   // IPv6 loopback
-  if (ip === "::1") return true;
+  if (ipLower === "::1") return true;
+
+  // IPv4-mapped IPv6: ::ffff:x.x.x.x — extract and check the embedded IPv4 address
+  if (ipLower.startsWith("::ffff:")) {
+    return isPrivateIp(ipLower.slice(7));
+  }
+
+  // ULA: fc00::/7 — covers fc** and fd** prefixes
+  if (ipLower.startsWith("fc") || ipLower.startsWith("fd")) return true;
+
+  // Link-local IPv6: fe80::/10 — covers fe80:: through febf::
+  // The 10-bit prefix 1111111010 means second byte is 0x80–0xbf (hex 8–b)
+  if (/^fe[89ab]/i.test(ipLower)) return true;
 
   // Check IPv4 ranges
   const parts = ip.split(".").map(Number);
@@ -15,6 +29,8 @@ function isPrivateIp(ip: string): boolean {
 
   const [a, b] = parts;
 
+  // Unspecified / INADDR_ANY: 0.0.0.0/8 (connects to localhost on Linux)
+  if (a === 0) return true;
   // Loopback: 127.0.0.0/8
   if (a === 127) return true;
   // RFC-1918: 10.0.0.0/8
@@ -190,6 +206,12 @@ export async function GET(request: NextRequest) {
         .replace(/&gt;/g, ">")
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+          String.fromCharCode(parseInt(hex, 16)),
+        )
+        .replace(/&#(\d+);/g, (_, dec) =>
+          String.fromCharCode(parseInt(dec, 10)),
+        )
         .trim();
 
     return NextResponse.json({

@@ -154,13 +154,14 @@ describe("GET /api/og", () => {
     expect(colors).toContain("#ef4444");
   });
 
-  it("non-numeric score ('abc') → NaN → falls through to red (#ef4444)", async () => {
+  it("non-numeric score ('abc') → treated as missing, no score section rendered", async () => {
     const req = makeRequest("http://localhost/api/og?score=abc");
     await GET(req);
 
     const [element] = MockedImageResponse.mock.calls[0];
-    const colors = collectColors(element);
-    expect(colors).toContain("#ef4444");
+    const allText = JSON.stringify(element);
+    // Score section should not be rendered for invalid input
+    expect(allText).not.toContain("/100");
   });
 
   // ── Boundary conditions ────────────────────────────────────────────────────
@@ -181,5 +182,85 @@ describe("GET /api/og", () => {
     const [element] = MockedImageResponse.mock.calls[0];
     const colors = collectColors(element);
     expect(colors).toContain("#eab308");
+  });
+
+  // ── Score clamping ─────────────────────────────────────────────────────────
+
+  it("score=9999 → clamped to 100 → green (#22c55e)", async () => {
+    const req = makeRequest("http://localhost/api/og?score=9999");
+    await GET(req);
+
+    const [element] = MockedImageResponse.mock.calls[0];
+    const allText = JSON.stringify(element);
+    // Rendered score value must be "100", not "9999"
+    expect(allText).toContain('"100"');
+    expect(allText).not.toContain("9999");
+    const colors = collectColors(element);
+    expect(colors).toContain("#22c55e");
+  });
+
+  it("score=-5 → clamped to 0 → red (#ef4444)", async () => {
+    const req = makeRequest("http://localhost/api/og?score=-5");
+    await GET(req);
+
+    const [element] = MockedImageResponse.mock.calls[0];
+    const allText = JSON.stringify(element);
+    expect(allText).toContain('"0"');
+    const colors = collectColors(element);
+    expect(colors).toContain("#ef4444");
+  });
+
+  it("non-numeric score ('abc') → treated as missing → no score rendered", async () => {
+    const req = makeRequest("http://localhost/api/og?score=abc");
+    await GET(req);
+
+    const [element] = MockedImageResponse.mock.calls[0];
+    const allText = JSON.stringify(element);
+    // /100 label only appears when a score is rendered
+    expect(allText).not.toContain("/100");
+  });
+
+  // ── Overlong title/description truncation ──────────────────────────────────
+
+  it("truncates title longer than 70 chars to exactly 70 chars", async () => {
+    const longTitle = "A".repeat(100);
+    const req = makeRequest(
+      `http://localhost/api/og?title=${encodeURIComponent(longTitle)}`,
+    );
+    await GET(req);
+
+    const [element] = MockedImageResponse.mock.calls[0];
+    const allText = JSON.stringify(element);
+    // The full 100-char string must NOT appear
+    expect(allText).not.toContain("A".repeat(100));
+    // But the 70-char truncation must be present
+    expect(allText).toContain("A".repeat(70));
+  });
+
+  it("truncates description longer than 200 chars to exactly 200 chars", async () => {
+    const longDesc = "B".repeat(250);
+    const req = makeRequest(
+      `http://localhost/api/og?description=${encodeURIComponent(longDesc)}`,
+    );
+    await GET(req);
+
+    const [element] = MockedImageResponse.mock.calls[0];
+    const allText = JSON.stringify(element);
+    expect(allText).not.toContain("B".repeat(250));
+    expect(allText).toContain("B".repeat(200));
+  });
+
+  // ── Missing-param fallback (explicit) ──────────────────────────────────────
+
+  it("missing score param → description is rendered instead", async () => {
+    const req = makeRequest("http://localhost/api/og");
+    await GET(req);
+
+    const [element] = MockedImageResponse.mock.calls[0];
+    const allText = JSON.stringify(element);
+    expect(allText).toContain(
+      "Pixel-perfect SEO preview and real-time scoring",
+    );
+    expect(allText).not.toContain("/100");
   });
 });
