@@ -59,10 +59,10 @@ export function PreviewDashboard() {
         aria-label="Main sections"
       >
         {[
-          { value: "checker", label: "Checker", icon: LayoutDashboard },
+          { value: "checker", label: "Preview & Score", icon: LayoutDashboard },
           { value: "history", label: "History", icon: History },
           { value: "bulk", label: "Bulk Check", icon: BarChart3 },
-          { value: "embed", label: "Embed", icon: Code2 },
+          { value: "embed", label: "Embed on Your Site", icon: Code2 },
         ].map(({ value, label, icon: Icon }) => (
           <RadixTabs.Trigger
             key={value}
@@ -87,7 +87,9 @@ export function PreviewDashboard() {
           <div className="space-y-4">
             {/* URL fetch button */}
             <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-sm font-medium mb-3">Auto-fill from URL</p>
+              <p className="text-sm font-medium mb-3">
+                Fetch live meta tags from a URL
+              </p>
               <UrlFetchButton
                 url={metadata.url}
                 onFetch={(fetched) => {
@@ -121,7 +123,7 @@ export function PreviewDashboard() {
               onClick={saveToHistory}
               className="w-full rounded-md border border-border bg-muted/30 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
-              Save to History
+              Save Snapshot to History
             </button>
 
             {/* Affiliate recommendations */}
