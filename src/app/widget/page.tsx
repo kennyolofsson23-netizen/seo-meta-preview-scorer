@@ -1,6 +1,5 @@
+import { redirect } from "next/navigation";
 import { type Metadata } from "next";
-import { WidgetWrapper } from "@/components/embed/WidgetWrapper";
-import { parseWidgetOptions } from "@/lib/embed";
 
 export const metadata: Metadata = {
   title: "SEO Meta Preview — Widget",
@@ -12,17 +11,11 @@ interface WidgetPageProps {
 }
 
 /**
- * Widget page — served inside an iframe.
- * X-Frame-Options is set to ALLOWALL for this route in next.config.ts.
+ * Widget route (F009) — redirects to /embed which is the canonical embed page.
+ * Both /widget and /embed serve the embeddable widget.
  */
 export default async function WidgetPage({ searchParams }: WidgetPageProps) {
   const params = await searchParams;
-  const urlSearchParams = new URLSearchParams(params);
-  const options = parseWidgetOptions(urlSearchParams);
-
-  return (
-    <div className="h-full w-full overflow-auto">
-      <WidgetWrapper options={options} />
-    </div>
-  );
+  const queryString = new URLSearchParams(params).toString();
+  redirect(`/embed${queryString ? `?${queryString}` : ""}`);
 }

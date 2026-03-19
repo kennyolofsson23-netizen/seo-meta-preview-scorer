@@ -34,11 +34,13 @@ function FieldProgress({
   max,
   status,
   score,
+  label,
 }: {
   value: number;
   max: number;
   status: "good" | "warning" | "error";
   score: number;
+  label: string;
 }) {
   const barColor =
     status === "good"
@@ -59,6 +61,7 @@ function FieldProgress({
           aria-valuenow={value}
           aria-valuemin={0}
           aria-valuemax={max}
+          aria-label={label}
         />
       </div>
       <span className="text-xs font-medium text-muted-foreground tabular-nums w-10 text-right">
@@ -94,21 +97,7 @@ export function MetaInputForm({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
-      {/* Mobile truncation banner */}
-      {mobileTruncation.hasIssues && (
-        <div
-          role="alert"
-          className="rounded-md border border-yellow-300 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-700 px-4 py-2 text-xs text-yellow-800 dark:text-yellow-300"
-        >
-          {mobileTruncation.titleTruncated &&
-          mobileTruncation.descriptionTruncated
-            ? "Both your title and description are too long for Google mobile search — they'll be cut off in results."
-            : mobileTruncation.titleTruncated
-              ? "Your title is too long for Google mobile search — it'll be cut off after 50 characters."
-              : "Your description is too long for Google mobile search — it'll be cut off after 120 characters."}
-        </div>
-      )}
+    <div role="form" aria-label="SEO metadata input form" className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
 
       {/* Title field */}
       <div>
@@ -139,9 +128,16 @@ export function MetaInputForm({
           max={TITLE_OPTIMAL}
           status={titleScore.status}
           score={titleScore.score}
+          label={`Title score: ${titleScore.score} out of 100`}
         />
+        {mobileTruncation.titleTruncated && (
+          <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1" role="alert">
+            ⚠ Title too long for mobile — will be cut off after 50 characters.
+          </p>
+        )}
         <p
           id="meta-title-message"
+          aria-live="polite"
           className="text-xs text-muted-foreground mt-1"
         >
           {titleScore.message}
@@ -177,9 +173,16 @@ export function MetaInputForm({
           max={DESC_OPTIMAL}
           status={descriptionScore.status}
           score={descriptionScore.score}
+          label={`Description score: ${descriptionScore.score} out of 100`}
         />
+        {mobileTruncation.descriptionTruncated && (
+          <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1" role="alert">
+            ⚠ Description too long for mobile — will be cut off after 120 characters.
+          </p>
+        )}
         <p
           id="meta-description-message"
+          aria-live="polite"
           className="text-xs text-muted-foreground mt-1"
         >
           {descriptionScore.message}
@@ -239,9 +242,11 @@ export function MetaInputForm({
           max={100}
           status={keywordScore.status}
           score={keywordScore.score}
+          label={`Keyword score: ${keywordScore.score} out of 100`}
         />
         <p
           id="meta-keyword-message"
+          aria-live="polite"
           className="text-xs text-muted-foreground mt-1"
         >
           {keywordScore.message}

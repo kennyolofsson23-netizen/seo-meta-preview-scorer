@@ -1,20 +1,12 @@
 "use client";
 
-import { APP } from "@/lib/constants";
-
 /**
- * Invisible overlay used to add watermark text to screenshots.
- * This component is rendered inside the preview area but positioned
- * at the bottom — html2canvas captures it as part of the image.
+ * Visually hidden element — present in DOM for legacy reasons but watermark
+ * is drawn directly on the canvas by screenshot.ts addWatermark().
+ * Hidden from view to avoid overlaying the live preview.
  */
 export function ScreenshotWatermark() {
   return (
-    <div
-      aria-hidden="true"
-      className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-1 px-2 font-mono"
-      style={{ pointerEvents: "none" }}
-    >
-      Made with SEO Meta Preview & Scorer · {APP.url}
-    </div>
+    <span aria-hidden="true" className="sr-only" />
   );
 }

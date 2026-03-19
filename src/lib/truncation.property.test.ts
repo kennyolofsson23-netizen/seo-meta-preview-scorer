@@ -167,7 +167,7 @@ describe("PBT-05: generateEmbedCode / parseWidgetOptions roundtrip", () => {
         (opts) => {
           const cleanOpts = Object.fromEntries(
             Object.entries(opts).filter(([, v]) => v !== undefined),
-          ) as Parameters<typeof generateEmbedCode>[0];
+          ) as NonNullable<Parameters<typeof generateEmbedCode>[0]>;
 
           const code = generateEmbedCode(cleanOpts);
           const srcMatch = code.match(/src="([^"]+)"/);
@@ -177,13 +177,13 @@ describe("PBT-05: generateEmbedCode / parseWidgetOptions roundtrip", () => {
           const url = new URL(src);
           const parsed = parseWidgetOptions(url.searchParams);
 
-          if (cleanOpts.showScores === false)
+          if (cleanOpts?.showScores === false)
             expect(parsed.showScores).toBe(false);
-          if (cleanOpts.showPreviews === false)
+          if (cleanOpts?.showPreviews === false)
             expect(parsed.showPreviews).toBe(false);
-          if (cleanOpts.compactMode === true)
+          if (cleanOpts?.compactMode === true)
             expect(parsed.compactMode).toBe(true);
-          if (cleanOpts.defaultTitle)
+          if (cleanOpts?.defaultTitle)
             expect(parsed.defaultTitle).toBe(cleanOpts.defaultTitle);
         },
       ),

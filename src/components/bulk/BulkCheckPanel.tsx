@@ -213,20 +213,23 @@ export function BulkCheckPanel() {
                         <td className="p-2 text-center">
                           <TitleIcon
                             className={`h-3.5 w-3.5 mx-auto ${STATUS_COLOR[row.titleStatus]}`}
-                            aria-label={`Title: ${row.titleStatus}`}
+                            aria-hidden="true"
                           />
+                          <span className="sr-only">Title: {row.titleStatus}</span>
                         </td>
                         <td className="p-2 text-center">
                           <DescIcon
                             className={`h-3.5 w-3.5 mx-auto ${STATUS_COLOR[row.descriptionStatus]}`}
-                            aria-label={`Description: ${row.descriptionStatus}`}
+                            aria-hidden="true"
                           />
+                          <span className="sr-only">Description: {row.descriptionStatus}</span>
                         </td>
                         <td className="p-2 text-center">
                           <KwIcon
                             className={`h-3.5 w-3.5 mx-auto ${STATUS_COLOR[row.keywordStatus]}`}
-                            aria-label={`Keyword: ${row.keywordStatus}`}
+                            aria-hidden="true"
                           />
+                          <span className="sr-only">Keyword: {row.keywordStatus}</span>
                         </td>
                       </tr>
                     );

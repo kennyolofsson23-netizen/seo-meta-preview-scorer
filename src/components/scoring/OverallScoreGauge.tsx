@@ -29,7 +29,7 @@ export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Your SEO Score</h2>
-          <div>
+          <div aria-live="polite" aria-atomic="true">
             <span className={`text-5xl font-bold ${scoreColor}`}>
               {clamped}
             </span>

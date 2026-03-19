@@ -210,8 +210,11 @@ describe("MetaInputForm", () => {
       const props = buildProps(metadata);
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      const alert = screen.getByRole("alert");
-      expect(alert).toHaveTextContent(/title and description/i);
+      const alerts = screen.getAllByRole("alert");
+      expect(alerts.length).toBeGreaterThanOrEqual(2);
+      const alertTexts = alerts.map((a) => a.textContent).join(" ");
+      expect(alertTexts).toMatch(/title/i);
+      expect(alertTexts).toMatch(/description/i);
     });
   });
 
