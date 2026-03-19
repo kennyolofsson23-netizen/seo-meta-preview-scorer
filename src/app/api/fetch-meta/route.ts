@@ -69,107 +69,111 @@ export interface HttpFetchResult {
  * callback. This prevents DNS rebinding / TOCTOU attacks where an attacker
  * rotates a DNS record between the SSRF check and the actual connection.
  *
- * Exported so tests can spy on it:
- *   vi.spyOn(routeModule, "_httpFetch").mockResolvedValue(...)
+ * Exported as a plain object (`{ fn }`) so tests can stub it without any
+ * circular-import tricks:
  *
- * GET() reads _httpFetch through a dynamic self-import at call time so that
- * any spy installed by tests is visible at the point of invocation.
+ *   vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue(...)
+ *
+ * Because `_httpFetch` is the *same* object reference both inside the module
+ * and on the module namespace, replacing `.fn` is visible to GET() immediately.
  */
-export let _httpFetch = function _httpFetchImpl(
-  parsedUrl: URL,
-  resolvedAddress: string,
-  resolvedFamily: number,
-  signal: AbortSignal,
-): Promise<HttpFetchResult> {
-  return new Promise<HttpFetchResult>((resolve, reject) => {
-    const lib = parsedUrl.protocol === "https:" ? https : http;
-    const port = parsedUrl.port
-      ? parseInt(parsedUrl.port, 10)
-      : parsedUrl.protocol === "https:"
-        ? 443
-        : 80;
+export const _httpFetch = {
+  fn: function _httpFetchImpl(
+    parsedUrl: URL,
+    resolvedAddress: string,
+    resolvedFamily: number,
+    signal: AbortSignal,
+  ): Promise<HttpFetchResult> {
+    return new Promise<HttpFetchResult>((resolve, reject) => {
+      const lib = parsedUrl.protocol === "https:" ? https : http;
+      const port = parsedUrl.port
+        ? parseInt(parsedUrl.port, 10)
+        : parsedUrl.protocol === "https:"
+          ? 443
+          : 80;
 
-    const req = lib.request(
-      {
-        hostname: parsedUrl.hostname,
-        port,
-        path: (parsedUrl.pathname || "/") + parsedUrl.search,
-        method: "GET",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
-          Accept: "text/html,application/xhtml+xml",
-          Host: parsedUrl.host,
+      const req = lib.request(
+        {
+          hostname: parsedUrl.hostname,
+          port,
+          path: (parsedUrl.pathname || "/") + parsedUrl.search,
+          method: "GET",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
+            Accept: "text/html,application/xhtml+xml",
+            Host: parsedUrl.host,
+          },
+          // Custom lookup: always connect to the pre-resolved, pre-checked IP.
+          // This is the TOCTOU fix — no second DNS lookup happens.
+          lookup: (
+            _host: string,
+            _opts: object,
+            cb: (
+              err: NodeJS.ErrnoException | null,
+              address: string,
+              family: number,
+            ) => void,
+          ) => {
+            cb(null, resolvedAddress, resolvedFamily);
+          },
         },
-        // Custom lookup: always connect to the pre-resolved, pre-checked IP.
-        // This is the TOCTOU fix — no second DNS lookup happens.
-        lookup: (
-          _host: string,
-          _opts: object,
-          cb: (
-            err: NodeJS.ErrnoException | null,
-            address: string,
-            family: number,
-          ) => void,
-        ) => {
-          cb(null, resolvedAddress, resolvedFamily);
-        },
-      },
-      (res: IncomingMessage) => {
-        const chunks: Buffer[] = [];
-        let totalBytes = 0;
-        let bodyConsumed = false;
+        (res: IncomingMessage) => {
+          const chunks: Buffer[] = [];
+          let totalBytes = 0;
+          let bodyConsumed = false;
 
-        const getBody = () =>
-          new Promise<string>((resolveBody) => {
-            if (bodyConsumed) {
-              resolveBody(Buffer.concat(chunks).toString("utf-8"));
-              return;
-            }
-            bodyConsumed = true;
-
-            res.on("data", (chunk: Buffer) => {
-              if (totalBytes + chunk.length > MAX_BODY_BYTES) {
-                chunks.push(chunk.slice(0, MAX_BODY_BYTES - totalBytes));
-                totalBytes = MAX_BODY_BYTES;
-                req.destroy();
-              } else {
-                chunks.push(chunk);
-                totalBytes += chunk.length;
+          const getBody = () =>
+            new Promise<string>((resolveBody) => {
+              if (bodyConsumed) {
+                resolveBody(Buffer.concat(chunks).toString("utf-8"));
+                return;
               }
+              bodyConsumed = true;
+
+              res.on("data", (chunk: Buffer) => {
+                if (totalBytes + chunk.length > MAX_BODY_BYTES) {
+                  chunks.push(chunk.slice(0, MAX_BODY_BYTES - totalBytes));
+                  totalBytes = MAX_BODY_BYTES;
+                  req.destroy();
+                } else {
+                  chunks.push(chunk);
+                  totalBytes += chunk.length;
+                }
+              });
+
+              res.on("end", () =>
+                resolveBody(Buffer.concat(chunks).toString("utf-8")),
+              );
+              res.on("error", () =>
+                resolveBody(Buffer.concat(chunks).toString("utf-8")),
+              );
             });
 
-            res.on("end", () =>
-              resolveBody(Buffer.concat(chunks).toString("utf-8")),
-            );
-            res.on("error", () =>
-              resolveBody(Buffer.concat(chunks).toString("utf-8")),
-            );
+          resolve({
+            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+            status: res.statusCode ?? 0,
+            contentType: (res.headers["content-type"] as string) ?? null,
+            contentLength: (res.headers["content-length"] as string) ?? null,
+            getBody,
           });
-
-        resolve({
-          ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
-          status: res.statusCode ?? 0,
-          contentType: (res.headers["content-type"] as string) ?? null,
-          contentLength: (res.headers["content-length"] as string) ?? null,
-          getBody,
-        });
-      },
-    );
-
-    signal.addEventListener("abort", () => {
-      const err = new Error(
-        "Request timed out. The URL took too long to respond.",
+        },
       );
-      err.name = "AbortError";
-      req.destroy(err);
-    });
 
-    req.on("error", (err: Error) => {
-      reject(err);
-    });
+      signal.addEventListener("abort", () => {
+        const err = new Error(
+          "Request timed out. The URL took too long to respond.",
+        );
+        err.name = "AbortError";
+        req.destroy(err);
+      });
 
-    req.end();
-  });
+      req.on("error", (err: Error) => {
+        reject(err);
+      });
+
+      req.end();
+    });
+  },
 };
 
 export async function GET(request: NextRequest) {
@@ -228,20 +232,12 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    // Dynamic self-import at call time returns the live, cached module namespace —
-    // the same object that vi.spyOn(routeModule, "_httpFetch") has patched.
-    // A static circular self-import receives a partially-initialised snapshot;
-    // a dynamic import always sees the fully-loaded, spy-patched exports.
-    // Using a `string`-typed variable (not a string literal) prevents TypeScript
-    // from attempting to resolve the circular self-reference type.
-    const routeRef: string = "./route";
-    const self = await import(routeRef);
-    const response = (await self._httpFetch(
+    const response = await _httpFetch.fn(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,
       controller.signal,
-    )) as HttpFetchResult;
+    );
     clearTimeout(timeoutId);
 
     if (!response.ok) {
