@@ -84,7 +84,7 @@ export function SocialCardPreview({
             onClick={() => setPlatform(id)}
             aria-pressed={platform === id}
             className={cn(
-              "flex-1 py-1 text-xs font-medium transition-colors",
+              "flex-1 min-h-[44px] py-2 text-xs font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
               platform === id
                 ? "bg-primary text-primary-foreground"

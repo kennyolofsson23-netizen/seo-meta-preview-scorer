@@ -102,7 +102,7 @@ export function PreviewContainer({
                 key={value}
                 value={value}
                 className={cn(
-                  "flex items-center justify-center gap-1 sm:gap-1.5 rounded-t px-1 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors",
+                  "flex items-center justify-center gap-1 sm:gap-1.5 rounded-t px-1 sm:px-3 min-h-[44px] py-2 text-xs sm:text-sm font-medium transition-colors",
                   "text-muted-foreground hover:text-foreground",
                   "data-[state=active]:border-b-2 data-[state=active]:border-primary",
                   "data-[state=active]:text-foreground",
@@ -165,7 +165,7 @@ export function PreviewContainer({
                     <Dialog.Close asChild>
                       <button
                         aria-label="Close dialog"
-                        className="rounded p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex h-11 w-11 items-center justify-center rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <X className="h-4 w-4" aria-hidden="true" />
                       </button>
