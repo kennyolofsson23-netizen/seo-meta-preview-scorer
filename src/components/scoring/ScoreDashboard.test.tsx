@@ -191,9 +191,7 @@ describe("ScoreDashboard", () => {
     });
 
     it("shows a score of 0 for all-empty inputs", () => {
-      render(
-        <ScoreDashboard title="" description="" keyword="" />,
-      );
+      render(<ScoreDashboard title="" description="" keyword="" />);
       expect(screen.getByText("0")).toBeInTheDocument();
       expect(screen.getByText("/100")).toBeInTheDocument();
     });

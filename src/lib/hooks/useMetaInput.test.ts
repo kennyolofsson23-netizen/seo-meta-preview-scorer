@@ -55,9 +55,7 @@ describe("useMetaInput", () => {
   });
 
   it("returns invalid URL validation for a bad URL", () => {
-    const { result } = renderHook(() =>
-      useMetaInput({ url: "not-a-url" }),
-    );
+    const { result } = renderHook(() => useMetaInput({ url: "not-a-url" }));
     expect(result.current.urlValidation.valid).toBe(false);
     expect(result.current.urlValidation.error).toBeDefined();
   });

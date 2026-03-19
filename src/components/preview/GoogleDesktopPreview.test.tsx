@@ -78,10 +78,7 @@ describe("GoogleDesktopPreview", () => {
 
   it("bolds keyword in description when keyword provided", () => {
     render(
-      <GoogleDesktopPreview
-        {...defaultProps}
-        keyword="meta description"
-      />,
+      <GoogleDesktopPreview {...defaultProps} keyword="meta description" />,
     );
     const bolds = document.querySelectorAll("strong");
     expect(bolds.length).toBeGreaterThan(0);
@@ -94,10 +91,7 @@ describe("GoogleDesktopPreview", () => {
 
   it("does not render breadcrumb separator when URL has no path", () => {
     render(
-      <GoogleDesktopPreview
-        {...defaultProps}
-        url="https://example.com"
-      />,
+      <GoogleDesktopPreview {...defaultProps} url="https://example.com" />,
     );
     expect(document.body.textContent).not.toContain("›");
   });

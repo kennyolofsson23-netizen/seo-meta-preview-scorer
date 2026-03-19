@@ -63,7 +63,9 @@ export function BulkCheckPanel() {
       const scored = processBulkRows(rows);
       setResults(scored);
     } catch {
-      setError("Couldn't read that file. Check that it's a valid UTF-8 CSV and try again.");
+      setError(
+        "Couldn't read that file. Check that it's a valid UTF-8 CSV and try again.",
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -107,8 +109,8 @@ export function BulkCheckPanel() {
             Drop your CSV here, or click to browse
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Required: <code className="font-mono">title</code> column · Optional:{" "}
-            <code className="font-mono">description</code>,{" "}
+            Required: <code className="font-mono">title</code> column ·
+            Optional: <code className="font-mono">description</code>,{" "}
             <code className="font-mono">url</code>,{" "}
             <code className="font-mono">keyword</code> · Up to 500 rows per file
           </p>
@@ -147,7 +149,8 @@ export function BulkCheckPanel() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium">
-                {results.length} {results.length === 1 ? "page" : "pages"} scored
+                {results.length} {results.length === 1 ? "page" : "pages"}{" "}
+                scored
               </p>
               <Button
                 size="sm"

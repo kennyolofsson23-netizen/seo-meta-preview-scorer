@@ -154,9 +154,7 @@ describe("truncation", () => {
     });
 
     it("handles deep nested path", () => {
-      const result = formatGoogleBreadcrumb(
-        "https://example.com/a/b/c/page",
-      );
+      const result = formatGoogleBreadcrumb("https://example.com/a/b/c/page");
       expect(result.breadcrumb).toBe("a › b › c › page");
     });
 

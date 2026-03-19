@@ -59,13 +59,17 @@ describe("PBT-02: truncateAtChars returns input unchanged when length <= limit",
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 200 }),
-        fc.string({ minLength: 0, maxLength: 0 }).chain(() =>
-          fc.integer({ min: 1, max: 200 }).chain((n) =>
+        fc
+          .string({ minLength: 0, maxLength: 0 })
+          .chain(() =>
             fc
-              .string({ minLength: n, maxLength: n })
-              .map((s) => ({ s, n })),
+              .integer({ min: 1, max: 200 })
+              .chain((n) =>
+                fc
+                  .string({ minLength: n, maxLength: n })
+                  .map((s) => ({ s, n })),
+              ),
           ),
-        ),
         (_ignored, { s, n }) => {
           expect(truncateAtChars(s, n)).toBe(s);
         },
@@ -154,9 +158,9 @@ describe("PBT-05: generateEmbedCode / parseWidgetOptions roundtrip", () => {
             nil: undefined,
           }),
           defaultTitle: fc.option(
-            fc.string({ minLength: 1, maxLength: 80 }).filter(
-              (s) => !s.includes("\n") && !s.includes("\r"),
-            ),
+            fc
+              .string({ minLength: 1, maxLength: 80 })
+              .filter((s) => !s.includes("\n") && !s.includes("\r")),
             { nil: undefined },
           ),
         }),
@@ -355,9 +359,11 @@ describe("PBT-10: highlightKeyword segments reconstruct original text", () => {
   it("keyword segments have text that matches keyword case-insensitively", () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 20 }).filter(
-          (kw) => kw.trim().length > 0 && !/[.*+?^${}()|[\]\\]/.test(kw),
-        ),
+        fc
+          .string({ minLength: 1, maxLength: 20 })
+          .filter(
+            (kw) => kw.trim().length > 0 && !/[.*+?^${}()|[\]\\]/.test(kw),
+          ),
         fc.string(),
         (keyword, text) => {
           const segments = highlightKeyword(text, keyword);

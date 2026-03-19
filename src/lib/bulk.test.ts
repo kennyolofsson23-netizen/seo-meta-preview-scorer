@@ -272,7 +272,8 @@ My Page,My desc,https://example.com,SEO tips`;
     });
 
     it("handles Windows-style line endings (CRLF)", () => {
-      const csv = "title,description,url\r\nPage Title,Desc,https://example.com";
+      const csv =
+        "title,description,url\r\nPage Title,Desc,https://example.com";
       const result = parseCsv(csv);
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe("Page Title");

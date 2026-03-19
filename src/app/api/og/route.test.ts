@@ -96,7 +96,9 @@ describe("GET /api/og", () => {
 
     const [element] = MockedImageResponse.mock.calls[0];
     const allText = JSON.stringify(element);
-    expect(allText).toContain("Pixel-perfect SEO preview and real-time scoring");
+    expect(allText).toContain(
+      "Pixel-perfect SEO preview and real-time scoring",
+    );
   });
 
   // ── Custom title ───────────────────────────────────────────────────────────

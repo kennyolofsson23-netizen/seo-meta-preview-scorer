@@ -7,7 +7,9 @@ import { NextRequest } from "next/server";
 vi.mock("dns", () => ({
   default: {
     promises: {
-      lookup: vi.fn().mockResolvedValue({ address: "93.184.216.34", family: 4 }),
+      lookup: vi
+        .fn()
+        .mockResolvedValue({ address: "93.184.216.34", family: 4 }),
     },
   },
 }));
@@ -33,15 +35,11 @@ function makeHtml(opts: {
     opts.description
       ? `<meta name="description" content="${opts.description}"/>`
       : "",
-    opts.ogTitle
-      ? `<meta property="og:title" content="${opts.ogTitle}"/>`
-      : "",
+    opts.ogTitle ? `<meta property="og:title" content="${opts.ogTitle}"/>` : "",
     opts.ogDescription
       ? `<meta property="og:description" content="${opts.ogDescription}"/>`
       : "",
-    opts.ogImage
-      ? `<meta property="og:image" content="${opts.ogImage}"/>`
-      : "",
+    opts.ogImage ? `<meta property="og:image" content="${opts.ogImage}"/>` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -50,7 +48,10 @@ function makeHtml(opts: {
 }
 
 /** Stub global fetch with a successful HTML response */
-function stubFetchSuccess(html: string, contentType = "text/html; charset=utf-8") {
+function stubFetchSuccess(
+  html: string,
+  contentType = "text/html; charset=utf-8",
+) {
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -210,9 +211,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("HTML-decodes entities in the title (&amp; → &)", async () => {
-      stubFetchSuccess(
-        makeHtml({ title: "My Site &amp; More" }),
-      );
+      stubFetchSuccess(makeHtml({ title: "My Site &amp; More" }));
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com",
@@ -295,10 +294,7 @@ describe("GET /api/fetch-meta", () => {
       const abortError = new Error("Aborted");
       abortError.name = "AbortError";
 
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockRejectedValue(abortError),
-      );
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abortError));
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com",

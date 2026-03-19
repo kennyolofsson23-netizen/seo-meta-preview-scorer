@@ -25,7 +25,9 @@ Object.defineProperty(window, "localStorage", {
 });
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-function makeEntry(overrides: Partial<Parameters<ReturnType<typeof useHistory>["save"]>[0]> = {}) {
+function makeEntry(
+  overrides: Partial<Parameters<ReturnType<typeof useHistory>["save"]>[0]> = {},
+) {
   return {
     title: "Test Page",
     description: "A test page description",
@@ -70,8 +72,12 @@ describe("useHistory", () => {
     await waitFor(() => expect(result.current.isAvailable).toBe(true));
 
     act(() => {
-      result.current.save(makeEntry({ title: "First", url: "https://first.com" }));
-      result.current.save(makeEntry({ title: "Second", url: "https://second.com" }));
+      result.current.save(
+        makeEntry({ title: "First", url: "https://first.com" }),
+      );
+      result.current.save(
+        makeEntry({ title: "Second", url: "https://second.com" }),
+      );
     });
 
     expect(result.current.history[0].title).toBe("Second");
@@ -99,11 +105,17 @@ describe("useHistory", () => {
     await waitFor(() => expect(result.current.isAvailable).toBe(true));
 
     act(() => {
-      result.current.save(makeEntry({ title: "Keep Me", url: "https://keep.com" }));
-      result.current.save(makeEntry({ title: "Remove Me", url: "https://remove.com" }));
+      result.current.save(
+        makeEntry({ title: "Keep Me", url: "https://keep.com" }),
+      );
+      result.current.save(
+        makeEntry({ title: "Remove Me", url: "https://remove.com" }),
+      );
     });
 
-    const removeId = result.current.history.find((e) => e.title === "Remove Me")!.id;
+    const removeId = result.current.history.find(
+      (e) => e.title === "Remove Me",
+    )!.id;
 
     act(() => {
       result.current.remove(removeId);
@@ -136,7 +148,11 @@ describe("useHistory", () => {
     const { result } = renderHook(() => useHistory());
     await waitFor(() => expect(result.current.isAvailable).toBe(true));
 
-    const entry = makeEntry({ title: "Dup", description: "Same", url: "https://dup.com" });
+    const entry = makeEntry({
+      title: "Dup",
+      description: "Same",
+      url: "https://dup.com",
+    });
 
     act(() => {
       result.current.save(entry);

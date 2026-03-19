@@ -129,7 +129,9 @@ describe("MetaInputForm", () => {
       const props = buildProps(metadata);
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      expect(screen.getByText(/doesn't look like a valid url/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/doesn't look like a valid url/i),
+      ).toBeInTheDocument();
     });
 
     it("does not show error text for a valid URL", () => {
@@ -137,7 +139,9 @@ describe("MetaInputForm", () => {
       const props = buildProps(defaultMetadata); // url is 'https://example.com/sample-page'
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      expect(screen.queryByText(/doesn't look like a valid url/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/doesn't look like a valid url/i),
+      ).not.toBeInTheDocument();
     });
 
     it("does not show error text for an empty URL", () => {
@@ -146,7 +150,9 @@ describe("MetaInputForm", () => {
       const props = buildProps(metadata);
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      expect(screen.queryByText(/doesn't look like a valid url/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/doesn't look like a valid url/i),
+      ).not.toBeInTheDocument();
     });
   });
 

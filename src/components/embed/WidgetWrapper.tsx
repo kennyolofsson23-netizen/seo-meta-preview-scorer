@@ -18,7 +18,8 @@ export interface WidgetWrapperProps {
 export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
   const initial: Partial<PageMetadata> = {};
   if (options.defaultTitle !== undefined) initial.title = options.defaultTitle;
-  if (options.defaultDescription !== undefined) initial.description = options.defaultDescription;
+  if (options.defaultDescription !== undefined)
+    initial.description = options.defaultDescription;
   if (options.defaultUrl !== undefined) initial.url = options.defaultUrl;
 
   const {

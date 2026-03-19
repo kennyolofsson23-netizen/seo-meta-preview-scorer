@@ -57,7 +57,9 @@ describe("useScores", () => {
       }),
     );
     expect(result.current.mobileTruncation.titleTruncated).toBe(true);
-    expect(result.current.mobileTruncation.totalIssues).toBeGreaterThanOrEqual(1);
+    expect(result.current.mobileTruncation.totalIssues).toBeGreaterThanOrEqual(
+      1,
+    );
   });
 
   it("detects mobile description truncation at 121 chars", () => {

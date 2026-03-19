@@ -119,7 +119,11 @@ describe("Scoring – boundary values", () => {
   // ──────────────────────────────────────────────────────────────
   describe("scoreKeywordPresence edge cases", () => {
     it("trims whitespace from keyword before matching", () => {
-      const r = scoreKeywordPresence("Best SEO Guide", "SEO guide content", "  seo guide  ");
+      const r = scoreKeywordPresence(
+        "Best SEO Guide",
+        "SEO guide content",
+        "  seo guide  ",
+      );
       expect(r.status).toBe("good");
     });
 
@@ -150,7 +154,11 @@ describe("Scoring – boundary values", () => {
     });
 
     it("includes keyword name in not-found error message", () => {
-      const r = scoreKeywordPresence("Hello World", "Nothing here", "blockchain");
+      const r = scoreKeywordPresence(
+        "Hello World",
+        "Nothing here",
+        "blockchain",
+      );
       expect(r.message).toContain("blockchain");
       expect(r.status).toBe("error");
     });

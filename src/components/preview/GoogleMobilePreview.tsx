@@ -183,10 +183,16 @@ export function GoogleMobilePreview({
             </p>
             <ul className="mt-1 text-xs text-yellow-700 dark:text-yellow-300 space-y-0.5">
               {titleTruncated && (
-                <li>Title is {title.length} chars — cut off at 50 on mobile. Shorten it.</li>
+                <li>
+                  Title is {title.length} chars — cut off at 50 on mobile.
+                  Shorten it.
+                </li>
               )}
               {descTruncated && (
-                <li>Description is {description.length} chars — cut off at 120 on mobile. Trim it.</li>
+                <li>
+                  Description is {description.length} chars — cut off at 120 on
+                  mobile. Trim it.
+                </li>
               )}
             </ul>
           </div>

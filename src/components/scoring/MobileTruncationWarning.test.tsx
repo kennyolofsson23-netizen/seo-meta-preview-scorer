@@ -149,6 +149,8 @@ describe("MobileTruncationWarning", () => {
         descriptionLength={100}
       />,
     );
-    expect(screen.getByText(/Mobile Search Will Cut This Off/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mobile Search Will Cut This Off/i),
+    ).toBeInTheDocument();
   });
 });

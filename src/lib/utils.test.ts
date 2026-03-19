@@ -198,7 +198,9 @@ describe("utils", () => {
     });
 
     it("returns false when clipboard.writeText throws", async () => {
-      const writeText = vi.fn().mockRejectedValue(new Error("Permission denied"));
+      const writeText = vi
+        .fn()
+        .mockRejectedValue(new Error("Permission denied"));
       vi.stubGlobal("navigator", {
         ...navigator,
         clipboard: { writeText },

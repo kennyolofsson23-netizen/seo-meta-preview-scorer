@@ -43,7 +43,11 @@ export function SocialCardPreview({
   const showPlaceholder = !ogImage || imageError;
 
   return (
-    <div role="region" aria-label="Social card preview" className="border border-border rounded-lg overflow-hidden max-w-[500px]">
+    <div
+      role="region"
+      aria-label="Social card preview"
+      className="border border-border rounded-lg overflow-hidden max-w-[500px]"
+    >
       {/* Image area */}
       {showPlaceholder ? (
         <ImagePlaceholder />

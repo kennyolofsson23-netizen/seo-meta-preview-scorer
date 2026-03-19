@@ -57,9 +57,7 @@ describe("HistoryPanel", () => {
   it("shows empty-state message when history is empty", async () => {
     render(<HistoryPanel onSelect={vi.fn()} />);
     await waitFor(() =>
-      expect(
-        screen.getByText(/No snapshots yet/i),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(/No snapshots yet/i)).toBeInTheDocument(),
     );
   });
 
@@ -78,17 +76,13 @@ describe("HistoryPanel", () => {
   it("shows score for each entry", async () => {
     seedHistory([{ title: "My Page", overallScore: 85 }]);
     render(<HistoryPanel onSelect={vi.fn()} />);
-    await waitFor(() =>
-      expect(screen.getByText("85/100")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("85/100")).toBeInTheDocument());
   });
 
   it("shows entry count badge when history has items", async () => {
     seedHistory([{ title: "A" }, { title: "B" }, { title: "C" }]);
     render(<HistoryPanel onSelect={vi.fn()} />);
-    await waitFor(() =>
-      expect(screen.getByText("3")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("3")).toBeInTheDocument());
   });
 
   it("calls onSelect with the entry when an item is clicked", async () => {
@@ -148,7 +142,9 @@ describe("HistoryPanel", () => {
     seedHistory([{ title: "Accessible Entry" }]);
     render(<HistoryPanel onSelect={vi.fn()} />);
     await waitFor(() =>
-      expect(screen.getByRole("list", { name: /saved seo checks/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("list", { name: /saved seo checks/i }),
+      ).toBeInTheDocument(),
     );
   });
 });

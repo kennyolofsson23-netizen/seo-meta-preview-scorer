@@ -10,79 +10,65 @@ describe("CharacterCounter", () => {
       render(
         <CharacterCounter count={45} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("45 characters").className,
-      ).toMatch(/green/);
+      expect(screen.getByLabelText("45 characters").className).toMatch(/green/);
     });
 
     it("shows green when count equals optimalMin (lower boundary)", () => {
       render(
         <CharacterCounter count={30} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("30 characters").className,
-      ).toMatch(/green/);
+      expect(screen.getByLabelText("30 characters").className).toMatch(/green/);
     });
 
     it("shows green when count equals optimal (upper boundary of green)", () => {
       render(
         <CharacterCounter count={60} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("60 characters").className,
-      ).toMatch(/green/);
+      expect(screen.getByLabelText("60 characters").className).toMatch(/green/);
     });
 
     it("shows yellow when count is above optimal but at or below max", () => {
       render(
         <CharacterCounter count={65} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("65 characters").className,
-      ).toMatch(/yellow/);
+      expect(screen.getByLabelText("65 characters").className).toMatch(
+        /yellow/,
+      );
     });
 
     it("shows yellow when count equals max (upper boundary of warning)", () => {
       render(
         <CharacterCounter count={70} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("70 characters").className,
-      ).toMatch(/yellow/);
+      expect(screen.getByLabelText("70 characters").className).toMatch(
+        /yellow/,
+      );
     });
 
     it("shows red when count exceeds max", () => {
       render(
         <CharacterCounter count={80} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("80 characters").className,
-      ).toMatch(/red/);
+      expect(screen.getByLabelText("80 characters").className).toMatch(/red/);
     });
 
     it("shows red when count is below optimalMin", () => {
       render(
         <CharacterCounter count={5} optimalMin={30} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("5 characters").className,
-      ).toMatch(/red/);
+      expect(screen.getByLabelText("5 characters").className).toMatch(/red/);
     });
 
     it("defaults optimalMin to 0 — count=0 is green", () => {
       render(<CharacterCounter count={0} optimal={60} max={70} />);
-      expect(
-        screen.getByLabelText("0 characters").className,
-      ).toMatch(/green/);
+      expect(screen.getByLabelText("0 characters").className).toMatch(/green/);
     });
 
     it("shows red for count=0 when optimalMin > 0", () => {
       render(
         <CharacterCounter count={0} optimalMin={10} optimal={60} max={70} />,
       );
-      expect(
-        screen.getByLabelText("0 characters").className,
-      ).toMatch(/red/);
+      expect(screen.getByLabelText("0 characters").className).toMatch(/red/);
     });
   });
 

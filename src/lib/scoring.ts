@@ -75,7 +75,8 @@ export function scoreDescription(description: string): ScoringResult {
     return {
       score: 0,
       status: "error",
-      message: "Add a meta description — it's what convinces searchers to click through.",
+      message:
+        "Add a meta description — it's what convinces searchers to click through.",
     };
   }
 
@@ -125,7 +126,8 @@ export function scoreKeywordPresence(
     return {
       score: 0,
       status: "error",
-      message: "Enter your target keyword to check if it appears in the title and description.",
+      message:
+        "Enter your target keyword to check if it appears in the title and description.",
     };
   }
 
@@ -244,7 +246,8 @@ export function validateUrl(url: string): { valid: boolean; error?: string } {
   } catch {
     return {
       valid: false,
-      error: "That doesn't look like a valid URL. Make sure it starts with https://",
+      error:
+        "That doesn't look like a valid URL. Make sure it starts with https://",
     };
   }
 }

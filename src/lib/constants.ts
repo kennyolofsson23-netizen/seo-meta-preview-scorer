@@ -73,7 +73,8 @@ export const SCORING = {
 export const APP = {
   name: "SEO Meta Preview & Scorer",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "https://seo-meta-preview.vercel.app",
-  description: "Preview your meta tags in Google, Bing, and social media — then score and fix them before you publish.",
+  description:
+    "Preview your meta tags in Google, Bing, and social media — then score and fix them before you publish.",
 } as const;
 
 // Affiliate URLs

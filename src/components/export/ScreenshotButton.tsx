@@ -25,9 +25,7 @@ export function ScreenshotButton({
 
   async function handleClick() {
     if (!targetRef.current) {
-      onError?.(
-        "Nothing to capture — switch to a preview tab and try again.",
-      );
+      onError?.("Nothing to capture — switch to a preview tab and try again.");
       return;
     }
 

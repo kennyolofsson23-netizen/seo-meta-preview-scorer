@@ -142,7 +142,9 @@ test.describe("E2E-F002: Google Desktop Preview", () => {
     await descInput.fill("A perfectly crafted meta description for testing.");
 
     await expect(
-      page.getByText(/A perfectly crafted meta description for testing/i).first(),
+      page
+        .getByText(/A perfectly crafted meta description for testing/i)
+        .first(),
     ).toBeVisible();
   });
 
@@ -178,9 +180,7 @@ test.describe("E2E-F003: Google Mobile Preview", () => {
     await titleInput.clear();
     await titleInput.fill("A".repeat(51));
 
-    await expect(
-      page.getByText(/truncated on mobile/i).first(),
-    ).toBeVisible();
+    await expect(page.getByText(/truncated on mobile/i).first()).toBeVisible();
   });
 
   test("E2E-F003-02: no mobile truncation warning when title is within 50 chars", async ({
@@ -284,9 +284,7 @@ test.describe("E2E-F005: Bing Preview Tab", () => {
     const bingTab = page.getByRole("tab", { name: /bing/i }).first();
     if (await bingTab.isVisible()) {
       await bingTab.click();
-      await expect(
-        page.locator('[data-testid="bing-preview"]'),
-      ).toBeVisible();
+      await expect(page.locator('[data-testid="bing-preview"]')).toBeVisible();
     } else {
       test.skip();
     }
@@ -376,9 +374,7 @@ test.describe("E2E-F007: Screenshot Export", () => {
   test("E2E-F007-02: clicking Export PNG does not navigate away from the page", async ({
     page,
   }) => {
-    const exportButton = page
-      .getByRole("button", { name: /export/i })
-      .first();
+    const exportButton = page.getByRole("button", { name: /export/i }).first();
     await exportButton.click();
 
     // Should remain on the same page
@@ -410,9 +406,7 @@ test.describe("E2E-F008: Embeddable Widget", () => {
     );
     await expect(page.locator("body")).not.toBeEmpty();
     // No JS error boundary text
-    await expect(
-      page.getByText(/something went wrong/i),
-    ).not.toBeVisible();
+    await expect(page.getByText(/something went wrong/i)).not.toBeVisible();
   });
 
   test("E2E-F008-04: embed page shows the SEO preview widget", async ({
@@ -503,7 +497,9 @@ test.describe("E2E-F009: Dark Mode / Theme Toggle", () => {
     await expect(page.getByText("Overall SEO Score")).toBeVisible();
   });
 
-  test("E2E-F009-04: page renders correctly in light mode", async ({ page }) => {
+  test("E2E-F009-04: page renders correctly in light mode", async ({
+    page,
+  }) => {
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/");
 
@@ -526,7 +522,11 @@ test.describe("E2E-F010: History Panel", () => {
   }) => {
     const historyTrigger = page
       .getByRole("button", { name: /history/i })
-      .or(page.locator('[data-testid="history-panel"], [data-testid="history-button"]'))
+      .or(
+        page.locator(
+          '[data-testid="history-panel"], [data-testid="history-button"]',
+        ),
+      )
       .first();
 
     // History feature should be present somewhere on the page
@@ -577,7 +577,9 @@ test.describe("E2E-F010: History Panel", () => {
 
     // Look for a delete button within history
     const deleteBtn = page
-      .locator('[data-testid="delete-history-entry"], [aria-label*="delete"], [aria-label*="remove"]')
+      .locator(
+        '[data-testid="delete-history-entry"], [aria-label*="delete"], [aria-label*="remove"]',
+      )
       .first();
 
     if (await deleteBtn.isVisible()) {

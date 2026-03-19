@@ -40,7 +40,8 @@ export function UrlFetchButton({
 
       if (!response.ok) {
         setError(
-          data.error ?? "Couldn't fetch that URL — try entering your meta tags manually.",
+          data.error ??
+            "Couldn't fetch that URL — try entering your meta tags manually.",
         );
         return;
       }
@@ -68,7 +69,9 @@ export function UrlFetchButton({
         onClick={handleFetch}
         disabled={isDisabled}
         aria-label={
-          loading ? "Importing metadata from URL…" : "Import meta tags from a live URL"
+          loading
+            ? "Importing metadata from URL…"
+            : "Import meta tags from a live URL"
         }
       >
         {loading ? (
