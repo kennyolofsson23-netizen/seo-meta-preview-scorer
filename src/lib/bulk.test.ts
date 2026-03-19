@@ -135,5 +135,118 @@ My Page,My desc,https://example.com,SEO tips`;
       const csv = exportResultsToCsv([row]);
       expect(csv).toContain('"Title, with comma"');
     });
+
+    it("escapes double quotes inside values", () => {
+      const row = {
+        title: 'Title with "quotes"',
+        description: "A".repeat(150),
+        url: "https://example.com",
+        titleScore: 100,
+        titleStatus: "good" as const,
+        titleMessage: "Good",
+        descriptionScore: 100,
+        descriptionStatus: "good" as const,
+        descriptionMessage: "Good",
+        keywordScore: 0,
+        keywordStatus: "error" as const,
+        overallScore: 80,
+      };
+      const csv = exportResultsToCsv([row]);
+      // CSV escaping: double quotes become ""
+      expect(csv).toContain('""quotes""');
+    });
+
+    it("produces the correct number of header columns", () => {
+      const row = {
+        title: "T",
+        description: "D",
+        url: "U",
+        titleScore: 0,
+        titleStatus: "error" as const,
+        titleMessage: "M",
+        descriptionScore: 0,
+        descriptionStatus: "error" as const,
+        descriptionMessage: "M",
+        keywordScore: 0,
+        keywordStatus: "error" as const,
+        overallScore: 0,
+      };
+      const csv = exportResultsToCsv([row]);
+      const headerLine = csv.split("\n")[0];
+      // Headers: Title,Description,URL,Keyword,Overall Score,Title Score,Title Status,
+      //          Title Feedback,Description Score,Description Status,Description Feedback,
+      //          Keyword Score,Keyword Status  → 13 columns
+      const columns = headerLine.split(",");
+      expect(columns.length).toBe(13);
+    });
+
+    it("returns only the header row for an empty results array", () => {
+      const csv = exportResultsToCsv([]);
+      const lines = csv.trim().split("\n");
+      expect(lines).toHaveLength(1); // only the header
+    });
+
+    it("handles multiple rows", () => {
+      const makeRow = (title: string) => ({
+        title,
+        description: "A".repeat(150),
+        url: "https://example.com",
+        titleScore: 100,
+        titleStatus: "good" as const,
+        titleMessage: "Good",
+        descriptionScore: 100,
+        descriptionStatus: "good" as const,
+        descriptionMessage: "Good",
+        keywordScore: 0,
+        keywordStatus: "error" as const,
+        overallScore: 80,
+      });
+      const csv = exportResultsToCsv([makeRow("Row One"), makeRow("Row Two")]);
+      expect(csv).toContain("Row One");
+      expect(csv).toContain("Row Two");
+    });
+  });
+
+  // ─── parseCsv edge cases ─────────────────────────────────────────────────────
+
+  describe("parseCsv edge cases", () => {
+    it("returns empty array when only the header row is present (no data)", () => {
+      const csv = "title,description,url";
+      expect(parseCsv(csv)).toHaveLength(0);
+    });
+
+    it("handles quoted fields with escaped double-quotes", () => {
+      const csv = `title,description,url\n"He said ""hello""",Description,https://example.com`;
+      const result = parseCsv(csv);
+      expect(result[0].title).toBe('He said "hello"');
+    });
+
+    it("is case-insensitive for the 'title' column header", () => {
+      const csv = `Title,Description,URL\nMy Page,My desc,https://example.com`;
+      const result = parseCsv(csv);
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("My Page");
+    });
+
+    it("is case-insensitive for the 'description' column header", () => {
+      const csv = `title,Description,url\nPage,My Desc,https://example.com`;
+      const result = parseCsv(csv);
+      expect(result[0].description).toBe("My Desc");
+    });
+
+    it("handles missing optional columns gracefully", () => {
+      const csv = `title\nJust A Title`;
+      const result = parseCsv(csv);
+      expect(result[0].description).toBe("");
+      expect(result[0].url).toBe("");
+      expect(result[0].keyword).toBeUndefined();
+    });
+
+    it("handles Windows-style line endings (CRLF)", () => {
+      const csv = "title,description,url\r\nPage Title,Desc,https://example.com";
+      const result = parseCsv(csv);
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Page Title");
+    });
   });
 });

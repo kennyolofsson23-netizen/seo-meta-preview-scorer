@@ -71,4 +71,44 @@ describe("screenshot", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBeTruthy();
   });
+
+  it("returns success for jpg format", async () => {
+    const el = document.createElement("div");
+    const result = await captureAndDownload(el, { format: "jpg" });
+    expect(result.success).toBe(true);
+  });
+
+  it("returns failure with specific message when blob is null", async () => {
+    const html2canvasMock = await import("html2canvas");
+    vi.mocked(html2canvasMock.default).mockResolvedValueOnce({
+      getContext: vi.fn().mockReturnValue(null),
+      toBlob: vi.fn().mockImplementation((callback: (blob: Blob | null) => void) => {
+        callback(null);
+      }),
+      width: 600,
+      height: 400,
+    } as unknown as HTMLCanvasElement);
+
+    const el = document.createElement("div");
+    const result = await captureAndDownload(el, { format: "png" });
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Failed to generate image blob");
+  });
+
+  it("uses default png format when no options provided", async () => {
+    const el = document.createElement("div");
+    // default format is "png" — should succeed without error
+    const result = await captureAndDownload(el);
+    expect(result.success).toBe(true);
+  });
+
+  it("includes error message from thrown Error object", async () => {
+    const html2canvasMock = await import("html2canvas");
+    vi.mocked(html2canvasMock.default).mockRejectedValueOnce(
+      new Error("Out of memory"),
+    );
+    const el = document.createElement("div");
+    const result = await captureAndDownload(el, { format: "png" });
+    expect(result.error).toBe("Out of memory");
+  });
 });

@@ -67,4 +67,38 @@ describe("GoogleDesktopPreview", () => {
     );
     expect(el).toBeTruthy();
   });
+
+  it("does not render a description paragraph when description is empty", () => {
+    const { container } = render(
+      <GoogleDesktopPreview {...defaultProps} description="" />,
+    );
+    // No <p> element since description is empty
+    expect(container.querySelector("p")).toBeNull();
+  });
+
+  it("bolds keyword in description when keyword provided", () => {
+    render(
+      <GoogleDesktopPreview
+        {...defaultProps}
+        keyword="meta description"
+      />,
+    );
+    const bolds = document.querySelectorAll("strong");
+    expect(bolds.length).toBeGreaterThan(0);
+  });
+
+  it("renders breadcrumb separator › when URL has a path", () => {
+    render(<GoogleDesktopPreview {...defaultProps} />);
+    expect(document.body.textContent).toContain("›");
+  });
+
+  it("does not render breadcrumb separator when URL has no path", () => {
+    render(
+      <GoogleDesktopPreview
+        {...defaultProps}
+        url="https://example.com"
+      />,
+    );
+    expect(document.body.textContent).not.toContain("›");
+  });
 });

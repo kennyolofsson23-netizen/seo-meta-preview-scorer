@@ -189,5 +189,52 @@ describe("ScoreDashboard", () => {
       // Overall score gauge should display a number and /100
       expect(screen.getByText("/100")).toBeInTheDocument();
     });
+
+    it("shows a score of 0 for all-empty inputs", () => {
+      render(
+        <ScoreDashboard title="" description="" keyword="" />,
+      );
+      expect(screen.getByText("0")).toBeInTheDocument();
+      expect(screen.getByText("/100")).toBeInTheDocument();
+    });
+
+    it("shows weighting note in gauge", () => {
+      render(
+        <ScoreDashboard
+          title="Short title"
+          description={repeat("A", 155)}
+          keyword=""
+        />,
+      );
+      expect(
+        screen.getByText("Title 40% · Description 40% · Keyword 20%"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("character counts", () => {
+    it("displays title character count", () => {
+      const title = "Hello World";
+      render(
+        <ScoreDashboard
+          title={title}
+          description={repeat("A", 155)}
+          keyword=""
+        />,
+      );
+      // ScoreCard shows "11/60 chars"
+      expect(screen.getByText(/11\/60 chars/)).toBeInTheDocument();
+    });
+
+    it("displays description character count", () => {
+      render(
+        <ScoreDashboard
+          title="Short title"
+          description={repeat("A", 155)}
+          keyword=""
+        />,
+      );
+      expect(screen.getByText(/155\/160 chars/)).toBeInTheDocument();
+    });
   });
 });

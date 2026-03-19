@@ -78,4 +78,46 @@ describe("SocialCardPreview", () => {
 
     expect(screen.getByText("example.com")).toBeInTheDocument();
   });
+
+  it("shows placeholder again after image load error", async () => {
+    render(
+      <SocialCardPreview
+        {...defaultProps}
+        ogImage="https://example.com/broken-image.jpg"
+      />,
+    );
+
+    // Simulate image error
+    const img = screen.getByRole("img");
+    const { fireEvent } = await import("@testing-library/react");
+    fireEvent.error(img);
+
+    // After error, should show placeholder text
+    expect(
+      screen.getByText("Add an ogImage URL to see a preview"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders image with correct alt text", () => {
+    render(
+      <SocialCardPreview
+        {...defaultProps}
+        ogImage="https://example.com/og.jpg"
+      />,
+    );
+    const img = screen.getByRole("img");
+    expect(img).toHaveAttribute("alt", "My Page Title");
+  });
+
+  it("uses ogTitle as img alt when ogTitle is provided", () => {
+    render(
+      <SocialCardPreview
+        {...defaultProps}
+        ogImage="https://example.com/og.jpg"
+        ogTitle="OG Title"
+      />,
+    );
+    const img = screen.getByRole("img");
+    expect(img).toHaveAttribute("alt", "OG Title");
+  });
 });
