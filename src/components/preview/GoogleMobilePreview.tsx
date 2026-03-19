@@ -179,17 +179,14 @@ export function GoogleMobilePreview({
           </svg>
           <div>
             <p className="font-medium text-yellow-800 dark:text-yellow-200">
-              Mobile truncation detected
+              Content cut off on mobile
             </p>
             <ul className="mt-1 text-xs text-yellow-700 dark:text-yellow-300 space-y-0.5">
               {titleTruncated && (
-                <li>Title truncated at 50 chars (currently {title.length})</li>
+                <li>Title is {title.length} chars — cut off at 50 on mobile. Shorten it.</li>
               )}
               {descTruncated && (
-                <li>
-                  Description truncated at 120 chars (currently{" "}
-                  {description.length})
-                </li>
+                <li>Description is {description.length} chars — cut off at 120 on mobile. Trim it.</li>
               )}
             </ul>
           </div>

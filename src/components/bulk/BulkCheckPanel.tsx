@@ -156,7 +156,7 @@ export function BulkCheckPanel() {
                 className="gap-1.5"
               >
                 <Download className="h-4 w-4" />
-                Export Results
+                Download CSV
               </Button>
             </div>
 
