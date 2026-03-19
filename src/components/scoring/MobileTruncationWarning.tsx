@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import * as React from 'react'
+import * as React from "react";
 
 export interface MobileTruncationWarningProps {
-  titleTruncated: boolean
-  descriptionTruncated: boolean
-  titleLength: number
-  descriptionLength: number
+  titleTruncated: boolean;
+  descriptionTruncated: boolean;
+  titleLength: number;
+  descriptionLength: number;
 }
 
 export function MobileTruncationWarning({
@@ -16,7 +16,7 @@ export function MobileTruncationWarning({
   descriptionLength,
 }: MobileTruncationWarningProps) {
   if (!titleTruncated && !descriptionTruncated) {
-    return null
+    return null;
   }
 
   return (
@@ -44,17 +44,18 @@ export function MobileTruncationWarning({
         <ul className="mt-1 space-y-1">
           {titleTruncated && (
             <li className="text-sm text-yellow-700 dark:text-yellow-400">
-              Title is {titleLength} chars — will be truncated on mobile (limit: 50 chars)
+              Title is {titleLength} chars — will be truncated on mobile (limit:
+              50 chars)
             </li>
           )}
           {descriptionTruncated && (
             <li className="text-sm text-yellow-700 dark:text-yellow-400">
-              Description is {descriptionLength} chars — will be truncated on mobile (limit: 120
-              chars)
+              Description is {descriptionLength} chars — will be truncated on
+              mobile (limit: 120 chars)
             </li>
           )}
         </ul>
       </div>
     </div>
-  )
+  );
 }

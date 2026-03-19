@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Check, Copy, Code2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { generateEmbedCode } from '@/lib/embed'
-import { copyToClipboard } from '@/lib/utils'
-import type { WidgetOptions } from '@/types'
+import { useState } from "react";
+import { Check, Copy, Code2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { generateEmbedCode } from "@/lib/embed";
+import { copyToClipboard } from "@/lib/utils";
+import type { WidgetOptions } from "@/types";
 
 export function EmbedCodeGenerator() {
   const [options, setOptions] = useState<Partial<WidgetOptions>>({
     showScores: true,
     showPreviews: true,
     compactMode: false,
-  })
-  const [copied, setCopied] = useState(false)
+  });
+  const [copied, setCopied] = useState(false);
 
-  const embedCode = generateEmbedCode(options)
+  const embedCode = generateEmbedCode(options);
 
   async function handleCopy() {
-    const ok = await copyToClipboard(embedCode)
+    const ok = await copyToClipboard(embedCode);
     if (ok) {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   }
 
@@ -34,7 +34,8 @@ export function EmbedCodeGenerator() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Add the SEO Meta Preview tool to your own website or blog with a simple iframe embed.
+        Add the SEO Meta Preview tool to your own website or blog with a simple
+        iframe embed.
       </p>
 
       {/* Options */}
@@ -48,13 +49,18 @@ export function EmbedCodeGenerator() {
               type="checkbox"
               checked={options.showScores !== false}
               onChange={(e) =>
-                setOptions((prev) => ({ ...prev, showScores: e.target.checked }))
+                setOptions((prev) => ({
+                  ...prev,
+                  showScores: e.target.checked,
+                }))
               }
               className="h-4 w-4 rounded border-border accent-primary"
             />
             <div>
               <p className="text-sm font-medium">Show Scores</p>
-              <p className="text-xs text-muted-foreground">Display SEO score panel</p>
+              <p className="text-xs text-muted-foreground">
+                Display SEO score panel
+              </p>
             </div>
           </label>
 
@@ -64,13 +70,18 @@ export function EmbedCodeGenerator() {
               type="checkbox"
               checked={options.showPreviews !== false}
               onChange={(e) =>
-                setOptions((prev) => ({ ...prev, showPreviews: e.target.checked }))
+                setOptions((prev) => ({
+                  ...prev,
+                  showPreviews: e.target.checked,
+                }))
               }
               className="h-4 w-4 rounded border-border accent-primary"
             />
             <div>
               <p className="text-sm font-medium">Show Previews</p>
-              <p className="text-xs text-muted-foreground">Display SERP previews</p>
+              <p className="text-xs text-muted-foreground">
+                Display SERP previews
+              </p>
             </div>
           </label>
 
@@ -80,13 +91,18 @@ export function EmbedCodeGenerator() {
               type="checkbox"
               checked={options.compactMode === true}
               onChange={(e) =>
-                setOptions((prev) => ({ ...prev, compactMode: e.target.checked }))
+                setOptions((prev) => ({
+                  ...prev,
+                  compactMode: e.target.checked,
+                }))
               }
               className="h-4 w-4 rounded border-border accent-primary"
             />
             <div>
               <p className="text-sm font-medium">Compact Mode</p>
-              <p className="text-xs text-muted-foreground">Reduced height (450px)</p>
+              <p className="text-xs text-muted-foreground">
+                Reduced height (450px)
+              </p>
             </div>
           </label>
         </div>
@@ -99,7 +115,7 @@ export function EmbedCodeGenerator() {
           <div className="space-y-2">
             <Input
               placeholder="Default title..."
-              value={options.defaultTitle ?? ''}
+              value={options.defaultTitle ?? ""}
               onChange={(e) =>
                 setOptions((prev) => ({
                   ...prev,
@@ -109,7 +125,7 @@ export function EmbedCodeGenerator() {
             />
             <Input
               placeholder="Default description..."
-              value={options.defaultDescription ?? ''}
+              value={options.defaultDescription ?? ""}
               onChange={(e) =>
                 setOptions((prev) => ({
                   ...prev,
@@ -120,7 +136,7 @@ export function EmbedCodeGenerator() {
             <Input
               placeholder="https://example.com"
               type="url"
-              value={options.defaultUrl ?? ''}
+              value={options.defaultUrl ?? ""}
               onChange={(e) =>
                 setOptions((prev) => ({
                   ...prev,
@@ -141,7 +157,7 @@ export function EmbedCodeGenerator() {
             size="sm"
             onClick={handleCopy}
             className="gap-1.5"
-            aria-label={copied ? 'Copied!' : 'Copy embed code'}
+            aria-label={copied ? "Copied!" : "Copy embed code"}
           >
             {copied ? (
               <>
@@ -163,7 +179,7 @@ export function EmbedCodeGenerator() {
 
       {/* Preview link */}
       <p className="text-xs text-muted-foreground">
-        Preview the embedded widget at{' '}
+        Preview the embedded widget at{" "}
         <a
           href="/embed"
           target="_blank"
@@ -174,5 +190,5 @@ export function EmbedCodeGenerator() {
         </a>
       </p>
     </div>
-  )
+  );
 }

@@ -2,20 +2,21 @@
 
 ## 1. Tech Stack
 
-| Layer | Choice | Rationale |
-|---|---|---|
-| Framework | **Next.js 16** (App Router) | Already scaffolded; SSR for SEO landing page; static export possible for zero-cost hosting |
-| Language | **TypeScript 6.x** (strict mode) | Already configured with strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes |
-| Styling | **Tailwind CSS 4** | Already installed; utility-first for pixel-perfect SERP recreation |
-| UI Components | **Radix UI** + custom | Already installed; accessible primitives for tabs, tooltips, dialogs |
-| Icons | **Lucide React** | Already installed; tree-shakeable, optimized via next.config |
-| Screenshot | **html2canvas** | Already installed; client-side DOM-to-canvas rendering, no server needed |
-| Testing | **Vitest** + **React Testing Library** + **Playwright** | Already configured; fast unit tests + E2E |
-| Fonts | **next/font** (Geist) + Google Fonts for SERP accuracy | Self-hosted, zero layout shift |
-| Deployment | **Vercel** | Zero-config for Next.js; edge CDN; free tier sufficient |
-| Analytics | **Plausible** (optional) | Privacy-respecting, no cookies, GDPR compliant |
+| Layer         | Choice                                                  | Rationale                                                                                  |
+| ------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Framework     | **Next.js 16** (App Router)                             | Already scaffolded; SSR for SEO landing page; static export possible for zero-cost hosting |
+| Language      | **TypeScript 6.x** (strict mode)                        | Already configured with strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes       |
+| Styling       | **Tailwind CSS 4**                                      | Already installed; utility-first for pixel-perfect SERP recreation                         |
+| UI Components | **Radix UI** + custom                                   | Already installed; accessible primitives for tabs, tooltips, dialogs                       |
+| Icons         | **Lucide React**                                        | Already installed; tree-shakeable, optimized via next.config                               |
+| Screenshot    | **html2canvas**                                         | Already installed; client-side DOM-to-canvas rendering, no server needed                   |
+| Testing       | **Vitest** + **React Testing Library** + **Playwright** | Already configured; fast unit tests + E2E                                                  |
+| Fonts         | **next/font** (Geist) + Google Fonts for SERP accuracy  | Self-hosted, zero layout shift                                                             |
+| Deployment    | **Vercel**                                              | Zero-config for Next.js; edge CDN; free tier sufficient                                    |
+| Analytics     | **Plausible** (optional)                                | Privacy-respecting, no cookies, GDPR compliant                                             |
 
 ### No Database Required
+
 This is a 100% client-side tool. All state lives in React state and localStorage. No database, no Prisma schema, no API routes for data storage. This is a deliberate architectural decision — zero server costs, zero data liability, instant performance.
 
 ---
@@ -101,6 +102,7 @@ src/
 This tool has **minimal API surface** — it's primarily client-side. Only two server routes exist:
 
 ### Route: `GET /api/og`
+
 **Purpose**: Generate dynamic Open Graph images for shared tool links.
 
 ```
@@ -112,6 +114,7 @@ GET /api/og?title=My+Page+Title&score=85
 **Implementation**: Next.js `ImageResponse` from `next/og`
 
 ### Route: `GET /embed` (Page, not API)
+
 **Purpose**: Serve the embeddable widget in an iframe.
 
 ```
@@ -135,12 +138,12 @@ GET /embed?compact=true&showScores=true
 
 ## 4. Page / Route Map
 
-| URL | Page | Data Requirements | Auth | Description |
-|---|---|---|---|---|
-| `/` | `app/page.tsx` | None (client state) | None | Main tool — input form, previews, scores |
-| `/embed` | `app/embed/page.tsx` | Query params | None | Compact widget for iframe embedding |
-| `/widget` | `app/widget/page.tsx` | None | None | Widget config page — generate embed code |
-| `/api/og` | `app/api/og/route.ts` | Query params | None | Dynamic OG image generation |
+| URL       | Page                  | Data Requirements   | Auth | Description                              |
+| --------- | --------------------- | ------------------- | ---- | ---------------------------------------- |
+| `/`       | `app/page.tsx`        | None (client state) | None | Main tool — input form, previews, scores |
+| `/embed`  | `app/embed/page.tsx`  | Query params        | None | Compact widget for iframe embedding      |
+| `/widget` | `app/widget/page.tsx` | None                | None | Widget config page — generate embed code |
+| `/api/og` | `app/api/og/route.ts` | Query params        | None | Dynamic OG image generation              |
 
 ---
 
@@ -196,6 +199,7 @@ RootLayout (Server Component)
 ## 6. Data Flow
 
 ### Input → Preview → Score Flow
+
 ```
 User types in MetaInputForm
   → onChange fires, updates local state in PreviewDashboard (useState)
@@ -215,6 +219,7 @@ User types in MetaInputForm
 **Performance note**: All scoring functions are pure and fast (<1ms). They run synchronously during render — no useEffect, no debouncing needed. React's reconciliation handles the 16ms frame budget.
 
 ### Screenshot Export Flow
+
 ```
 User clicks ScreenshotButton
   → Dynamic import html2canvas (lazy loaded, ~200KB)
@@ -227,6 +232,7 @@ User clicks ScreenshotButton
 ```
 
 ### Theme Toggle Flow
+
 ```
 User clicks ThemeToggle
   → useTheme hook updates state + localStorage('theme')
@@ -236,6 +242,7 @@ User clicks ThemeToggle
 ```
 
 ### Widget Embed Flow
+
 ```
 Blog owner visits /widget
   → EmbedCodeGenerator shows configuration options
@@ -250,6 +257,7 @@ Blog owner visits /widget
 ```
 
 ### History Flow (P2)
+
 ```
 User completes a check (title + description filled)
   → useHistory hook saves to localStorage:
@@ -272,45 +280,45 @@ export const GOOGLE_DESKTOP = {
   titleMaxChars: 60,
   titleMaxPixels: 600, // Google truncates by pixel width, not chars
   titleFontFamily: "'Google Sans', Arial, sans-serif",
-  titleFontSize: '20px',
-  titleLineHeight: '26px',
-  titleColor: '#1a0dab',
-  titleVisitedColor: '#681da8',
+  titleFontSize: "20px",
+  titleLineHeight: "26px",
+  titleColor: "#1a0dab",
+  titleVisitedColor: "#681da8",
   descMaxChars: 160,
-  descFontFamily: 'Arial, sans-serif',
-  descFontSize: '14px',
-  descLineHeight: '22px',
-  descColor: '#4d5156',
-  urlFontFamily: 'Arial, sans-serif',
-  urlFontSize: '14px',
-  urlColor: '#188038',
+  descFontFamily: "Arial, sans-serif",
+  descFontSize: "14px",
+  descLineHeight: "22px",
+  descColor: "#4d5156",
+  urlFontFamily: "Arial, sans-serif",
+  urlFontSize: "14px",
+  urlColor: "#188038",
   containerWidth: 600,
-} as const
+} as const;
 
 // Google Mobile SERP
 export const GOOGLE_MOBILE = {
   titleMaxChars: 50,
-  titleFontSize: '16px',
-  titleLineHeight: '20px',
+  titleFontSize: "16px",
+  titleLineHeight: "20px",
   descMaxChars: 120,
-  descFontSize: '12px',
-  descLineHeight: '18px',
+  descFontSize: "12px",
+  descLineHeight: "18px",
   containerWidth: 360,
-} as const
+} as const;
 
 // Bing SERP
 export const BING = {
   titleMaxChars: 65,
   titleFontFamily: "'Segoe UI', sans-serif",
-  titleFontSize: '20px',
-  titleColor: '#001ba0',
+  titleFontSize: "20px",
+  titleColor: "#001ba0",
   descMaxChars: 160,
   descFontFamily: "'Segoe UI', sans-serif",
-  descFontSize: '13px',
-  descColor: '#505050',
-  urlColor: '#006d21',
+  descFontSize: "13px",
+  descColor: "#505050",
+  urlColor: "#006d21",
   containerWidth: 560,
-} as const
+} as const;
 
 // Social Card (Facebook/LinkedIn format)
 export const SOCIAL_CARD = {
@@ -319,7 +327,7 @@ export const SOCIAL_CARD = {
   titleMaxChars: 65,
   descMaxChars: 155,
   containerWidth: 500,
-} as const
+} as const;
 
 // Scoring thresholds
 export const SCORING = {
@@ -328,27 +336,28 @@ export const SCORING = {
   mobileTitle: 50,
   mobileDescription: 120,
   weights: { title: 0.4, description: 0.4, keyword: 0.2 },
-} as const
+} as const;
 ```
 
 ---
 
 ## 8. Security Checklist
 
-| Concern | Mitigation | Status |
-|---|---|---|
-| **XSS in previews** | All user input rendered via React JSX (auto-escaped). No `dangerouslySetInnerHTML`. | Required |
-| **XSS in embed** | Embed page uses same React rendering. iframe sandboxed with `sandbox="allow-scripts"`. | Required |
-| **CSRF** | No server mutations — no forms submit to server. All client-side. | N/A |
-| **Data privacy** | Zero data sent to server. No cookies. No tracking pixels. localStorage only. | Required |
-| **CSP headers** | Configure in `next.config.ts`: `script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:` | Required |
-| **Secrets** | No API keys. Affiliate links are public URLs (no secrets). | N/A |
-| **iframe clickjacking** | Main site: `X-Frame-Options: DENY`. `/embed` route: `X-Frame-Options: ALLOWALL` (intentionally embeddable). | Required |
-| **Dependency supply chain** | `npm audit` in CI. Lock file committed. Renovate/Dependabot for updates. | Required |
-| **Input validation** | URL validated via `new URL()` constructor. Title/description are free text with max length (500 chars UI limit). | Required |
-| **localStorage overflow** | History capped at 20 entries. Graceful degradation if localStorage unavailable or full. | Required |
+| Concern                     | Mitigation                                                                                                        | Status   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- |
+| **XSS in previews**         | All user input rendered via React JSX (auto-escaped). No `dangerouslySetInnerHTML`.                               | Required |
+| **XSS in embed**            | Embed page uses same React rendering. iframe sandboxed with `sandbox="allow-scripts"`.                            | Required |
+| **CSRF**                    | No server mutations — no forms submit to server. All client-side.                                                 | N/A      |
+| **Data privacy**            | Zero data sent to server. No cookies. No tracking pixels. localStorage only.                                      | Required |
+| **CSP headers**             | Configure in `next.config.ts`: `script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:` | Required |
+| **Secrets**                 | No API keys. Affiliate links are public URLs (no secrets).                                                        | N/A      |
+| **iframe clickjacking**     | Main site: `X-Frame-Options: DENY`. `/embed` route: `X-Frame-Options: ALLOWALL` (intentionally embeddable).       | Required |
+| **Dependency supply chain** | `npm audit` in CI. Lock file committed. Renovate/Dependabot for updates.                                          | Required |
+| **Input validation**        | URL validated via `new URL()` constructor. Title/description are free text with max length (500 chars UI limit).  | Required |
+| **localStorage overflow**   | History capped at 20 entries. Graceful degradation if localStorage unavailable or full.                           | Required |
 
 ### CSP Configuration in next.config.ts
+
 ```typescript
 headers: async () => [
   {
@@ -374,6 +383,7 @@ headers: async () => [
 ## 9. Testing Strategy
 
 ### Unit Tests (Vitest) — `src/lib/**/*.test.ts`
+
 - All scoring functions: boundary values, edge cases, empty strings
 - Truncation logic: exact character counts, pixel-width approximation
 - URL validation and extraction
@@ -381,6 +391,7 @@ headers: async () => [
 - Embed code generation
 
 ### Component Tests (Vitest + RTL) — `src/components/**/*.test.tsx`
+
 - MetaInputForm: renders, updates state, shows char counts
 - Each preview component: renders correctly with sample data, truncates properly
 - ScoreDashboard: displays correct colors and messages
@@ -388,6 +399,7 @@ headers: async () => [
 - ThemeToggle: switches theme class
 
 ### E2E Tests (Playwright) — `e2e/`
+
 - Full flow: type title/description/URL → verify all previews update → verify scores
 - Screenshot export: click download → verify file downloaded
 - Mobile responsiveness: viewport resize → layout adapts
@@ -396,6 +408,7 @@ headers: async () => [
 - Accessibility: axe-core scan on every page
 
 ### Test File Locations
+
 ```
 src/
 ├── lib/
@@ -432,6 +445,7 @@ e2e/
 ## 10. Deployment & Infrastructure
 
 ### Vercel (Free Tier)
+
 - **Build**: `next build` (static + server hybrid)
 - **CDN**: Vercel Edge Network (automatic)
 - **Domain**: Custom domain via Vercel DNS
@@ -439,6 +453,7 @@ e2e/
 - **Production**: Auto-deploy on `main` branch push
 
 ### Environment Variables
+
 ```env
 # .env.example (already exists)
 NEXT_PUBLIC_APP_URL=https://seo-meta-preview.com
@@ -454,16 +469,17 @@ All environment variables are `NEXT_PUBLIC_` — no server secrets exist.
 
 ## 11. Performance Budget
 
-| Metric | Budget | Enforcement |
-|---|---|---|
-| First Load JS | < 80KB gzipped | `next build` output check in CI |
+| Metric             | Budget          | Enforcement                                      |
+| ------------------ | --------------- | ------------------------------------------------ |
+| First Load JS      | < 80KB gzipped  | `next build` output check in CI                  |
 | html2canvas (lazy) | < 250KB gzipped | Dynamic import, loaded on first screenshot click |
-| LCP | < 1.5s | Lighthouse CI |
-| INP | < 100ms | All interactions are synchronous state updates |
-| CLS | 0 | Fonts preloaded via next/font; no layout shifts |
-| Total page weight | < 500KB | Including fonts, CSS, JS |
+| LCP                | < 1.5s          | Lighthouse CI                                    |
+| INP                | < 100ms         | All interactions are synchronous state updates   |
+| CLS                | 0               | Fonts preloaded via next/font; no layout shifts  |
+| Total page weight  | < 500KB         | Including fonts, CSS, JS                         |
 
 ### Bundle Split Strategy
+
 - **Critical path**: React + scoring logic + input form + active preview tab (~60KB)
 - **Lazy loaded**: html2canvas (on screenshot click), inactive preview tabs (on tab switch), history panel (on toggle)
 - **Server-only**: OG image generation route (never in client bundle)

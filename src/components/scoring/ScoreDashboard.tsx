@@ -1,23 +1,33 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useScores } from '@/lib/hooks/useScores'
-import { OverallScoreGauge } from './OverallScoreGauge'
-import { ScoreCard } from './ScoreCard'
-import { MobileTruncationWarning } from './MobileTruncationWarning'
+import * as React from "react";
+import { useScores } from "@/lib/hooks/useScores";
+import { OverallScoreGauge } from "./OverallScoreGauge";
+import { ScoreCard } from "./ScoreCard";
+import { MobileTruncationWarning } from "./MobileTruncationWarning";
 
 export interface ScoreDashboardProps {
-  title: string
-  description: string
-  keyword: string
+  title: string;
+  description: string;
+  keyword: string;
 }
 
-export function ScoreDashboard({ title, description, keyword }: ScoreDashboardProps) {
-  const { titleScore, descriptionScore, keywordScore, overall, mobileTruncation } = useScores({
+export function ScoreDashboard({
+  title,
+  description,
+  keyword,
+}: ScoreDashboardProps) {
+  const {
+    titleScore,
+    descriptionScore,
+    keywordScore,
+    overall,
+    mobileTruncation,
+  } = useScores({
     title,
     description,
     keyword,
-  })
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,5 +67,5 @@ export function ScoreDashboard({ title, description, keyword }: ScoreDashboardPr
         />
       )}
     </div>
-  )
+  );
 }

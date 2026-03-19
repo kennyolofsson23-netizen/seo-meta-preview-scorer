@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import React from 'react'
+import React from "react";
 import {
   truncateGoogleMobileTitle,
   truncateGoogleMobileDescription,
   highlightKeyword,
   formatGoogleBreadcrumb,
   type TextSegment,
-} from '@/lib/truncation'
+} from "@/lib/truncation";
 
 interface GoogleMobilePreviewProps {
-  title: string
-  description: string
-  url: string
-  keyword?: string
+  title: string;
+  description: string;
+  url: string;
+  keyword?: string;
   /** When true, wraps in a phone frame chrome */
-  showPhoneFrame?: boolean
+  showPhoneFrame?: boolean;
 }
 
 function KeywordHighlighted({ segments }: { segments: TextSegment[] }) {
@@ -26,48 +26,55 @@ function KeywordHighlighted({ segments }: { segments: TextSegment[] }) {
           <strong key={i}>{segment.text}</strong>
         ) : (
           <span key={i}>{segment.text}</span>
-        )
+        ),
       )}
     </>
-  )
+  );
 }
 
 function MobileSerpContent({
   title,
   description,
   url,
-  keyword = '',
+  keyword = "",
 }: {
-  title: string
-  description: string
-  url: string
-  keyword?: string
+  title: string;
+  description: string;
+  url: string;
+  keyword?: string;
 }) {
-  const displayTitle = title || ''
-  const displayDescription = description || ''
+  const displayTitle = title || "";
+  const displayDescription = description || "";
 
-  const truncatedTitle = truncateGoogleMobileTitle(displayTitle)
-  const truncatedDescription = truncateGoogleMobileDescription(displayDescription)
+  const truncatedTitle = truncateGoogleMobileTitle(displayTitle);
+  const truncatedDescription =
+    truncateGoogleMobileDescription(displayDescription);
 
   const titleSegments = keyword
     ? highlightKeyword(truncatedTitle, keyword)
-    : [{ text: truncatedTitle, isKeyword: false }]
+    : [{ text: truncatedTitle, isKeyword: false }];
   const descSegments = keyword
     ? highlightKeyword(truncatedDescription, keyword)
-    : [{ text: truncatedDescription, isKeyword: false }]
+    : [{ text: truncatedDescription, isKeyword: false }];
 
-  const { domain, breadcrumb } = formatGoogleBreadcrumb(url)
+  const { domain, breadcrumb } = formatGoogleBreadcrumb(url);
 
   return (
     <div
       aria-label="Google mobile search result preview"
       className="bg-white p-2 font-sans"
-      style={{ fontFamily: 'Arial, sans-serif', maxWidth: '360px' }}
+      style={{ fontFamily: "Arial, sans-serif", maxWidth: "360px" }}
     >
       {/* Favicon + URL row */}
       <div className="flex items-center gap-1.5 mb-0.5">
-        <div className="w-3.5 h-3.5 rounded-full bg-[#E8EAED] flex-shrink-0" aria-hidden="true" />
-        <div className="text-xs text-[#202124] leading-none" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <div
+          className="w-3.5 h-3.5 rounded-full bg-[#E8EAED] flex-shrink-0"
+          aria-hidden="true"
+        />
+        <div
+          className="text-xs text-[#202124] leading-none"
+          style={{ fontFamily: "Arial, sans-serif" }}
+        >
           <span>{domain}</span>
           {breadcrumb && <span> › {breadcrumb}</span>}
         </div>
@@ -77,17 +84,17 @@ function MobileSerpContent({
       <h3
         className="leading-tight mb-0.5"
         style={{
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '16px',
-          color: '#1A0DAB',
+          fontFamily: "Arial, sans-serif",
+          fontSize: "16px",
+          color: "#1A0DAB",
           fontWeight: 400,
-          lineHeight: '20px',
+          lineHeight: "20px",
         }}
       >
         {displayTitle ? (
           <KeywordHighlighted segments={titleSegments} />
         ) : (
-          <em style={{ color: '#999', fontStyle: 'italic' }}>Untitled</em>
+          <em style={{ color: "#999", fontStyle: "italic" }}>Untitled</em>
         )}
       </h3>
 
@@ -96,28 +103,28 @@ function MobileSerpContent({
         <p
           className="leading-snug mt-0.5"
           style={{
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '12px',
-            color: '#4D5156',
-            lineHeight: '18px',
+            fontFamily: "Arial, sans-serif",
+            fontSize: "12px",
+            color: "#4D5156",
+            lineHeight: "18px",
           }}
         >
           <KeywordHighlighted segments={descSegments} />
         </p>
       )}
     </div>
-  )
+  );
 }
 
 export function GoogleMobilePreview({
   title,
   description,
   url,
-  keyword = '',
+  keyword = "",
   showPhoneFrame = true,
 }: GoogleMobilePreviewProps) {
-  const titleTruncated = title.length > 50
-  const descTruncated = description.length > 120
+  const titleTruncated = title.length > 50;
+  const descTruncated = description.length > 120;
 
   const content = (
     <MobileSerpContent
@@ -126,10 +133,10 @@ export function GoogleMobilePreview({
       url={url}
       keyword={keyword}
     />
-  )
+  );
 
   if (!showPhoneFrame) {
-    return content
+    return content;
   }
 
   return (
@@ -143,13 +150,11 @@ export function GoogleMobilePreview({
         {/* Browser chrome */}
         <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 border-b border-slate-200 dark:border-slate-700">
           <div className="bg-white dark:bg-slate-700 rounded text-xs px-2 py-1 text-muted-foreground truncate">
-            {url || 'google.com'}
+            {url || "google.com"}
           </div>
         </div>
         {/* SERP Result */}
-        <div className="bg-white dark:bg-[#202124]">
-          {content}
-        </div>
+        <div className="bg-white dark:bg-[#202124]">{content}</div>
       </div>
 
       {/* Mobile truncation warning */}
@@ -181,12 +186,15 @@ export function GoogleMobilePreview({
                 <li>Title truncated at 50 chars (currently {title.length})</li>
               )}
               {descTruncated && (
-                <li>Description truncated at 120 chars (currently {description.length})</li>
+                <li>
+                  Description truncated at 120 chars (currently{" "}
+                  {description.length})
+                </li>
               )}
             </ul>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

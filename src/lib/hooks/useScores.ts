@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
+import { useMemo } from "react";
 import {
   scoreTitle,
   scoreDescription,
@@ -8,49 +8,57 @@ import {
   calculateOverallScore,
   checkMobileTruncation,
   type ScoringResult,
-} from '@/lib/scoring'
+} from "@/lib/scoring";
 
 export interface UseScoresInput {
-  title: string
-  description: string
-  keyword: string
+  title: string;
+  description: string;
+  keyword: string;
 }
 
 export interface UseScoresReturn {
-  titleScore: ScoringResult
-  descriptionScore: ScoringResult
-  keywordScore: ScoringResult
-  overall: number
+  titleScore: ScoringResult;
+  descriptionScore: ScoringResult;
+  keywordScore: ScoringResult;
+  overall: number;
   mobileTruncation: {
-    titleTruncated: boolean
-    descriptionTruncated: boolean
-    titleLength: number
-    descriptionLength: number
-    totalIssues: number
-  }
+    titleTruncated: boolean;
+    descriptionTruncated: boolean;
+    titleLength: number;
+    descriptionLength: number;
+    totalIssues: number;
+  };
 }
 
 export function useScores(metadata: UseScoresInput): UseScoresReturn {
-  const { title, description, keyword } = metadata
+  const { title, description, keyword } = metadata;
 
-  const titleScore = useMemo(() => scoreTitle(title), [title])
-  const descriptionScore = useMemo(() => scoreDescription(description), [description])
+  const titleScore = useMemo(() => scoreTitle(title), [title]);
+  const descriptionScore = useMemo(
+    () => scoreDescription(description),
+    [description],
+  );
   const keywordScore = useMemo(
     () => scoreKeywordPresence(title, description, keyword),
-    [title, description, keyword]
-  )
+    [title, description, keyword],
+  );
   const overall = useMemo(
-    () => calculateOverallScore(titleScore.score, descriptionScore.score, keywordScore.score),
-    [titleScore.score, descriptionScore.score, keywordScore.score]
-  )
+    () =>
+      calculateOverallScore(
+        titleScore.score,
+        descriptionScore.score,
+        keywordScore.score,
+      ),
+    [titleScore.score, descriptionScore.score, keywordScore.score],
+  );
   const mobileTruncation = useMemo(() => {
-    const result = checkMobileTruncation(title, description)
+    const result = checkMobileTruncation(title, description);
     return {
       ...result,
       titleLength: title.length,
       descriptionLength: description.length,
-    }
-  }, [title, description])
+    };
+  }, [title, description]);
 
   return {
     titleScore,
@@ -58,5 +66,5 @@ export function useScores(metadata: UseScoresInput): UseScoresReturn {
     keywordScore,
     overall,
     mobileTruncation,
-  }
+  };
 }

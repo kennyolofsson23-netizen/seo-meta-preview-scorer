@@ -1,6 +1,6 @@
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { PreviewDashboard } from '@/components/dashboard/PreviewDashboard'
-import { APP } from '@/lib/constants'
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { PreviewDashboard } from "@/components/dashboard/PreviewDashboard";
+import { APP } from "@/lib/constants";
 
 export default function Home() {
   return (
@@ -51,8 +51,8 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <div className="flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
             <p>
-              &copy; {new Date().getFullYear()} {APP.name} — Zero API calls &bull; 100%
-              client-side &bull; Real-time scoring
+              &copy; {new Date().getFullYear()} {APP.name} — Zero API calls
+              &bull; 100% client-side &bull; Real-time scoring
             </p>
             <div className="flex items-center gap-4">
               <a
@@ -76,5 +76,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { ExternalLink } from 'lucide-react'
-import { AFFILIATES } from '@/lib/constants'
+import { ExternalLink } from "lucide-react";
+import { AFFILIATES } from "@/lib/constants";
 
 interface AffiliateRecommendationProps {
-  keywordScore: number
-  overallScore: number
+  keywordScore: number;
+  overallScore: number;
 }
 
 interface AffiliateCardProps {
-  href: string
-  title: string
-  description: string
-  cta: string
+  href: string;
+  title: string;
+  description: string;
+  cta: string;
 }
 
 function AffiliateCard({ href, title, description, cta }: AffiliateCardProps) {
@@ -25,24 +25,26 @@ function AffiliateCard({ href, title, description, cta }: AffiliateCardProps) {
     >
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+          {description}
+        </p>
       </div>
       <div className="flex items-center gap-1 text-xs font-medium text-primary whitespace-nowrap flex-shrink-0 group-hover:underline">
         {cta}
         <ExternalLink className="h-3 w-3" />
       </div>
     </a>
-  )
+  );
 }
 
 export function AffiliateRecommendation({
   keywordScore,
   overallScore,
 }: AffiliateRecommendationProps) {
-  const showAhrefs = keywordScore < 70
-  const showSemrush = overallScore < 70
+  const showAhrefs = keywordScore < 70;
+  const showSemrush = overallScore < 70;
 
-  if (!showAhrefs && !showSemrush) return null
+  if (!showAhrefs && !showSemrush) return null;
 
   return (
     <div className="space-y-2">
@@ -68,5 +70,5 @@ export function AffiliateRecommendation({
         />
       )}
     </div>
-  )
+  );
 }

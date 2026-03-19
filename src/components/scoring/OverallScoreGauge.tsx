@@ -1,25 +1,28 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Card, CardContent } from '@/components/ui/Card'
+import * as React from "react";
+import { Card, CardContent } from "@/components/ui/Card";
 
 export interface OverallScoreGaugeProps {
-  overall: number
+  overall: number;
 }
 
 function getScoreColor(score: number): { text: string; bar: string } {
   if (score >= 80) {
-    return { text: 'text-green-600 dark:text-green-500', bar: 'bg-green-500' }
+    return { text: "text-green-600 dark:text-green-500", bar: "bg-green-500" };
   }
   if (score >= 50) {
-    return { text: 'text-yellow-600 dark:text-yellow-500', bar: 'bg-yellow-500' }
+    return {
+      text: "text-yellow-600 dark:text-yellow-500",
+      bar: "bg-yellow-500",
+    };
   }
-  return { text: 'text-red-600 dark:text-red-500', bar: 'bg-red-500' }
+  return { text: "text-red-600 dark:text-red-500", bar: "bg-red-500" };
 }
 
 export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
-  const clamped = Math.min(100, Math.max(0, Math.round(overall)))
-  const { text: scoreColor, bar: barColor } = getScoreColor(clamped)
+  const clamped = Math.min(100, Math.max(0, Math.round(overall)));
+  const { text: scoreColor, bar: barColor } = getScoreColor(clamped);
 
   return (
     <Card>
@@ -27,7 +30,9 @@ export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Overall SEO Score</h2>
           <div>
-            <span className={`text-5xl font-bold ${scoreColor}`}>{clamped}</span>
+            <span className={`text-5xl font-bold ${scoreColor}`}>
+              {clamped}
+            </span>
             <span className="text-2xl text-muted-foreground">/100</span>
           </div>
         </div>
@@ -49,5 +54,5 @@ export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }

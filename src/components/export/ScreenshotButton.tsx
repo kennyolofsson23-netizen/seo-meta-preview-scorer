@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Download, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { captureAndDownload } from '@/lib/screenshot'
+import { useState } from "react";
+import { Download, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { captureAndDownload } from "@/lib/screenshot";
 
 interface ScreenshotButtonProps {
   /** Ref to the element to screenshot */
-  targetRef: React.RefObject<HTMLElement | null>
+  targetRef: React.RefObject<HTMLElement | null>;
   /** Format to download */
-  format?: 'png' | 'jpg'
+  format?: "png" | "jpg";
   /** Optional callback after download */
-  onSuccess?: () => void
-  onError?: (error: string) => void
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
 }
 
 export function ScreenshotButton({
   targetRef,
-  format = 'png',
+  format = "png",
   onSuccess,
   onError,
 }: ScreenshotButtonProps) {
-  const [isCapturing, setIsCapturing] = useState(false)
+  const [isCapturing, setIsCapturing] = useState(false);
 
   async function handleClick() {
     if (!targetRef.current) {
-      onError?.('No preview element found')
-      return
+      onError?.("No preview element found");
+      return;
     }
 
-    setIsCapturing(true)
+    setIsCapturing(true);
     try {
-      const result = await captureAndDownload(targetRef.current, { format })
+      const result = await captureAndDownload(targetRef.current, { format });
       if (result.success) {
-        onSuccess?.()
+        onSuccess?.();
       } else {
-        onError?.(result.error ?? 'Screenshot failed')
+        onError?.(result.error ?? "Screenshot failed");
       }
     } finally {
-      setIsCapturing(false)
+      setIsCapturing(false);
     }
   }
 
@@ -60,9 +60,11 @@ export function ScreenshotButton({
       ) : (
         <>
           <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">Export {format.toUpperCase()}</span>
+          <span className="hidden sm:inline">
+            Export {format.toUpperCase()}
+          </span>
         </>
       )}
     </Button>
-  )
+  );
 }

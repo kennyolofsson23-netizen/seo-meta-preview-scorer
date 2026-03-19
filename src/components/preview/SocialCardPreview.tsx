@@ -1,24 +1,28 @@
-import { useState } from 'react'
-import { ImageIcon } from 'lucide-react'
-import { extractDomain } from '@/lib/scoring'
+import { useState } from "react";
+import { ImageIcon } from "lucide-react";
+import { extractDomain } from "@/lib/scoring";
 
 export interface SocialCardPreviewProps {
-  title: string
-  description: string
-  url: string
-  ogTitle?: string
-  ogDescription?: string
-  ogImage?: string
+  title: string;
+  description: string;
+  url: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
 }
 
 function ImagePlaceholder() {
   return (
     <div className="aspect-[1.91/1] bg-muted border-b border-border flex flex-col items-center justify-center gap-2">
       <ImageIcon className="h-8 w-8 text-muted-foreground" />
-      <p className="text-xs text-muted-foreground">Add an ogImage URL to see a preview</p>
-      <p className="text-[10px] text-muted-foreground/60">Recommended: 1200×630px</p>
+      <p className="text-xs text-muted-foreground">
+        Add an ogImage URL to see a preview
+      </p>
+      <p className="text-[10px] text-muted-foreground/60">
+        Recommended: 1200×630px
+      </p>
     </div>
-  )
+  );
 }
 
 export function SocialCardPreview({
@@ -29,14 +33,14 @@ export function SocialCardPreview({
   ogDescription,
   ogImage,
 }: SocialCardPreviewProps) {
-  const [imageError, setImageError] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  const domain = extractDomain(url)
-  const displayTitle = ogTitle || title
-  const displayDescription = ogDescription || description
+  const domain = extractDomain(url);
+  const displayTitle = ogTitle || title;
+  const displayDescription = ogDescription || description;
 
-  const showPlaceholder = !ogImage || imageError
+  const showPlaceholder = !ogImage || imageError;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden max-w-[500px]">
@@ -48,8 +52,12 @@ export function SocialCardPreview({
           {!imageLoaded && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Add an ogImage URL to see a preview</p>
-              <p className="text-[10px] text-muted-foreground/60">Recommended: 1200×630px</p>
+              <p className="text-xs text-muted-foreground">
+                Add an ogImage URL to see a preview
+              </p>
+              <p className="text-[10px] text-muted-foreground/60">
+                Recommended: 1200×630px
+              </p>
             </div>
           )}
           <img
@@ -64,10 +72,16 @@ export function SocialCardPreview({
 
       {/* Text area */}
       <div className="p-3 bg-card">
-        <p className="text-xs uppercase text-muted-foreground tracking-wide">{domain}</p>
-        <p className="font-semibold text-sm text-card-foreground line-clamp-2">{displayTitle}</p>
-        <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{displayDescription}</p>
+        <p className="text-xs uppercase text-muted-foreground tracking-wide">
+          {domain}
+        </p>
+        <p className="font-semibold text-sm text-card-foreground line-clamp-2">
+          {displayTitle}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1 line-clamp-3">
+          {displayDescription}
+        </p>
       </div>
     </div>
-  )
+  );
 }

@@ -1,32 +1,32 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { type PageMetadata } from '@/types'
-import { type ScoringResult } from '@/lib/scoring'
-import { type MobileTruncation } from '@/lib/hooks/useMetaInput'
-import { Input } from '@/components/ui/Input'
-import { Textarea } from '@/components/ui/Textarea'
-import { CharacterCounter } from './CharacterCounter'
-import { SCORING } from '@/lib/constants'
+import * as React from "react";
+import { type PageMetadata } from "@/types";
+import { type ScoringResult } from "@/lib/scoring";
+import { type MobileTruncation } from "@/lib/hooks/useMetaInput";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { CharacterCounter } from "./CharacterCounter";
+import { SCORING } from "@/lib/constants";
 
 // Title: optimal 30-60 chars, warning 61-70, error otherwise
-const TITLE_OPTIMAL_MIN = SCORING.title.min       // 30
-const TITLE_OPTIMAL = SCORING.title.optimal       // 60
-const TITLE_MAX = SCORING.title.acceptable        // 70
+const TITLE_OPTIMAL_MIN = SCORING.title.min; // 30
+const TITLE_OPTIMAL = SCORING.title.optimal; // 60
+const TITLE_MAX = SCORING.title.acceptable; // 70
 
 // Description: optimal 120-160 chars, warning 161-200, error otherwise
-const DESC_OPTIMAL_MIN = SCORING.description.min  // 120
-const DESC_OPTIMAL = SCORING.description.optimal  // 160
-const DESC_MAX = SCORING.description.acceptable   // 200
+const DESC_OPTIMAL_MIN = SCORING.description.min; // 120
+const DESC_OPTIMAL = SCORING.description.optimal; // 160
+const DESC_MAX = SCORING.description.acceptable; // 200
 
 export interface MetaInputFormProps {
-  metadata: PageMetadata
-  onChange: (metadata: PageMetadata) => void
-  titleScore: ScoringResult
-  descriptionScore: ScoringResult
-  keywordScore: ScoringResult
-  urlValidation: { valid: boolean; error?: string }
-  mobileTruncation: MobileTruncation
+  metadata: PageMetadata;
+  onChange: (metadata: PageMetadata) => void;
+  titleScore: ScoringResult;
+  descriptionScore: ScoringResult;
+  keywordScore: ScoringResult;
+  urlValidation: { valid: boolean; error?: string };
+  mobileTruncation: MobileTruncation;
 }
 
 function FieldProgress({
@@ -35,19 +35,19 @@ function FieldProgress({
   status,
   score,
 }: {
-  value: number
-  max: number
-  status: 'good' | 'warning' | 'error'
-  score: number
+  value: number;
+  max: number;
+  status: "good" | "warning" | "error";
+  score: number;
 }) {
   const barColor =
-    status === 'good'
-      ? 'bg-green-500'
-      : status === 'warning'
-        ? 'bg-yellow-500'
-        : 'bg-red-500'
+    status === "good"
+      ? "bg-green-500"
+      : status === "warning"
+        ? "bg-yellow-500"
+        : "bg-red-500";
 
-  const width = `${Math.min(100, (value / max) * 100)}%`
+  const width = `${Math.min(100, (value / max) * 100)}%`;
 
   return (
     <div className="flex items-center gap-2 mt-1">
@@ -65,7 +65,7 @@ function FieldProgress({
         {score}%
       </span>
     </div>
-  )
+  );
 }
 
 export function MetaInputForm({
@@ -78,19 +78,19 @@ export function MetaInputForm({
   mobileTruncation,
 }: MetaInputFormProps) {
   function handleTitleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    onChange({ ...metadata, title: e.target.value })
+    onChange({ ...metadata, title: e.target.value });
   }
 
   function handleDescriptionChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    onChange({ ...metadata, description: e.target.value })
+    onChange({ ...metadata, description: e.target.value });
   }
 
   function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
-    onChange({ ...metadata, url: e.target.value })
+    onChange({ ...metadata, url: e.target.value });
   }
 
   function handleKeywordChange(e: React.ChangeEvent<HTMLInputElement>) {
-    onChange({ ...metadata, keyword: e.target.value })
+    onChange({ ...metadata, keyword: e.target.value });
   }
 
   return (
@@ -101,11 +101,12 @@ export function MetaInputForm({
           role="alert"
           className="rounded-md border border-yellow-300 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-700 px-4 py-2 text-xs text-yellow-800 dark:text-yellow-300"
         >
-          {mobileTruncation.titleTruncated && mobileTruncation.descriptionTruncated
-            ? 'Your title and description will be truncated on mobile search results.'
+          {mobileTruncation.titleTruncated &&
+          mobileTruncation.descriptionTruncated
+            ? "Your title and description will be truncated on mobile search results."
             : mobileTruncation.titleTruncated
-              ? 'Your title will be truncated on mobile search results (limit: 50 chars).'
-              : 'Your description will be truncated on mobile search results (limit: 120 chars).'}
+              ? "Your title will be truncated on mobile search results (limit: 50 chars)."
+              : "Your description will be truncated on mobile search results (limit: 120 chars)."}
         </div>
       )}
 
@@ -199,9 +200,11 @@ export function MetaInputForm({
           value={metadata.url}
           onChange={handleUrlChange}
           placeholder="https://example.com/page"
-          aria-describedby={!urlValidation.valid ? 'meta-url-error' : undefined}
+          aria-describedby={!urlValidation.valid ? "meta-url-error" : undefined}
           aria-invalid={!urlValidation.valid}
-          className={!urlValidation.valid ? 'border-red-500 focus:ring-red-500' : ''}
+          className={
+            !urlValidation.valid ? "border-red-500 focus:ring-red-500" : ""
+          }
         />
         {!urlValidation.valid && urlValidation.error && (
           <p
@@ -220,13 +223,13 @@ export function MetaInputForm({
           htmlFor="meta-keyword"
           className="block text-sm font-medium text-foreground mb-1"
         >
-          Primary Keyword{' '}
+          Primary Keyword{" "}
           <span className="text-muted-foreground font-normal">(Optional)</span>
         </label>
         <Input
           id="meta-keyword"
           type="text"
-          value={metadata.keyword ?? ''}
+          value={metadata.keyword ?? ""}
           onChange={handleKeywordChange}
           placeholder="e.g., 'SEO tips', 'how to optimize'"
           aria-describedby="meta-keyword-message"
@@ -245,5 +248,5 @@ export function MetaInputForm({
         </p>
       </div>
     </div>
-  )
+  );
 }

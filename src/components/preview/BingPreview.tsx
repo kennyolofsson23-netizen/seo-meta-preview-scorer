@@ -4,23 +4,23 @@
  * Presentation-only component; no internal state.
  */
 
-import React from 'react'
-import { BING } from '@/lib/constants'
-import { extractDomain } from '@/lib/scoring'
+import React from "react";
+import { BING } from "@/lib/constants";
+import { extractDomain } from "@/lib/scoring";
 
 export interface BingPreviewProps {
-  title: string
-  description: string
-  url: string
-  keyword?: string
+  title: string;
+  description: string;
+  url: string;
+  keyword?: string;
 }
 
 /**
  * Truncate a string at `maxChars`, appending "…" when truncated.
  */
 function truncate(text: string, maxChars: number): string {
-  if (text.length <= maxChars) return text
-  return text.slice(0, maxChars).trimEnd() + '…'
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars).trimEnd() + "…";
 }
 
 /**
@@ -28,31 +28,36 @@ function truncate(text: string, maxChars: number): string {
  * a <strong> element for bolding.
  */
 function highlightKeyword(text: string, keyword: string): React.ReactNode {
-  if (!keyword.trim()) return text
+  if (!keyword.trim()) return text;
 
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const parts = text.split(new RegExp(`(${escaped})`, 'gi'))
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
 
   return parts.map((part, i) =>
     part.toLowerCase() === keyword.toLowerCase() ? (
       <strong key={i}>{part}</strong>
     ) : (
       part
-    )
-  )
+    ),
+  );
 }
 
-export function BingPreview({ title, description, url, keyword }: BingPreviewProps) {
+export function BingPreview({
+  title,
+  description,
+  url,
+  keyword,
+}: BingPreviewProps) {
   // --- Title ---
-  const rawTitle = title.trim()
-  const displayTitle = rawTitle ? truncate(rawTitle, BING.titleMaxChars) : null
+  const rawTitle = title.trim();
+  const displayTitle = rawTitle ? truncate(rawTitle, BING.titleMaxChars) : null;
 
   // --- URL display (Bing shows the full URL) ---
-  const displayUrl = url.trim() || 'example.com'
+  const displayUrl = url.trim() || "example.com";
 
   // --- Description ---
-  const rawDesc = description.trim()
-  const displayDesc = rawDesc ? truncate(rawDesc, BING.descMaxChars) : null
+  const rawDesc = description.trim();
+  const displayDesc = rawDesc ? truncate(rawDesc, BING.descMaxChars) : null;
 
   return (
     <div
@@ -62,13 +67,13 @@ export function BingPreview({ title, description, url, keyword }: BingPreviewPro
       {/* Title */}
       <div>
         <a
-          href={url.trim() || '#'}
+          href={url.trim() || "#"}
           className="hover:underline"
           style={{
             fontFamily: BING.titleFontFamily,
-            fontSize: '19px',
+            fontSize: "19px",
             color: BING.titleColor,
-            textDecoration: 'none',
+            textDecoration: "none",
           }}
           data-testid="bing-title"
         >
@@ -79,7 +84,7 @@ export function BingPreview({ title, description, url, keyword }: BingPreviewPro
               displayTitle
             )
           ) : (
-            <em style={{ color: '#767676' }}>Untitled</em>
+            <em style={{ color: "#767676" }}>Untitled</em>
           )}
         </a>
       </div>
@@ -101,7 +106,7 @@ export function BingPreview({ title, description, url, keyword }: BingPreviewPro
             fontFamily: BING.descFontFamily,
             fontSize: BING.descFontSize,
             color: BING.descColor,
-            margin: '4px 0 0',
+            margin: "4px 0 0",
           }}
           data-testid="bing-description"
         >
@@ -109,7 +114,7 @@ export function BingPreview({ title, description, url, keyword }: BingPreviewPro
         </p>
       )}
     </div>
-  )
+  );
 }
 
-export default BingPreview
+export default BingPreview;

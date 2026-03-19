@@ -1,27 +1,34 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { ProgressBar } from '@/components/ui/ProgressBar'
+import * as React from "react";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 
 export interface ScoreCardProps {
-  label: string
-  score: number
-  status: 'good' | 'warning' | 'error'
-  message: string
-  charCount?: number
-  charLimit?: number
+  label: string;
+  score: number;
+  status: "good" | "warning" | "error";
+  message: string;
+  charCount?: number;
+  charLimit?: number;
 }
 
-const statusLabel: Record<ScoreCardProps['status'], string> = {
-  good: 'Good',
-  warning: 'Warning',
-  error: 'Needs Work',
-}
+const statusLabel: Record<ScoreCardProps["status"], string> = {
+  good: "Good",
+  warning: "Warning",
+  error: "Needs Work",
+};
 
-export function ScoreCard({ label, score, status, message, charCount, charLimit }: ScoreCardProps) {
-  const clamped = Math.min(100, Math.max(0, Math.round(score)))
+export function ScoreCard({
+  label,
+  score,
+  status,
+  message,
+  charCount,
+  charLimit,
+}: ScoreCardProps) {
+  const clamped = Math.min(100, Math.max(0, Math.round(score)));
 
   return (
     <Card>
@@ -41,11 +48,11 @@ export function ScoreCard({ label, score, status, message, charCount, charLimit 
           {charCount !== undefined && (
             <span className="text-xs text-muted-foreground whitespace-nowrap">
               {charCount}
-              {charLimit !== undefined ? `/${charLimit}` : ''} chars
+              {charLimit !== undefined ? `/${charLimit}` : ""} chars
             </span>
           )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

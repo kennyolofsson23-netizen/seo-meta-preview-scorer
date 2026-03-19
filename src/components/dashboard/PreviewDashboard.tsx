@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import * as RadixTabs from '@radix-ui/react-tabs'
-import { LayoutDashboard, History, BarChart3, Code2 } from 'lucide-react'
-import { useMetaInput } from '@/lib/hooks/useMetaInput'
-import { useHistory } from '@/lib/hooks/useHistory'
-import { MetaInputForm } from '@/components/input/MetaInputForm'
-import { UrlFetchButton } from '@/components/input/UrlFetchButton'
-import { ScoreDashboard } from '@/components/scoring/ScoreDashboard'
-import { PreviewContainer } from '@/components/preview/PreviewContainer'
-import { AffiliateRecommendation } from '@/components/affiliate/AffiliateRecommendation'
-import { HistoryPanel } from '@/components/history/HistoryPanel'
-import { BulkCheckPanel } from '@/components/bulk/BulkCheckPanel'
-import { EmbedCodeGenerator } from '@/components/embed/EmbedCodeGenerator'
-import { cn } from '@/lib/utils'
-import type { HistoryEntry } from '@/lib/history'
+import * as RadixTabs from "@radix-ui/react-tabs";
+import { LayoutDashboard, History, BarChart3, Code2 } from "lucide-react";
+import { useMetaInput } from "@/lib/hooks/useMetaInput";
+import { useHistory } from "@/lib/hooks/useHistory";
+import { MetaInputForm } from "@/components/input/MetaInputForm";
+import { UrlFetchButton } from "@/components/input/UrlFetchButton";
+import { ScoreDashboard } from "@/components/scoring/ScoreDashboard";
+import { PreviewContainer } from "@/components/preview/PreviewContainer";
+import { AffiliateRecommendation } from "@/components/affiliate/AffiliateRecommendation";
+import { HistoryPanel } from "@/components/history/HistoryPanel";
+import { BulkCheckPanel } from "@/components/bulk/BulkCheckPanel";
+import { EmbedCodeGenerator } from "@/components/embed/EmbedCodeGenerator";
+import { cn } from "@/lib/utils";
+import type { HistoryEntry } from "@/lib/history";
 
 export function PreviewDashboard() {
   const {
@@ -25,9 +25,9 @@ export function PreviewDashboard() {
     overall,
     urlValidation,
     mobileTruncation,
-  } = useMetaInput()
+  } = useMetaInput();
 
-  const { save } = useHistory()
+  const { save } = useHistory();
 
   // Save to history whenever metadata changes and has meaningful content
   const saveToHistory = () => {
@@ -36,11 +36,11 @@ export function PreviewDashboard() {
         title: metadata.title,
         description: metadata.description,
         url: metadata.url,
-        keyword: metadata.keyword ?? '',
+        keyword: metadata.keyword ?? "",
         overallScore: overall,
-      })
+      });
     }
-  }
+  };
 
   function handleHistorySelect(entry: HistoryEntry) {
     setMetadata({
@@ -48,7 +48,7 @@ export function PreviewDashboard() {
       description: entry.description,
       url: entry.url,
       keyword: entry.keyword,
-    })
+    });
   }
 
   return (
@@ -59,19 +59,19 @@ export function PreviewDashboard() {
         aria-label="Main sections"
       >
         {[
-          { value: 'checker', label: 'Checker', icon: LayoutDashboard },
-          { value: 'history', label: 'History', icon: History },
-          { value: 'bulk', label: 'Bulk Check', icon: BarChart3 },
-          { value: 'embed', label: 'Embed', icon: Code2 },
+          { value: "checker", label: "Checker", icon: LayoutDashboard },
+          { value: "history", label: "History", icon: History },
+          { value: "bulk", label: "Bulk Check", icon: BarChart3 },
+          { value: "embed", label: "Embed", icon: Code2 },
         ].map(({ value, label, icon: Icon }) => (
           <RadixTabs.Trigger
             key={value}
             value={value}
             className={cn(
-              'flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors',
-              'text-muted-foreground hover:text-foreground',
-              'data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+              "flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors",
+              "text-muted-foreground hover:text-foreground",
+              "data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
             )}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
@@ -98,7 +98,7 @@ export function PreviewDashboard() {
                     ogTitle: fetched.ogTitle || undefined,
                     ogDescription: fetched.ogDescription || undefined,
                     ogImage: fetched.ogImage || undefined,
-                  })
+                  });
                 }}
               />
             </div>
@@ -107,7 +107,7 @@ export function PreviewDashboard() {
             <MetaInputForm
               metadata={metadata}
               onChange={(updated) => {
-                setMetadata(updated)
+                setMetadata(updated);
               }}
               titleScore={titleScore}
               descriptionScore={descriptionScore}
@@ -137,7 +137,7 @@ export function PreviewDashboard() {
             <ScoreDashboard
               title={metadata.title}
               description={metadata.description}
-              keyword={metadata.keyword ?? ''}
+              keyword={metadata.keyword ?? ""}
             />
 
             {/* Preview container */}
@@ -178,5 +178,5 @@ export function PreviewDashboard() {
         <EmbedCodeGenerator />
       </RadixTabs.Content>
     </RadixTabs.Root>
-  )
+  );
 }

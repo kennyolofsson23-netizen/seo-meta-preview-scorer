@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useMetaInput } from '@/lib/hooks/useMetaInput'
-import { MetaInputForm } from '@/components/input/MetaInputForm'
-import { ScoreDashboard } from '@/components/scoring/ScoreDashboard'
-import { PreviewContainer } from '@/components/preview/PreviewContainer'
-import type { WidgetOptions } from '@/types'
-import { cn } from '@/lib/utils'
+import { useMetaInput } from "@/lib/hooks/useMetaInput";
+import { MetaInputForm } from "@/components/input/MetaInputForm";
+import { ScoreDashboard } from "@/components/scoring/ScoreDashboard";
+import { PreviewContainer } from "@/components/preview/PreviewContainer";
+import type { WidgetOptions } from "@/types";
+import { cn } from "@/lib/utils";
 
 export interface WidgetWrapperProps {
-  options?: Partial<WidgetOptions>
+  options?: Partial<WidgetOptions>;
 }
 
 /**
@@ -29,31 +29,33 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
     title: options.defaultTitle,
     description: options.defaultDescription,
     url: options.defaultUrl,
-  })
+  });
 
-  const showScores = options.showScores !== false
-  const showPreviews = options.showPreviews !== false
-  const compact = options.compactMode === true
+  const showScores = options.showScores !== false;
+  const showPreviews = options.showPreviews !== false;
+  const compact = options.compactMode === true;
 
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 bg-background text-foreground p-4',
-        compact ? 'min-h-[450px]' : 'min-h-[700px]',
+        "flex flex-col gap-4 bg-background text-foreground p-4",
+        compact ? "min-h-[450px]" : "min-h-[700px]",
       )}
     >
       {/* Compact header */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-foreground">SEO Meta Preview</span>
+        <span className="text-sm font-semibold text-foreground">
+          SEO Meta Preview
+        </span>
         {showScores && (
           <span
             className={cn(
-              'text-xs font-bold px-2 py-0.5 rounded',
+              "text-xs font-bold px-2 py-0.5 rounded",
               overall >= 80
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                 : overall >= 50
-                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
             )}
           >
             Score: {overall}/100
@@ -77,7 +79,7 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
         <ScoreDashboard
           title={metadata.title}
           description={metadata.description}
-          keyword={metadata.keyword ?? ''}
+          keyword={metadata.keyword ?? ""}
         />
       )}
 
@@ -94,5 +96,5 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { History, Trash2, RotateCcw } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { useHistory } from '@/lib/hooks/useHistory'
-import { formatHistoryDate, type HistoryEntry } from '@/lib/history'
+import { History, Trash2, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { useHistory } from "@/lib/hooks/useHistory";
+import { formatHistoryDate, type HistoryEntry } from "@/lib/history";
 
 interface HistoryPanelProps {
-  onSelect: (entry: HistoryEntry) => void
+  onSelect: (entry: HistoryEntry) => void;
 }
 
 export function HistoryPanel({ onSelect }: HistoryPanelProps) {
-  const { history, isAvailable, remove, clear } = useHistory()
+  const { history, isAvailable, remove, clear } = useHistory();
 
-  if (!isAvailable) return null
+  if (!isAvailable) return null;
   if (history.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-4">
@@ -25,7 +25,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
           Your last 20 checks will appear here for quick access.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -58,15 +58,17 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
                 className="flex-1 text-left min-w-0"
                 aria-label={`Load check: ${entry.title}`}
               >
-                <p className="text-xs font-medium text-foreground truncate">{entry.title || 'Untitled'}</p>
+                <p className="text-xs font-medium text-foreground truncate">
+                  {entry.title || "Untitled"}
+                </p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span
                     className={`text-[10px] font-medium ${
                       entry.overallScore >= 80
-                        ? 'text-green-600 dark:text-green-400'
+                        ? "text-green-600 dark:text-green-400"
                         : entry.overallScore >= 50
-                          ? 'text-yellow-600 dark:text-yellow-400'
-                          : 'text-red-600 dark:text-red-400'
+                          ? "text-yellow-600 dark:text-yellow-400"
+                          : "text-red-600 dark:text-red-400"
                     }`}
                   >
                     {entry.overallScore}/100
@@ -95,5 +97,5 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
         ))}
       </ul>
     </div>
-  )
+  );
 }

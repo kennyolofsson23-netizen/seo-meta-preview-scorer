@@ -5,12 +5,14 @@ Pixel-perfect SEO preview generator and scoring tool for content creators, blogg
 ## Features
 
 ### Preview Engines
+
 - **Google SERP Preview**: Pixel-perfect rendering of Google search results
 - **Bing Preview**: Bing-specific snippet formatting
 - **Social Card Preview**: OG image placeholder + meta tag visualization
 - **Mobile Preview**: Responsive truncation warnings
 
 ### SEO Scoring
+
 - **Title Length Score**: Green (30-60 chars) / Yellow (60-70) / Red (>70)
 - **Meta Description CTR Rating**: Optimal length scoring (155-160 chars for desktop)
 - **Keyword Presence Check**: Detect if primary keyword appears in title/description
@@ -18,6 +20,7 @@ Pixel-perfect SEO preview generator and scoring tool for content creators, blogg
 - **Performance Score**: Character count analysis and optimization tips
 
 ### Additional Capabilities
+
 - **Screenshot Export**: Download preview as PNG/JPG
 - **Widget Mode**: Embeddable preview widget for SEO/marketing blogs
 - **Shareable Links**: Generate shareable preview URLs
@@ -36,6 +39,7 @@ Pixel-perfect SEO preview generator and scoring tool for content creators, blogg
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 22 LTS or higher
 - npm 10+
 
