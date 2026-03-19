@@ -73,7 +73,7 @@ export function BingPreview({
           className="hover:underline"
           style={{
             fontFamily: BING.titleFontFamily,
-            fontSize: "19px",
+            fontSize: BING.titleFontSize,
             color: BING.titleColor,
             textDecoration: "none",
           }}

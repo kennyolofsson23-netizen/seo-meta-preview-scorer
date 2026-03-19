@@ -69,7 +69,6 @@ export async function captureAndDownload(
       );
     });
   } catch (error) {
-    console.error("Screenshot failed:", error);
     return {
       success: false,
       error:

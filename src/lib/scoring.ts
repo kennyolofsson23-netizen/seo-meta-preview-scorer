@@ -21,7 +21,7 @@ export interface FullSeoScore {
  * Optimal length: 30-60 characters (60-70 is acceptable)
  */
 export function scoreTitle(title: string): ScoringResult {
-  const length = title.length;
+  const length = (title ?? "").length;
 
   if (length === 0) {
     return {
@@ -69,7 +69,7 @@ export function scoreTitle(title: string): ScoringResult {
  * Mobile shows ~120 characters
  */
 export function scoreDescription(description: string): ScoringResult {
-  const length = description.length;
+  const length = (description ?? "").length;
 
   if (length === 0) {
     return {

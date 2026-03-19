@@ -4,17 +4,17 @@ import { APP } from "@/lib/constants";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 text-foreground">
       {/* ── Navbar ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
+        <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold tracking-tight">{APP.name}</span>
             <span className="hidden sm:inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
               Free
             </span>
           </div>
-          <nav className="flex items-center gap-3">
+          <nav aria-label="Main navigation" className="flex items-center gap-3">
             <a
               href="/embed"
               target="_blank"
@@ -31,7 +31,7 @@ export default function Home() {
       {/* ── Hero ───────────────────────────────────────────────────── */}
       <section className="border-b border-border bg-muted/30 py-8">
         <div className="container mx-auto max-w-7xl px-4">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
             See your page in Google before you publish
           </h1>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
