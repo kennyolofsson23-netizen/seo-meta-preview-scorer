@@ -83,6 +83,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(parsedUrl.toString(), {
       signal: controller.signal,
+      redirect: "error",
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
         Accept: "text/html,application/xhtml+xml",

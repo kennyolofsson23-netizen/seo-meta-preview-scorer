@@ -1,0 +1,37 @@
+
+> seo-meta-preview-scorer@0.1.0 dev
+> next dev -p 9999
+
+   ▲ Next.js 15.5.14
+   - Local:        http://localhost:9999
+   - Network:      http://192.168.1.33:9999
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 1305ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.9s (880 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:9999". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET / 200 in 3169ms
+ ✓ Compiled in 276ms (394 modules)
+ GET / 200 in 72ms
+ ✓ Compiled /embed in 228ms (857 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:9999". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /embed 200 in 411ms
+ ✓ Compiled /widget in 148ms (870 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:9999". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /widget 307 in 301ms
+ ✓ Compiled /api/og in 127ms (878 modules)
+ GET /api/og?title=Test 200 in 284ms
+ ✓ Compiled /api/fetch-meta in 141ms (893 modules)
+ GET /api/fetch-meta?url=https://example.com 502 in 231ms
+ ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+   ▲ Next.js 15.5.14
+   - Local:        http://localhost:9999
+   - Network:      http://192.168.1.33:9999
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 1657ms

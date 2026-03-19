@@ -1,0 +1,15 @@
+
+> seo-meta-preview-scorer@0.1.0 dev
+> next dev -p 8765
+
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::8765
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::8765)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 8765
+}
+[?25h
