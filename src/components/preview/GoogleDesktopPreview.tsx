@@ -69,9 +69,9 @@ export function GoogleDesktopPreview({
           className="text-sm leading-none"
           style={{ fontFamily: "Arial, sans-serif" }}
         >
-          <span className="text-[#202124]">{domain}</span>
+          <span className="text-[#006621]">{domain}</span>
           {breadcrumb && (
-            <span className="text-[#202124]"> › {breadcrumb}</span>
+            <span className="text-[#006621]"> › {breadcrumb}</span>
           )}
         </div>
       </div>
