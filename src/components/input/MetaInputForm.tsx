@@ -97,8 +97,11 @@ export function MetaInputForm({
   }
 
   return (
-    <div role="form" aria-label="SEO metadata input form" className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
-
+    <div
+      role="form"
+      aria-label="SEO metadata input form"
+      className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4"
+    >
       {/* Title field */}
       <div>
         <div className="flex items-center justify-between mb-1">
@@ -131,7 +134,10 @@ export function MetaInputForm({
           label={`Title score: ${titleScore.score} out of 100`}
         />
         {mobileTruncation.titleTruncated && (
-          <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1" role="alert">
+          <p
+            className="text-xs text-yellow-700 dark:text-yellow-400 mt-1"
+            role="alert"
+          >
             ⚠ Title too long for mobile — will be cut off after 50 characters.
           </p>
         )}
@@ -176,8 +182,12 @@ export function MetaInputForm({
           label={`Description score: ${descriptionScore.score} out of 100`}
         />
         {mobileTruncation.descriptionTruncated && (
-          <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1" role="alert">
-            ⚠ Description too long for mobile — will be cut off after 120 characters.
+          <p
+            className="text-xs text-yellow-700 dark:text-yellow-400 mt-1"
+            role="alert"
+          >
+            ⚠ Description too long for mobile — will be cut off after 120
+            characters.
           </p>
         )}
         <p

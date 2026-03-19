@@ -334,7 +334,9 @@ My Page,My desc,https://example.com,SEO tips`;
 
       downloadCsv("header\nvalue", "my-results.csv");
       expect(capturedEl).not.toBeNull();
-      expect((capturedEl as unknown as HTMLAnchorElement).download).toBe("my-results.csv");
+      expect((capturedEl as unknown as HTMLAnchorElement).download).toBe(
+        "my-results.csv",
+      );
     });
 
     it("DC-02: URL.createObjectURL is called with a Blob", () => {

@@ -6,7 +6,5 @@
  * Hidden from view to avoid overlaying the live preview.
  */
 export function ScreenshotWatermark() {
-  return (
-    <span aria-hidden="true" className="sr-only" />
-  );
+  return <span aria-hidden="true" className="sr-only" />;
 }
