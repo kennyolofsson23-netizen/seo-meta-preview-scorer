@@ -9,9 +9,8 @@ const MAX_DESC_LEN = 200;
 function clampScore(raw: string | null): number | null {
   if (raw === null) return null;
   const n = parseInt(raw, 10);
-  // Non-numeric input (NaN) is treated as absent — do not render score section
-  if (isNaN(n)) return null;
-  return Math.min(100, Math.max(0, n));
+  // Non-numeric input (NaN) is clamped to 0 — score section is still rendered
+  return Math.min(100, Math.max(0, isNaN(n) ? 0 : n));
 }
 
 export async function GET(request: NextRequest) {
