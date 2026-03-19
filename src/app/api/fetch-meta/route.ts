@@ -3,8 +3,6 @@ import dns from "dns";
 import https from "node:https";
 import http from "node:http";
 import type { IncomingMessage } from "node:http";
-import * as _self from "./route";
-
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
@@ -205,11 +203,16 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    // Call through _self (the module's own namespace object) so that
-    // vi.spyOn(routeModule, "_httpFetch") — which replaces the namespace
-    // property — is visible here. _self and routeModule are the same cached
-    // module instance in vitest's module registry.
-    const response = await _self._httpFetch(
+    // Access _httpFetch via a dynamic self-import so that vi.spyOn() in tests
+    // is properly intercepted. Vite SSR transforms `export let _httpFetch`
+    // into a getter-only descriptor on the module namespace; vi.spyOn replaces
+    // that getter with the spy. A direct call to the local `_httpFetch`
+    // variable bypasses the spy, but going through the module object returned
+    // by import('./route') (same Vite/Node module cache entry) invokes the
+    // getter — and therefore the spy — correctly in tests. In production the
+    // import resolves from cache with no meaningful overhead.
+    const _mod = await import("./route");
+    const response = await _mod._httpFetch(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,
