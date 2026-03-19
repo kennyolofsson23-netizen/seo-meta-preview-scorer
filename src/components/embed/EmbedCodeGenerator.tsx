@@ -114,37 +114,64 @@ export function EmbedCodeGenerator() {
             Pre-fill values (optional)
           </p>
           <div className="space-y-2">
-            <Input
-              placeholder="Pre-fill a default page title…"
-              value={options.defaultTitle ?? ""}
-              onChange={(e) =>
-                setOptions((prev) => ({
-                  ...prev,
-                  defaultTitle: e.target.value || undefined,
-                }))
-              }
-            />
-            <Input
-              placeholder="Pre-fill a default meta description…"
-              value={options.defaultDescription ?? ""}
-              onChange={(e) =>
-                setOptions((prev) => ({
-                  ...prev,
-                  defaultDescription: e.target.value || undefined,
-                }))
-              }
-            />
-            <Input
-              placeholder="https://yoursite.com"
-              type="url"
-              value={options.defaultUrl ?? ""}
-              onChange={(e) =>
-                setOptions((prev) => ({
-                  ...prev,
-                  defaultUrl: e.target.value || undefined,
-                }))
-              }
-            />
+            <div>
+              <label
+                htmlFor="embed-default-title"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Default page title
+              </label>
+              <Input
+                id="embed-default-title"
+                placeholder="Pre-fill a default page title…"
+                value={options.defaultTitle ?? ""}
+                onChange={(e) =>
+                  setOptions((prev) => ({
+                    ...prev,
+                    defaultTitle: e.target.value || undefined,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="embed-default-description"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Default meta description
+              </label>
+              <Input
+                id="embed-default-description"
+                placeholder="Pre-fill a default meta description…"
+                value={options.defaultDescription ?? ""}
+                onChange={(e) =>
+                  setOptions((prev) => ({
+                    ...prev,
+                    defaultDescription: e.target.value || undefined,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="embed-default-url"
+                className="block text-xs text-muted-foreground mb-1"
+              >
+                Default page URL
+              </label>
+              <Input
+                id="embed-default-url"
+                placeholder="https://yoursite.com"
+                type="url"
+                value={options.defaultUrl ?? ""}
+                onChange={(e) =>
+                  setOptions((prev) => ({
+                    ...prev,
+                    defaultUrl: e.target.value || undefined,
+                  }))
+                }
+              />
+            </div>
           </div>
         </div>
       </div>

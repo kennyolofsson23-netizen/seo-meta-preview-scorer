@@ -102,19 +102,19 @@ describe("CharacterCounter", () => {
   // ─── display ────────────────────────────────────────────────────────────────
 
   describe("display", () => {
-    it("renders the numeric count as visible text", () => {
+    it("renders the count in '(N chars)' format", () => {
       render(<CharacterCounter count={55} optimal={60} max={70} />);
-      expect(screen.getByText("55")).toBeInTheDocument();
+      expect(screen.getByText("(55 chars)")).toBeInTheDocument();
     });
 
-    it("renders 0 when count is 0", () => {
+    it("renders 0 as '(0 chars)'", () => {
       render(<CharacterCounter count={0} optimal={60} max={70} />);
-      expect(screen.getByText("0")).toBeInTheDocument();
+      expect(screen.getByText("(0 chars)")).toBeInTheDocument();
     });
 
     it("renders large counts without truncation", () => {
       render(<CharacterCounter count={1000} optimal={60} max={70} />);
-      expect(screen.getByText("1000")).toBeInTheDocument();
+      expect(screen.getByText("(1000 chars)")).toBeInTheDocument();
     });
   });
 });

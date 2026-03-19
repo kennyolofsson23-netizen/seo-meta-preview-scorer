@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Trash2, RotateCcw } from "lucide-react";
+import { History, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useHistory } from "@/lib/hooks/useHistory";
@@ -95,11 +95,6 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
-              <RotateCcw
-                className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                onClick={() => onSelect(entry)}
-                aria-hidden="true"
-              />
             </div>
           </li>
         ))}

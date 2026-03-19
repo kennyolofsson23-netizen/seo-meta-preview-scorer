@@ -38,7 +38,7 @@ export function CharacterCounter({
       aria-live="polite"
       aria-label={`${count} characters`}
     >
-      {count}
+      ({count} chars)
     </span>
   );
 }

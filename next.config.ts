@@ -19,8 +19,8 @@ const config: NextConfig = {
   async headers() {
     return [
       {
-        // All routes except /embed
-        source: "/((?!embed).*)",
+        // All routes except /embed and /widget (both embeddable in iframes)
+        source: "/((?!embed|widget).*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
@@ -33,8 +33,8 @@ const config: NextConfig = {
         ],
       },
       {
-        // /embed route — intentionally embeddable in iframes
-        source: "/embed",
+        // /embed and /widget routes — intentionally embeddable in iframes
+        source: "/(embed|widget)(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
