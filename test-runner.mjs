@@ -43,14 +43,14 @@ async function main() {
     await test("Fill meta input form", async () => {
       const textareas = page.locator("textarea");
       const inputs = page.locator("input[type='text']");
-      
-      if (await inputs.count() > 0) {
+
+      if ((await inputs.count()) > 0) {
         await inputs.first().fill("Test SEO Title");
       }
-      if (await textareas.count() > 0) {
+      if ((await textareas.count()) > 0) {
         await textareas.first().fill("Test description for SEO");
       }
-      
+
       await page.waitForTimeout(200);
       const pageText = await page.content();
       if (!pageText.includes("Test")) throw new Error("Form input not visible");
@@ -78,18 +78,19 @@ async function main() {
     await test("Embed page accessible", async () => {
       await page.goto(`${BASE_URL}/embed`);
       const content = await page.content();
-      if (!content.includes("<!DOCTYPE")) throw new Error("Embed page not accessible");
+      if (!content.includes("<!DOCTYPE"))
+        throw new Error("Embed page not accessible");
     });
 
     // Test widget page
     await test("Widget page accessible", async () => {
       await page.goto(`${BASE_URL}/widget`);
       const content = await page.content();
-      if (!content.includes("<!DOCTYPE")) throw new Error("Widget page not accessible");
+      if (!content.includes("<!DOCTYPE"))
+        throw new Error("Widget page not accessible");
     });
 
     console.log("\nAll tests completed!");
-
   } catch (error) {
     console.error("Test error:", error);
   } finally {

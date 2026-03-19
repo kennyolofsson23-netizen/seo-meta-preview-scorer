@@ -70,7 +70,7 @@ export function BingPreview({
       <div>
         <a
           href={url.trim() || "#"}
-          className="hover:underline text-[#001ba0] dark:text-[#8AB4F8]"
+          className="hover:underline text-[#001ba0]"
           style={{
             fontFamily: BING.titleFontFamily,
             fontSize: BING.titleFontSize,

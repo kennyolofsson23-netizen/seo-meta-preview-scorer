@@ -20,7 +20,7 @@ import { chromium } from "playwright";
     const titleInput = page.locator('input[placeholder*="Title"]');
     const inputsExist = await titleInput.isVisible().catch(() => false);
     console.log(
-      inputsExist ? "✓ Input form visible" : "✗ Input form not found"
+      inputsExist ? "✓ Input form visible" : "✗ Input form not found",
     );
 
     // TEST 2: Character counter updates
@@ -30,19 +30,27 @@ import { chromium } from "playwright";
     await page.waitForTimeout(100);
 
     const charCounter = page.locator("text=/ of /");
-    const counterVisible = await charCounter.first().isVisible().catch(() => false);
+    const counterVisible = await charCounter
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(
       counterVisible
         ? "✓ Character counter updates in real-time"
-        : "✗ Character counter not visible"
+        : "✗ Character counter not visible",
     );
 
     // TEST 3: Previews update instantly
     console.log("\n[TEST 3] Preview Updates");
     const googlePreview = page.locator('button:has-text("Google")');
-    const previewExists = await googlePreview.first().isVisible().catch(() => false);
+    const previewExists = await googlePreview
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(
-      previewExists ? "✓ Google Desktop preview visible" : "✗ Preview not found"
+      previewExists
+        ? "✓ Google Desktop preview visible"
+        : "✗ Preview not found",
     );
 
     // TEST 4: URL validation
@@ -52,7 +60,10 @@ import { chromium } from "playwright";
     await page.waitForTimeout(200);
 
     const errorMsg = page.locator("text=/invalid|error/i");
-    const errorVisible = await errorMsg.first().isVisible().catch(() => false);
+    const errorVisible = await errorMsg
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(errorVisible ? "✓ URL validation works" : "✗ No error shown");
 
     // Fix the URL
@@ -61,15 +72,20 @@ import { chromium } from "playwright";
 
     // TEST 5: Score Dashboard
     console.log("\n[TEST 5] SEO Score Dashboard");
-    const descInput = page.locator('textarea').first();
+    const descInput = page.locator("textarea").first();
     const testDesc =
       "Learn proven SEO strategies and techniques to boost your website ranking";
     await descInput.fill(testDesc);
     await page.waitForTimeout(100);
 
     const scoreGauge = page.locator("text=/Overall.*Score|/100/");
-    const scoreVisible = await scoreGauge.first().isVisible().catch(() => false);
-    console.log(scoreVisible ? "✓ Score dashboard visible" : "✗ Score not shown");
+    const scoreVisible = await scoreGauge
+      .first()
+      .isVisible()
+      .catch(() => false);
+    console.log(
+      scoreVisible ? "✓ Score dashboard visible" : "✗ Score not shown",
+    );
 
     // TEST 6: Tab navigation
     console.log("\n[TEST 6] Preview Tabs Navigation");
@@ -78,45 +94,84 @@ import { chromium } from "playwright";
     console.log(`✓ Found ${tabCount} preview tabs`);
 
     const mobileTabs = page.locator('button:has-text("Mobile")');
-    const mobileVisible = await mobileTabs.first().isVisible().catch(() => false);
-    console.log(mobileVisible ? "✓ Mobile tab available" : "✗ Mobile tab missing");
+    const mobileVisible = await mobileTabs
+      .first()
+      .isVisible()
+      .catch(() => false);
+    console.log(
+      mobileVisible ? "✓ Mobile tab available" : "✗ Mobile tab missing",
+    );
 
     const bingTabs = page.locator('button:has-text("Bing")');
-    const bingVisible = await bingTabs.first().isVisible().catch(() => false);
+    const bingVisible = await bingTabs
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(bingVisible ? "✓ Bing tab available" : "✗ Bing tab missing");
 
     const socialTabs = page.locator('button:has-text("Social")');
-    const socialVisible = await socialTabs.first().isVisible().catch(() => false);
-    console.log(socialVisible ? "✓ Social/OG tab available" : "✗ Social tab missing");
+    const socialVisible = await socialTabs
+      .first()
+      .isVisible()
+      .catch(() => false);
+    console.log(
+      socialVisible ? "✓ Social/OG tab available" : "✗ Social tab missing",
+    );
 
     // TEST 7: Dark mode toggle
     console.log("\n[TEST 7] Dark Mode Toggle");
-    const themeToggle = page.locator('button').filter({ has: page.locator('svg[class*="moon"], svg[class*="sun"]') });
-    const toggleExists = await themeToggle.first().isVisible().catch(() => false);
-    console.log(toggleExists ? "✓ Theme toggle button visible" : "✗ Toggle missing");
+    const themeToggle = page
+      .locator("button")
+      .filter({ has: page.locator('svg[class*="moon"], svg[class*="sun"]') });
+    const toggleExists = await themeToggle
+      .first()
+      .isVisible()
+      .catch(() => false);
+    console.log(
+      toggleExists ? "✓ Theme toggle button visible" : "✗ Toggle missing",
+    );
 
     if (toggleExists) {
-      const originalTheme = await page.locator("html").evaluate(el => el.className);
+      const originalTheme = await page
+        .locator("html")
+        .evaluate((el) => el.className);
       await themeToggle.first().click();
       await page.waitForTimeout(200);
-      const newTheme = await page.locator("html").evaluate(el => el.className);
-      console.log(originalTheme !== newTheme ? "✓ Dark mode toggled" : "✗ Theme toggle failed");
+      const newTheme = await page
+        .locator("html")
+        .evaluate((el) => el.className);
+      console.log(
+        originalTheme !== newTheme
+          ? "✓ Dark mode toggled"
+          : "✗ Theme toggle failed",
+      );
     }
 
     // TEST 8: Screenshot button
     console.log("\n[TEST 8] Screenshot Export Button");
-    const screenshotBtn = page.locator('button:has-text(/Download|Export|PNG|Screenshot)');
-    const btnExists = await screenshotBtn.first().isVisible().catch(() => false);
-    console.log(btnExists ? "✓ Screenshot export button found" : "✗ Screenshot button missing");
+    const screenshotBtn = page.locator(
+      "button:has-text(/Download|Export|PNG|Screenshot)",
+    );
+    const btnExists = await screenshotBtn
+      .first()
+      .isVisible()
+      .catch(() => false);
+    console.log(
+      btnExists
+        ? "✓ Screenshot export button found"
+        : "✗ Screenshot button missing",
+    );
 
     // TEST 9: Keyword highlighting
     console.log("\n[TEST 9] Keyword Input & Highlighting");
     const keywordInput = page.locator('input[placeholder*="Keyword"]');
-    const keywordInputExists = await keywordInput.isVisible().catch(() => false);
+    const keywordInputExists = await keywordInput
+      .isVisible()
+      .catch(() => false);
     console.log(
       keywordInputExists
         ? "✓ Keyword input field present"
-        : "✗ Keyword field missing"
+        : "✗ Keyword field missing",
     );
 
     if (keywordInputExists) {
@@ -125,7 +180,9 @@ import { chromium } from "playwright";
       const boldInPreview = page.locator("strong, b");
       const boldCount = await boldInPreview.count();
       console.log(
-        boldCount > 0 ? "✓ Keyword appears to be highlighted" : "~ Keyword highlighting may not be visible"
+        boldCount > 0
+          ? "✓ Keyword appears to be highlighted"
+          : "~ Keyword highlighting may not be visible",
       );
     }
 
@@ -133,20 +190,27 @@ import { chromium } from "playwright";
     console.log("\n[TEST 10] Responsive Design");
     await page.setViewportSize({ width: 375, height: 667 }); // Mobile
     await page.goto(baseUrl, { waitUntil: "networkidle" });
-    const mobileInputVisible = await page.locator('input').first().isVisible().catch(() => false);
+    const mobileInputVisible = await page
+      .locator("input")
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(
-      mobileInputVisible ? "✓ Mobile viewport works" : "✗ Mobile layout broken"
+      mobileInputVisible ? "✓ Mobile viewport works" : "✗ Mobile layout broken",
     );
 
     // TEST 11: Embed functionality
     console.log("\n[TEST 11] Embeddable Widget");
     await page.setViewportSize({ width: 1280, height: 720 }); // Reset to desktop
-    const embedLink = page.locator('a:has-text(/Embed|Widget)');
-    const embedExists = await embedLink.first().isVisible().catch(() => false);
+    const embedLink = page.locator("a:has-text(/Embed|Widget)");
+    const embedExists = await embedLink
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(
       embedExists
         ? "✓ Embed link found in navigation"
-        : "✗ Embed link not found"
+        : "✗ Embed link not found",
     );
 
     if (embedExists) {
@@ -158,9 +222,14 @@ import { chromium } from "playwright";
     // TEST 12: History feature
     console.log("\n[TEST 12] History Panel");
     await page.goto(baseUrl, { waitUntil: "networkidle" });
-    const historyBtn = page.locator('button:has-text(/History|Recent)');
-    const historyExists = await historyBtn.first().isVisible().catch(() => false);
-    console.log(historyExists ? "✓ History panel available" : "✗ History missing");
+    const historyBtn = page.locator("button:has-text(/History|Recent)");
+    const historyExists = await historyBtn
+      .first()
+      .isVisible()
+      .catch(() => false);
+    console.log(
+      historyExists ? "✓ History panel available" : "✗ History missing",
+    );
 
     console.log("\n" + "=".repeat(60));
     console.log("✅ User Experience Testing Complete\n");
