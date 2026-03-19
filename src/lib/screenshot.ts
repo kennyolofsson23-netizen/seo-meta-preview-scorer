@@ -45,24 +45,31 @@ export async function captureAndDownload(
     const quality =
       options.format === "jpg" ? (options.quality ?? 0.9) : undefined;
 
-    return await new Promise((resolve) => {
+    return await new Promise<ScreenshotResult>((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
-          if (!blob) {
-            resolve({ success: false, error: "Failed to generate image blob" });
-            return;
+          try {
+            if (!blob) {
+              resolve({
+                success: false,
+                error: "Failed to generate image blob",
+              });
+              return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `seo-preview-${Date.now()}.${options.format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            resolve({ success: true });
+          } catch (err) {
+            reject(err);
           }
-
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `seo-preview-${Date.now()}.${options.format}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-
-          resolve({ success: true });
         },
         mimeType,
         quality,
