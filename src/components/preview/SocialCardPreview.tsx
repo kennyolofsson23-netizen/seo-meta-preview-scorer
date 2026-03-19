@@ -16,10 +16,10 @@ function ImagePlaceholder() {
     <div className="aspect-[1.91/1] bg-muted border-b border-border flex flex-col items-center justify-center gap-2">
       <ImageIcon className="h-8 w-8 text-muted-foreground" />
       <p className="text-xs text-muted-foreground">
-        Add an ogImage URL to see a preview
+        Paste an og:image URL to preview your social card image
       </p>
       <p className="text-[10px] text-muted-foreground/60">
-        Recommended: 1200×630px
+        Ideal size: 1200 × 630px
       </p>
     </div>
   );
@@ -53,10 +53,10 @@ export function SocialCardPreview({
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">
-                Add an ogImage URL to see a preview
+                Paste an og:image URL to preview your social card image
               </p>
               <p className="text-[10px] text-muted-foreground/60">
-                Recommended: 1200×630px
+                Ideal size: 1200 × 630px
               </p>
             </div>
           )}

@@ -46,7 +46,7 @@ export function PreviewContainer({
       <RadixTabs.Root defaultValue="google-desktop">
         {/* Tab bar */}
         <div className="flex items-center justify-between border-b border-border px-4 pt-3">
-          <RadixTabs.List className="flex gap-1" aria-label="Preview engine">
+          <RadixTabs.List className="flex gap-1" aria-label="Search engine previews">
             {TABS.map(({ value, label, icon: Icon }) => (
               <RadixTabs.Trigger
                 key={value}

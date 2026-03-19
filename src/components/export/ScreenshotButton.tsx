@@ -25,7 +25,9 @@ export function ScreenshotButton({
 
   async function handleClick() {
     if (!targetRef.current) {
-      onError?.("No preview element found");
+      onError?.(
+        "Nothing to capture — switch to a preview tab and try again.",
+      );
       return;
     }
 
@@ -35,7 +37,10 @@ export function ScreenshotButton({
       if (result.success) {
         onSuccess?.();
       } else {
-        onError?.(result.error ?? "Screenshot failed");
+        onError?.(
+          result.error ??
+            "Export failed — try again, or switch browsers if the issue persists.",
+        );
       }
     } finally {
       setIsCapturing(false);
@@ -49,19 +54,23 @@ export function ScreenshotButton({
       onClick={handleClick}
       disabled={isCapturing}
       aria-busy={isCapturing}
-      aria-label="Export preview as image"
+      aria-label={
+        isCapturing
+          ? "Saving preview image…"
+          : `Save preview as ${format.toUpperCase()}`
+      }
       className="gap-1.5"
     >
       {isCapturing ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="hidden sm:inline">Exporting...</span>
+          <span className="hidden sm:inline">Saving…</span>
         </>
       ) : (
         <>
           <Download className="h-4 w-4" />
           <span className="hidden sm:inline">
-            Export {format.toUpperCase()}
+            Save as {format.toUpperCase()}
           </span>
         </>
       )}
