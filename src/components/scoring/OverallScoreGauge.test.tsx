@@ -16,13 +16,13 @@ describe("OverallScoreGauge", () => {
 
     it("renders the heading", () => {
       render(<OverallScoreGauge overall={75} />);
-      expect(screen.getByText("Overall SEO Score")).toBeInTheDocument();
+      expect(screen.getByText("Your SEO Score")).toBeInTheDocument();
     });
 
     it("renders the weighting note", () => {
       render(<OverallScoreGauge overall={75} />);
       expect(
-        screen.getByText("Title 40% · Description 40% · Keyword 20%"),
+        screen.getByText("Weighted: title 40% · description 40% · keyword 20%"),
       ).toBeInTheDocument();
     });
 

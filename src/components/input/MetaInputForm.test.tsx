@@ -129,7 +129,7 @@ describe("MetaInputForm", () => {
       const props = buildProps(metadata);
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      expect(screen.getByText(/invalid url format/i)).toBeInTheDocument();
+      expect(screen.getByText(/doesn't look like a valid url/i)).toBeInTheDocument();
     });
 
     it("does not show error text for a valid URL", () => {
@@ -137,7 +137,7 @@ describe("MetaInputForm", () => {
       const props = buildProps(defaultMetadata); // url is 'https://example.com/sample-page'
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      expect(screen.queryByText(/invalid url format/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/doesn't look like a valid url/i)).not.toBeInTheDocument();
     });
 
     it("does not show error text for an empty URL", () => {
@@ -146,7 +146,7 @@ describe("MetaInputForm", () => {
       const props = buildProps(metadata);
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      expect(screen.queryByText(/invalid url format/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/doesn't look like a valid url/i)).not.toBeInTheDocument();
     });
   });
 
@@ -176,7 +176,7 @@ describe("MetaInputForm", () => {
 
       const alert = screen.getByRole("alert");
       expect(alert).toBeInTheDocument();
-      expect(alert).toHaveTextContent(/truncated on mobile/i);
+      expect(alert).toHaveTextContent(/cut off/i);
     });
 
     it("shows the mobile truncation banner when description exceeds 120 chars", () => {
@@ -191,7 +191,7 @@ describe("MetaInputForm", () => {
 
       const alert = screen.getByRole("alert");
       expect(alert).toBeInTheDocument();
-      expect(alert).toHaveTextContent(/truncated on mobile/i);
+      expect(alert).toHaveTextContent(/cut off/i);
     });
 
     it("shows banner mentioning both fields when both exceed mobile limits", () => {
@@ -230,7 +230,7 @@ describe("MetaInputForm", () => {
       const props = buildProps(defaultMetadata);
       render(<MetaInputForm {...props} onChange={onChange} />);
 
-      const keywordInput = screen.getByLabelText(/primary keyword/i);
+      const keywordInput = screen.getByLabelText(/target keyword/i);
       fireEvent.change(keywordInput, { target: { value: "new keyword" } });
 
       expect(onChange).toHaveBeenCalledWith(

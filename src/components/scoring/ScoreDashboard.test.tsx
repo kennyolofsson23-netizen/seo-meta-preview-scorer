@@ -15,7 +15,7 @@ describe("ScoreDashboard", () => {
           keyword="test"
         />,
       );
-      expect(screen.getByText("Overall SEO Score")).toBeInTheDocument();
+      expect(screen.getByText("Your SEO Score")).toBeInTheDocument();
     });
 
     it("renders the title score card", () => {
@@ -61,8 +61,8 @@ describe("ScoreDashboard", () => {
           keyword=""
         />,
       );
-      // Title card should show "Good" badge (status: good)
-      const goodBadges = screen.getAllByText("Good");
+      // Title card should show "Optimal" badge (status: good)
+      const goodBadges = screen.getAllByText("Optimal");
       expect(goodBadges.length).toBeGreaterThan(0);
     });
 
@@ -74,14 +74,14 @@ describe("ScoreDashboard", () => {
           keyword=""
         />,
       );
-      expect(screen.getByText("Warning")).toBeInTheDocument();
+      expect(screen.getByText("Improve")).toBeInTheDocument();
     });
 
     it("shows error badge for empty title", () => {
       render(
         <ScoreDashboard title="" description={repeat("A", 155)} keyword="" />,
       );
-      expect(screen.getAllByText("Needs Work").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Fix It").length).toBeGreaterThan(0);
     });
 
     it("shows good badge for optimal description (120-160 chars)", () => {
@@ -92,7 +92,7 @@ describe("ScoreDashboard", () => {
           keyword=""
         />,
       );
-      const goodBadges = screen.getAllByText("Good");
+      const goodBadges = screen.getAllByText("Optimal");
       expect(goodBadges.length).toBeGreaterThan(0);
     });
 
@@ -104,7 +104,7 @@ describe("ScoreDashboard", () => {
           keyword=""
         />,
       );
-      expect(screen.getByText("Warning")).toBeInTheDocument();
+      expect(screen.getByText("Improve")).toBeInTheDocument();
     });
 
     it("shows good badge when keyword appears in both title and description", () => {
@@ -115,7 +115,7 @@ describe("ScoreDashboard", () => {
           keyword="SEO tips"
         />,
       );
-      const goodBadges = screen.getAllByText("Good");
+      const goodBadges = screen.getAllByText("Optimal");
       expect(goodBadges.length).toBeGreaterThan(0);
     });
   });
@@ -207,7 +207,7 @@ describe("ScoreDashboard", () => {
         />,
       );
       expect(
-        screen.getByText("Title 40% · Description 40% · Keyword 20%"),
+        screen.getByText("Weighted: title 40% · description 40% · keyword 20%"),
       ).toBeInTheDocument();
     });
   });

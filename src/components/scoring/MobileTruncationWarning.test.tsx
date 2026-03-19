@@ -62,7 +62,7 @@ describe("MobileTruncationWarning", () => {
         descriptionLength={100}
       />,
     );
-    expect(screen.getByText(/50 chars/)).toBeInTheDocument();
+    expect(screen.getByText(/cuts off at 50/)).toBeInTheDocument();
   });
 
   it("does NOT show a description warning when only title is truncated", () => {
@@ -111,7 +111,7 @@ describe("MobileTruncationWarning", () => {
         descriptionLength={130}
       />,
     );
-    expect(screen.getByText(/120 chars/)).toBeInTheDocument();
+    expect(screen.getByText(/cuts off at 120/)).toBeInTheDocument();
   });
 
   // ── Both truncated ────────────────────────────────────────────────────────
@@ -149,6 +149,6 @@ describe("MobileTruncationWarning", () => {
         descriptionLength={100}
       />,
     );
-    expect(screen.getByText(/Mobile Truncation Warning/i)).toBeInTheDocument();
+    expect(screen.getByText(/Mobile Search Will Cut This Off/i)).toBeInTheDocument();
   });
 });

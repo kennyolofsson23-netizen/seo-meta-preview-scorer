@@ -258,4 +258,74 @@ describe("history", () => {
       expect(entry!.timestamp).toBeLessThanOrEqual(after);
     });
   });
+
+  // ─── HI-10: saveHistoryEntry when localStorage.setItem throws ─────────────────
+
+  describe("graceful degradation when localStorage throws", () => {
+    it("HI-10: saveHistoryEntry returns null when localStorage.setItem throws", () => {
+      // Temporarily make setItem throw (simulates QuotaExceededError)
+      const originalSetItem = localStorageMock.setItem;
+      localStorageMock.setItem = () => {
+        throw new Error("QuotaExceededError");
+      };
+
+      const result = saveHistoryEntry({
+        title: "Test",
+        description: "Desc",
+        url: "https://example.com",
+        keyword: "",
+        overallScore: 50,
+      });
+
+      expect(result).toBeNull();
+
+      // Restore
+      localStorageMock.setItem = originalSetItem;
+    });
+
+    it("HI-11: readHistory returns [] when localStorage.getItem throws", () => {
+      // Temporarily make getItem throw (simulates SecurityError in private browsing)
+      const originalGetItem = localStorageMock.getItem;
+      localStorageMock.getItem = () => {
+        throw new Error("SecurityError: localStorage access denied");
+      };
+
+      expect(readHistory()).toEqual([]);
+
+      // Restore
+      localStorageMock.getItem = originalGetItem;
+    });
+
+    it("clearHistory does not throw when localStorage.removeItem throws", () => {
+      const originalRemoveItem = localStorageMock.removeItem;
+      localStorageMock.removeItem = () => {
+        throw new Error("SecurityError");
+      };
+
+      expect(() => clearHistory()).not.toThrow();
+
+      localStorageMock.removeItem = originalRemoveItem;
+    });
+
+    it("deleteHistoryEntry does not throw when localStorage.setItem throws during delete", () => {
+      // First save a valid entry
+      const entry = saveHistoryEntry({
+        title: "T",
+        description: "D",
+        url: "https://example.com",
+        keyword: "",
+        overallScore: 80,
+      });
+
+      // Then make setItem throw
+      const originalSetItem = localStorageMock.setItem;
+      localStorageMock.setItem = () => {
+        throw new Error("QuotaExceededError");
+      };
+
+      expect(() => deleteHistoryEntry(entry!.id)).not.toThrow();
+
+      localStorageMock.setItem = originalSetItem;
+    });
+  });
 });

@@ -22,19 +22,19 @@ describe("ScoreCard", () => {
   });
 
   // ── Badge status labels ───────────────────────────────────────────────────
-  it("shows 'Good' badge for good status", () => {
+  it("shows 'Optimal' badge for good status", () => {
     render(<ScoreCard {...base} status="good" />);
-    expect(screen.getByText("Good")).toBeInTheDocument();
+    expect(screen.getByText("Optimal")).toBeInTheDocument();
   });
 
-  it("shows 'Warning' badge for warning status", () => {
+  it("shows 'Improve' badge for warning status", () => {
     render(<ScoreCard {...base} status="warning" message="Slightly long" />);
-    expect(screen.getByText("Warning")).toBeInTheDocument();
+    expect(screen.getByText("Improve")).toBeInTheDocument();
   });
 
-  it("shows 'Needs Work' badge for error status", () => {
+  it("shows 'Fix It' badge for error status", () => {
     render(<ScoreCard {...base} status="error" message="Too short" />);
-    expect(screen.getByText("Needs Work")).toBeInTheDocument();
+    expect(screen.getByText("Fix It")).toBeInTheDocument();
   });
 
   // ── Character count display ───────────────────────────────────────────────

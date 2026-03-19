@@ -51,7 +51,7 @@ describe("GoogleMobilePreview", () => {
       />,
     );
     expect(screen.getByRole("alert")).toBeTruthy();
-    expect(screen.getByText(/Mobile truncation detected/)).toBeTruthy();
+    expect(screen.getByText(/Content cut off on mobile/)).toBeTruthy();
   });
 
   it("does not show warning when content within limits", () => {

@@ -12,9 +12,9 @@ describe("SocialCardPreview", () => {
     render(<SocialCardPreview {...defaultProps} />);
 
     expect(
-      screen.getByText("Add an ogImage URL to see a preview"),
+      screen.getByText("Paste an og:image URL to preview your social card image"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Recommended: 1200×630px")).toBeInTheDocument();
+    expect(screen.getByText("Ideal size: 1200 × 630px")).toBeInTheDocument();
   });
 
   it("shows image element when ogImage URL is provided", () => {
@@ -94,7 +94,7 @@ describe("SocialCardPreview", () => {
 
     // After error, should show placeholder text
     expect(
-      screen.getByText("Add an ogImage URL to see a preview"),
+      screen.getByText("Paste an og:image URL to preview your social card image"),
     ).toBeInTheDocument();
   });
 
