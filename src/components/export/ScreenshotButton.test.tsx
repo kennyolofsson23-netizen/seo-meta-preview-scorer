@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ScreenshotButton } from "./ScreenshotButton";
 
@@ -32,8 +32,10 @@ describe("ScreenshotButton", () => {
     await user.click(btn);
 
     expect(btn).toBeDisabled();
-    // Resolve the capture
-    resolveCapture!({ success: true });
+    // Resolve the capture and wait for state updates
+    await act(async () => {
+      resolveCapture!({ success: true });
+    });
   });
 
   it("calls onSuccess when capture succeeds", async () => {
