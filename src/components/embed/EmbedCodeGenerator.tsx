@@ -30,17 +30,18 @@ export function EmbedCodeGenerator() {
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Code2 className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold">Embed Widget</h2>
+        <h2 className="text-lg font-semibold">Get Embed Code</h2>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Add the SEO Meta Preview tool to your own website or blog with a simple
-        iframe embed.
+        Add this free SEO checker to any website with one snippet of HTML. Your
+        visitors get Google, Bing, and social previews with live scoring — no
+        setup, no accounts, nothing to install.
       </p>
 
       {/* Options */}
       <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
-        <h3 className="text-sm font-medium">Customise</h3>
+        <h3 className="text-sm font-medium">Customize widget</h3>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {/* Show scores toggle */}
@@ -57,9 +58,9 @@ export function EmbedCodeGenerator() {
               className="h-4 w-4 rounded border-border accent-primary"
             />
             <div>
-              <p className="text-sm font-medium">Show Scores</p>
+              <p className="text-sm font-medium">SEO Scores</p>
               <p className="text-xs text-muted-foreground">
-                Display SEO score panel
+                Include the score breakdown below the form
               </p>
             </div>
           </label>
@@ -78,9 +79,9 @@ export function EmbedCodeGenerator() {
               className="h-4 w-4 rounded border-border accent-primary"
             />
             <div>
-              <p className="text-sm font-medium">Show Previews</p>
+              <p className="text-sm font-medium">SERP Previews</p>
               <p className="text-xs text-muted-foreground">
-                Display SERP previews
+                Include Google, Bing, and social card previews
               </p>
             </div>
           </label>
@@ -101,7 +102,7 @@ export function EmbedCodeGenerator() {
             <div>
               <p className="text-sm font-medium">Compact Mode</p>
               <p className="text-xs text-muted-foreground">
-                Reduced height (450px)
+                Shorter embed height (450px instead of 700px)
               </p>
             </div>
           </label>
@@ -110,11 +111,11 @@ export function EmbedCodeGenerator() {
         {/* Default values */}
         <div className="space-y-2 border-t border-border pt-3">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Default Values (optional)
+            Pre-fill values (optional)
           </p>
           <div className="space-y-2">
             <Input
-              placeholder="Default title..."
+              placeholder="Pre-fill a default page title…"
               value={options.defaultTitle ?? ""}
               onChange={(e) =>
                 setOptions((prev) => ({
@@ -124,7 +125,7 @@ export function EmbedCodeGenerator() {
               }
             />
             <Input
-              placeholder="Default description..."
+              placeholder="Pre-fill a default meta description…"
               value={options.defaultDescription ?? ""}
               onChange={(e) =>
                 setOptions((prev) => ({
@@ -134,7 +135,7 @@ export function EmbedCodeGenerator() {
               }
             />
             <Input
-              placeholder="https://example.com"
+              placeholder="https://yoursite.com"
               type="url"
               value={options.defaultUrl ?? ""}
               onChange={(e) =>
@@ -151,7 +152,7 @@ export function EmbedCodeGenerator() {
       {/* Generated code */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">Embed Code</h3>
+          <h3 className="text-sm font-medium">Your embed code</h3>
           <Button
             variant="outline"
             size="sm"
@@ -179,14 +180,14 @@ export function EmbedCodeGenerator() {
 
       {/* Preview link */}
       <p className="text-xs text-muted-foreground">
-        Preview the embedded widget at{" "}
+        See how the widget looks before you embed it —{" "}
         <a
           href="/embed"
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary underline underline-offset-2"
         >
-          /embed
+          open preview
         </a>
       </p>
     </div>

@@ -45,7 +45,7 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
       {/* Compact header */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">
-          SEO Meta Preview
+          SEO Meta Checker
         </span>
         {showScores && (
           <span
@@ -58,7 +58,7 @@ export function WidgetWrapper({ options = {} }: WidgetWrapperProps) {
                   : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
             )}
           >
-            Score: {overall}/100
+            SEO Score: {overall}/100
           </span>
         )}
       </div>
