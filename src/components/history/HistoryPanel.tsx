@@ -19,10 +19,18 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
       <div className="rounded-lg border border-border bg-card p-4">
         <div className="flex items-center gap-2 mb-3">
           <History className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Recent Checks</h3>
+          <h3 className="text-sm font-semibold">Saved Snapshots</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Your last 20 checks will appear here for quick access.
+          No snapshots yet. Go to{" "}
+          <strong className="font-medium text-foreground">
+            Preview &amp; Score
+          </strong>
+          , fill in your meta tags, then hit{" "}
+          <strong className="font-medium text-foreground">
+            Save Snapshot to History
+          </strong>{" "}
+          to compare title and description variations side by side.
         </p>
       </div>
     );
@@ -33,7 +41,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <History className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Recent Checks</h3>
+          <h3 className="text-sm font-semibold">Saved Snapshots</h3>
           <Badge variant="secondary" className="text-xs px-1.5 py-0">
             {history.length}
           </Badge>
@@ -43,13 +51,13 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
           size="sm"
           onClick={clear}
           className="text-xs text-muted-foreground h-6 px-2"
-          aria-label="Clear all history"
+          aria-label="Clear all saved snapshots"
         >
           Clear all
         </Button>
       </div>
 
-      <ul className="space-y-1" role="list" aria-label="Recent SEO checks">
+      <ul className="space-y-1" role="list" aria-label="Saved SEO checks">
         {history.map((entry) => (
           <li key={entry.id}>
             <div className="flex items-center gap-2 rounded-md p-2 hover:bg-muted/50 transition-colors group">
@@ -59,7 +67,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
                 aria-label={`Load check: ${entry.title}`}
               >
                 <p className="text-xs font-medium text-foreground truncate">
-                  {entry.title || "Untitled"}
+                  {entry.title || "(no title)"}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span
