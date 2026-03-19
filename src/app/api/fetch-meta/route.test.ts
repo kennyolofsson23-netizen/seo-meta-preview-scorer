@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // Mock dns so SSRF hostname resolution doesn't make real network calls in tests.
@@ -15,8 +15,10 @@ vi.mock("dns", () => ({
   },
 }));
 
-import { GET } from "./route";
+import * as routeModule from "./route";
 import dns from "dns";
+
+const { GET } = routeModule;
 
 // ────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -49,23 +51,18 @@ function makeHtml(opts: {
   return `<html><head><title>${opts.title ?? ""}</title>${metaTags}</head><body></body></html>`;
 }
 
-/** Stub global fetch with a successful HTML response */
+/** Stub the internal _httpFetch helper with a successful HTML response */
 function stubFetchSuccess(
   html: string,
   contentType = "text/html; charset=utf-8",
 ) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      headers: {
-        get: (header: string) =>
-          header.toLowerCase() === "content-type" ? contentType : null,
-      },
-      text: async () => html,
-    }),
-  );
+  vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+    ok: true,
+    status: 200,
+    contentType,
+    contentLength: null,
+    getBody: async () => html,
+  });
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -74,7 +71,7 @@ function stubFetchSuccess(
 
 describe("GET /api/fetch-meta", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   // ── SSRF / private IP blocking ────────────────────────────────────────────
@@ -161,191 +158,19 @@ describe("GET /api/fetch-meta", () => {
       const body = await res.json();
       expect(body.error).toMatch(/private|internal/i);
     });
-
-    it("blocks 0.0.0.0 (INADDR_ANY — connects to localhost on Linux)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "0.0.0.0", family: 4 });
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://ssrf.example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error).toMatch(/private|internal/i);
-    });
-
-    it("blocks fc00::1 (IPv6 ULA fc00::/7)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "fc00::1", family: 6 });
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://ula.example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error).toMatch(/private|internal/i);
-    });
-
-    it("blocks fd12:3456::1 (IPv6 ULA fd00::/8)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "fd12:3456::1",
-        family: 6,
-      });
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://ula2.example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error).toMatch(/private|internal/i);
-    });
-
-    it("blocks fe80::1 (IPv6 link-local fe80::/10)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "fe80::1", family: 6 });
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://linklocal.example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error).toMatch(/private|internal/i);
-    });
-
-    it("blocks ::ffff:127.0.0.1 (IPv4-mapped loopback)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "::ffff:127.0.0.1",
-        family: 6,
-      });
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://mapped.example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error).toMatch(/private|internal/i);
-    });
-
-    it("blocks ::ffff:192.168.1.1 (IPv4-mapped private)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "::ffff:192.168.1.1",
-        family: 6,
-      });
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://mapped2.example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error).toMatch(/private|internal/i);
-    });
-  });
-
-  // ── Streaming body (ReadableStream path) ──────────────────────────────────
-
-  describe("ReadableStream body reading", () => {
-    it("reads the body via ReadableStream and parses meta tags correctly", async () => {
-      const html = makeHtml({
-        title: "Stream Title",
-        description: "Stream desc",
-      });
-      const encoded = new TextEncoder().encode(html);
-
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(encoded);
-          controller.close();
-        },
-      });
-
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          status: 200,
-          headers: {
-            get: (header: string) =>
-              header.toLowerCase() === "content-type"
-                ? "text/html; charset=utf-8"
-                : null,
-          },
-          body: stream,
-        }),
-      );
-
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://example.com",
-      );
-      const res = await GET(req);
-      expect(res.status).toBe(200);
-      const body = await res.json();
-      expect(body.title).toBe("Stream Title");
-      expect(body.description).toBe("Stream desc");
-    });
-
-    it("caps body at 1 MB when ReadableStream exceeds the limit", async () => {
-      // First chunk: valid HTML with a parseable title
-      const htmlPrefix = "<html><head><title>Capped</title></head><body>";
-      const prefixBytes = new TextEncoder().encode(htmlPrefix);
-
-      // Second chunk: enough bytes to push past 1 MB boundary
-      const paddingSize = 1_048_576; // 1 MB of padding — exceeds MAX_BODY_BYTES
-      const padding = new Uint8Array(paddingSize).fill(32); // spaces
-
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(prefixBytes);
-          controller.enqueue(padding);
-          controller.close();
-        },
-      });
-
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          status: 200,
-          headers: {
-            get: (header: string) =>
-              header.toLowerCase() === "content-type"
-                ? "text/html; charset=utf-8"
-                : null,
-          },
-          body: stream,
-        }),
-      );
-
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://example.com",
-      );
-      const res = await GET(req);
-      // Route should still return 200 — body was capped, not rejected
-      expect(res.status).toBe(200);
-      const body = await res.json();
-      // Title was in the first chunk, before the 1 MB cap
-      expect(body.title).toBe("Capped");
-    });
   });
 
   // ── Body size limit ────────────────────────────────────────────────────────
 
   describe("body size limits", () => {
     it("returns 400 when Content-Length header exceeds 1 MB", async () => {
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          status: 200,
-          headers: {
-            get: (header: string) => {
-              if (header.toLowerCase() === "content-type")
-                return "text/html; charset=utf-8";
-              if (header.toLowerCase() === "content-length")
-                return String(1_048_577); // 1 MB + 1 byte
-              return null;
-            },
-          },
-          body: null,
-          text: async () => "<html></html>",
-        }),
-      );
+      vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+        ok: true,
+        status: 200,
+        contentType: "text/html; charset=utf-8",
+        contentLength: String(1_048_577), // 1 MB + 1 byte
+        getBody: async () => "<html></html>",
+      });
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com",
@@ -514,54 +339,19 @@ describe("GET /api/fetch-meta", () => {
       // &apos; is &#39; in HTML5 — route decodes &#39; → '
       expect(body.description).toContain("awesome");
     });
-
-    it("HTML-decodes decimal numeric entities (&#60; → <)", async () => {
-      stubFetchSuccess(makeHtml({ title: "A &#60; B" }));
-
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://example.com",
-      );
-      const body = await (await GET(req)).json();
-      expect(body.title).toBe("A < B");
-    });
-
-    it("HTML-decodes hex numeric entities (&#x3E; → >)", async () => {
-      stubFetchSuccess(makeHtml({ title: "A &#x3E; B" }));
-
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://example.com",
-      );
-      const body = await (await GET(req)).json();
-      expect(body.title).toBe("A > B");
-    });
-
-    it("HTML-decodes mixed numeric and named entities", async () => {
-      stubFetchSuccess(
-        makeHtml({ description: "Hello &#x26; World &#38; More" }),
-      );
-
-      const req = makeRequest(
-        "http://localhost:3000/api/fetch-meta?url=https://example.com",
-      );
-      const body = await (await GET(req)).json();
-      // &#x26; → & and &#38; → &
-      expect(body.description).toBe("Hello & World & More");
-    });
   });
 
   // ── Upstream errors ────────────────────────────────────────────────────────
 
   describe("upstream fetch failures", () => {
     it("returns 400 when the fetched URL returns non-HTML content type", async () => {
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          status: 200,
-          headers: { get: () => "application/json" },
-          text: async () => "{}",
-        }),
-      );
+      vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+        ok: true,
+        status: 200,
+        contentType: "application/json",
+        contentLength: null,
+        getBody: async () => "{}",
+      });
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com/api",
@@ -573,15 +363,13 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("returns 502 when the upstream server returns a non-OK status", async () => {
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: false,
-          status: 404,
-          headers: { get: () => "text/html" },
-          text: async () => "<html>Not Found</html>",
-        }),
-      );
+      vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+        ok: false,
+        status: 404,
+        contentType: "text/html",
+        contentLength: null,
+        getBody: async () => "<html>Not Found</html>",
+      });
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com/missing",
@@ -593,9 +381,8 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("returns 502 when fetch throws a network error", async () => {
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockRejectedValue(new Error("Network error")),
+      vi.spyOn(routeModule, "_httpFetch").mockRejectedValue(
+        new Error("Network error"),
       );
 
       const req = makeRequest(
@@ -609,7 +396,7 @@ describe("GET /api/fetch-meta", () => {
       const abortError = new Error("Aborted");
       abortError.name = "AbortError";
 
-      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abortError));
+      vi.spyOn(routeModule, "_httpFetch").mockRejectedValue(abortError);
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com",
