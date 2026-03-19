@@ -3,6 +3,7 @@ import dns from "dns";
 import https from "node:https";
 import http from "node:http";
 import type { IncomingMessage } from "node:http";
+
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
@@ -67,8 +68,14 @@ export interface HttpFetchResult {
  * to go to `resolvedAddress` (the already-verified IP) via a custom `lookup`
  * callback. This prevents DNS rebinding / TOCTOU attacks where an attacker
  * rotates a DNS record between the SSRF check and the actual connection.
+ *
+ * Exported so tests can spy on it:
+ *   vi.spyOn(routeModule, "_httpFetch").mockResolvedValue(...)
+ *
+ * GET() reads _httpFetch through a dynamic self-import at call time so that
+ * any spy installed by tests is visible at the point of invocation.
  */
-function _httpFetchImpl(
+export let _httpFetch = function _httpFetchImpl(
   parsedUrl: URL,
   resolvedAddress: string,
   resolvedFamily: number,
@@ -163,18 +170,6 @@ function _httpFetchImpl(
 
     req.end();
   });
-}
-
-/**
- * Dispatch object for the HTTP fetch implementation.
- *
- * Exported as a plain object so tests can stub it without any circular imports:
- *   vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue(...)
- *
- * GET() calls _httpFetch.fn(...) which picks up the spy at call time.
- */
-export const _httpFetch = {
-  fn: _httpFetchImpl,
 };
 
 export async function GET(request: NextRequest) {
@@ -233,12 +228,20 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const response = await _httpFetch.fn(
+    // Dynamic self-import at call time returns the live, cached module namespace —
+    // the same object that vi.spyOn(routeModule, "_httpFetch") has patched.
+    // A static circular self-import receives a partially-initialised snapshot;
+    // a dynamic import always sees the fully-loaded, spy-patched exports.
+    // Using a `string`-typed variable (not a string literal) prevents TypeScript
+    // from attempting to resolve the circular self-reference type.
+    const routeRef: string = "./route";
+    const self = await import(routeRef);
+    const response = (await self._httpFetch(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,
       controller.signal,
-    );
+    )) as HttpFetchResult;
     clearTimeout(timeoutId);
 
     if (!response.ok) {
