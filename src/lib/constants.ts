@@ -97,10 +97,11 @@ export const THEME = {
 } as const;
 
 // Example/placeholder values for empty state
+// Chosen to score 100/100: title 46 chars, description 153 chars, keyword appears in both
 export const EXAMPLES = {
-  title: "How to Write Meta Descriptions That Get Clicks (With Examples)",
+  title: "How to Write Meta Descriptions That Get Clicks",
   description:
-    "A great meta description convinces searchers to click before they even reach your site. Learn the exact length, tone, and structure Google rewards — with real before-and-after examples.",
+    "Write meta descriptions that earn more clicks — learn the right length, structure, and tone that Google actually rewards, with before-and-after examples.",
   url: "https://yourblog.com/meta-description-guide",
-  keyword: "meta description tips",
+  keyword: "meta description",
 } as const;
