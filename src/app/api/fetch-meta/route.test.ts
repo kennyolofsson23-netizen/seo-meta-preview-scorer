@@ -163,6 +163,89 @@ describe("GET /api/fetch-meta", () => {
     });
   });
 
+  // ── Streaming body (ReadableStream path) ──────────────────────────────────
+
+  describe("ReadableStream body reading", () => {
+    it("reads the body via ReadableStream and parses meta tags correctly", async () => {
+      const html = makeHtml({ title: "Stream Title", description: "Stream desc" });
+      const encoded = new TextEncoder().encode(html);
+
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encoded);
+          controller.close();
+        },
+      });
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          headers: {
+            get: (header: string) =>
+              header.toLowerCase() === "content-type"
+                ? "text/html; charset=utf-8"
+                : null,
+          },
+          body: stream,
+        }),
+      );
+
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.title).toBe("Stream Title");
+      expect(body.description).toBe("Stream desc");
+    });
+
+    it("caps body at 1 MB when ReadableStream exceeds the limit", async () => {
+      // First chunk: valid HTML with a parseable title
+      const htmlPrefix = "<html><head><title>Capped</title></head><body>";
+      const prefixBytes = new TextEncoder().encode(htmlPrefix);
+
+      // Second chunk: enough bytes to push past 1 MB boundary
+      const paddingSize = 1_048_576; // 1 MB of padding — exceeds MAX_BODY_BYTES
+      const padding = new Uint8Array(paddingSize).fill(32); // spaces
+
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(prefixBytes);
+          controller.enqueue(padding);
+          controller.close();
+        },
+      });
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          headers: {
+            get: (header: string) =>
+              header.toLowerCase() === "content-type"
+                ? "text/html; charset=utf-8"
+                : null,
+          },
+          body: stream,
+        }),
+      );
+
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
+      );
+      const res = await GET(req);
+      // Route should still return 200 — body was capped, not rejected
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      // Title was in the first chunk, before the 1 MB cap
+      expect(body.title).toBe("Capped");
+    });
+  });
+
   // ── Body size limit ────────────────────────────────────────────────────────
 
   describe("body size limits", () => {
