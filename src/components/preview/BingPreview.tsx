@@ -74,6 +74,7 @@ export function BingPreview({
           style={{
             fontFamily: BING.titleFontFamily,
             fontSize: BING.titleFontSize,
+            color: BING.titleColor,
             textDecoration: "none",
           }}
           data-testid="bing-title"
