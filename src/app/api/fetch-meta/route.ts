@@ -15,8 +15,23 @@ const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
 
 function isPrivateIp(ip: string): boolean {
+  const lower = ip.toLowerCase();
+
   // IPv6 loopback
-  if (ip === "::1") return true;
+  if (lower === "::1") return true;
+
+  // IPv6 ULA (fc00::/7) — covers fc00:: through fdff::
+  if (/^f[cd]/i.test(lower)) return true;
+
+  // IPv6 link-local (fe80::/10) — covers fe80:: through febf::
+  // The first 10 bits are 1111111010; 3rd hex nibble is 8, 9, a, or b
+  if (/^fe[89ab]/i.test(lower)) return true;
+
+  // IPv4-mapped IPv6 addresses (::ffff:x.x.x.x) — recursively check embedded IPv4
+  const ipv4MappedMatch = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  if (ipv4MappedMatch) {
+    return isPrivateIp(ipv4MappedMatch[1]);
+  }
 
   // Check IPv4 ranges
   const parts = ip.split(".").map(Number);
@@ -24,6 +39,8 @@ function isPrivateIp(ip: string): boolean {
 
   const [a, b] = parts;
 
+  // INADDR_ANY: 0.0.0.0 (binds to all interfaces — must be blocked)
+  if (a === 0) return true;
   // Loopback: 127.0.0.0/8
   if (a === 127) return true;
   // RFC-1918: 10.0.0.0/8

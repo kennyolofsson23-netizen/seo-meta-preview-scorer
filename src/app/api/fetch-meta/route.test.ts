@@ -169,6 +169,81 @@ describe("GET /api/fetch-meta", () => {
       const body = await res.json();
       expect(body.error).toMatch(/private|internal/i);
     });
+
+    it("blocks 0.0.0.0 (INADDR_ANY)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "0.0.0.0", family: 4 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://inaddr-any.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks fc00::1 (IPv6 ULA fc00::/7)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "fc00::1", family: 6 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://ula.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks fd12:3456::1 (IPv6 ULA fd00::/8)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "fd12:3456::1",
+        family: 6,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://ula2.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks fe80::1 (IPv6 link-local fe80::/10)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "fe80::1", family: 6 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://linklocal.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks ::ffff:127.0.0.1 (IPv4-mapped loopback)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "::ffff:127.0.0.1",
+        family: 6,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://mapped-loopback.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks ::ffff:192.168.1.1 (IPv4-mapped private)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "::ffff:192.168.1.1",
+        family: 6,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://mapped-private.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
   });
 
   // ── Body size limit ────────────────────────────────────────────────────────
