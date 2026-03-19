@@ -253,9 +253,9 @@ describe("BingPreview (F005)", () => {
           url="https://example.com"
         />,
       );
-      expect(screen.getByTestId("bing-title")).toHaveStyle({
-        color: BING.titleColor,
-      });
+      // Color is applied via Tailwind class (text-[#001ba0]) so dark mode
+      // can override it; check the class attribute rather than inline style.
+      expect(screen.getByTestId("bing-title")).toHaveClass("text-[#001ba0]");
     });
 
     it("uses Bing description color #767676", () => {
