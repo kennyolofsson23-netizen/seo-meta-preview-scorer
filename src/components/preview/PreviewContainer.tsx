@@ -39,7 +39,12 @@ export interface PreviewContainerProps {
 
 const TABS = [
   { value: "google-desktop", label: "Google", shortLabel: "G", icon: Monitor },
-  { value: "google-mobile", label: "Mobile", shortLabel: "M", icon: Smartphone },
+  {
+    value: "google-mobile",
+    label: "Mobile",
+    shortLabel: "M",
+    icon: Smartphone,
+  },
   { value: "bing", label: "Bing", shortLabel: "B", icon: Search },
   { value: "social", label: "Social", shortLabel: "OG", icon: Share2 },
 ] as const;
@@ -56,7 +61,9 @@ export function PreviewContainer({
 }: PreviewContainerProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
   const [embedOpen, setEmbedOpen] = useState(false);
 
   async function handleExport(format: "png" | "jpg") {
@@ -175,7 +182,11 @@ export function PreviewContainer({
                 <button
                   type="button"
                   disabled={isCapturing}
-                  aria-label={isCapturing ? "Saving preview image…" : "Download preview image"}
+                  aria-label={
+                    isCapturing
+                      ? "Saving preview image…"
+                      : "Download preview image"
+                  }
                   title="Download preview"
                   className={cn(
                     "flex h-8 items-center gap-1 rounded border border-border px-2 text-xs font-medium transition-colors",
@@ -185,7 +196,10 @@ export function PreviewContainer({
                   )}
                 >
                   {isCapturing ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                    <Loader2
+                      className="h-3.5 w-3.5 animate-spin"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <Download className="h-3.5 w-3.5" aria-hidden="true" />
                   )}

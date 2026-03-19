@@ -13,11 +13,12 @@ const PLATFORMS: { id: Platform; label: string }[] = [
   { id: "facebook", label: "Facebook" },
 ];
 
-const PLATFORM_CONFIG: Record<Platform, { maxTitle: number; maxDesc: number }> = {
-  twitter: { maxTitle: 70, maxDesc: 200 },
-  linkedin: { maxTitle: 119, maxDesc: 300 },
-  facebook: { maxTitle: 65, maxDesc: 155 },
-};
+const PLATFORM_CONFIG: Record<Platform, { maxTitle: number; maxDesc: number }> =
+  {
+    twitter: { maxTitle: 70, maxDesc: 200 },
+    linkedin: { maxTitle: 119, maxDesc: 300 },
+    facebook: { maxTitle: 65, maxDesc: 155 },
+  };
 
 function truncatePlatform(text: string, max: number): string {
   if (!text || text.length <= max) return text;
@@ -96,7 +97,11 @@ export function SocialCardPreview({
       </div>
 
       {/* Social card */}
-      <div role="region" aria-label={`${PLATFORMS.find(p => p.id === platform)?.label} social card preview`} className="border border-border rounded-lg overflow-hidden w-full">
+      <div
+        role="region"
+        aria-label={`${PLATFORMS.find((p) => p.id === platform)?.label} social card preview`}
+        className="border border-border rounded-lg overflow-hidden w-full"
+      >
         {/* Image area */}
         {showPlaceholder ? (
           <ImagePlaceholder />
