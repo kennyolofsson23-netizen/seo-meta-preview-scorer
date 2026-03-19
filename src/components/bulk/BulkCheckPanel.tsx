@@ -40,7 +40,7 @@ export function BulkCheckPanel() {
 
   async function handleFileUpload(file: File) {
     if (!file.name.endsWith(".csv")) {
-      setError("Please upload a CSV file");
+      setError("That file isn't a CSV. Upload a .csv file to continue.");
       return;
     }
 
@@ -54,7 +54,7 @@ export function BulkCheckPanel() {
 
       if (rows.length === 0) {
         setError(
-          'No valid rows found. Make sure your CSV has a "title" column header.',
+          "No title column found. Make sure your CSV has a `title` header in the first row.",
         );
         setIsProcessing(false);
         return;
@@ -63,7 +63,7 @@ export function BulkCheckPanel() {
       const scored = processBulkRows(rows);
       setResults(scored);
     } catch {
-      setError("Failed to process CSV file. Please check the format.");
+      setError("Couldn't read that file. Check that it's a valid UTF-8 CSV and try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -104,13 +104,13 @@ export function BulkCheckPanel() {
         >
           <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm font-medium">
-            Drop CSV file here or click to upload
+            Drop your CSV here, or click to browse
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Required column: <code className="font-mono">title</code> ·
-            Optional: <code className="font-mono">description</code>,{" "}
+            Required: <code className="font-mono">title</code> column · Optional:{" "}
+            <code className="font-mono">description</code>,{" "}
             <code className="font-mono">url</code>,{" "}
-            <code className="font-mono">keyword</code> · Max 500 rows
+            <code className="font-mono">keyword</code> · Up to 500 rows per file
           </p>
           <input
             ref={fileInputRef}
@@ -138,7 +138,7 @@ export function BulkCheckPanel() {
         {/* Processing */}
         {isProcessing && (
           <div className="text-center text-sm text-muted-foreground">
-            Processing {fileName}...
+            Scoring {fileName}…
           </div>
         )}
 
@@ -147,7 +147,7 @@ export function BulkCheckPanel() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium">
-                {results.length} {results.length === 1 ? "row" : "rows"} scored
+                {results.length} {results.length === 1 ? "page" : "pages"} scored
               </p>
               <Button
                 size="sm"
@@ -165,13 +165,11 @@ export function BulkCheckPanel() {
               <table className="w-full text-xs">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="text-left p-2 font-medium">Title</th>
+                    <th className="text-left p-2 font-medium">Page</th>
                     <th className="text-center p-2 font-medium w-20">Score</th>
                     <th className="text-center p-2 font-medium w-16">Title</th>
                     <th className="text-center p-2 font-medium w-16">Desc</th>
-                    <th className="text-center p-2 font-medium w-16">
-                      Keyword
-                    </th>
+                    <th className="text-center p-2 font-medium w-16">KW</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -187,7 +185,7 @@ export function BulkCheckPanel() {
                       >
                         <td className="p-2 max-w-[200px]">
                           <p className="truncate font-medium">
-                            {row.title || "Untitled"}
+                            {row.title || "(no title)"}
                           </p>
                           {row.url && (
                             <p className="text-muted-foreground truncate">
