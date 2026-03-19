@@ -44,3 +44,21 @@
 
  ✓ Starting...
  ✓ Ready in 2.2s
+ ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+   ▲ Next.js 15.5.14
+   - Local:        http://localhost:9999
+   - Network:      http://192.168.1.33:9999
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 2.5s
+ ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+   ▲ Next.js 15.5.14
+   - Local:        http://localhost:9999
+   - Network:      http://192.168.1.33:9999
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 4.2s
