@@ -161,6 +161,81 @@ describe("GET /api/fetch-meta", () => {
       const body = await res.json();
       expect(body.error).toMatch(/private|internal/i);
     });
+
+    it("blocks 0.0.0.0 (INADDR_ANY — connects to localhost on Linux)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "0.0.0.0", family: 4 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://ssrf.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks fc00::1 (IPv6 ULA fc00::/7)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "fc00::1", family: 6 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://ula.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks fd12:3456::1 (IPv6 ULA fd00::/8)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "fd12:3456::1",
+        family: 6,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://ula2.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks fe80::1 (IPv6 link-local fe80::/10)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "fe80::1", family: 6 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://linklocal.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks ::ffff:127.0.0.1 (IPv4-mapped loopback)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "::ffff:127.0.0.1",
+        family: 6,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://mapped.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks ::ffff:192.168.1.1 (IPv4-mapped private)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "::ffff:192.168.1.1",
+        family: 6,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://mapped2.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
   });
 
   // ── Streaming body (ReadableStream path) ──────────────────────────────────
@@ -438,6 +513,39 @@ describe("GET /api/fetch-meta", () => {
       const body = await (await GET(req)).json();
       // &apos; is &#39; in HTML5 — route decodes &#39; → '
       expect(body.description).toContain("awesome");
+    });
+
+    it("HTML-decodes decimal numeric entities (&#60; → <)", async () => {
+      stubFetchSuccess(makeHtml({ title: "A &#60; B" }));
+
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
+      );
+      const body = await (await GET(req)).json();
+      expect(body.title).toBe("A < B");
+    });
+
+    it("HTML-decodes hex numeric entities (&#x3E; → >)", async () => {
+      stubFetchSuccess(makeHtml({ title: "A &#x3E; B" }));
+
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
+      );
+      const body = await (await GET(req)).json();
+      expect(body.title).toBe("A > B");
+    });
+
+    it("HTML-decodes mixed numeric and named entities", async () => {
+      stubFetchSuccess(
+        makeHtml({ description: "Hello &#x26; World &#38; More" }),
+      );
+
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
+      );
+      const body = await (await GET(req)).json();
+      // &#x26; → & and &#38; → &
+      expect(body.description).toBe("Hello & World & More");
     });
   });
 

@@ -105,7 +105,6 @@ export async function GET(request: NextRequest) {
         Accept: "text/html,application/xhtml+xml",
       },
     });
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return NextResponse.json(
@@ -167,6 +166,7 @@ export async function GET(request: NextRequest) {
     } else {
       html = await response.text();
     }
+    clearTimeout(timeoutId);
 
     // Parse meta tags using regex (no DOM parser available in Node.js without jsdom)
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
