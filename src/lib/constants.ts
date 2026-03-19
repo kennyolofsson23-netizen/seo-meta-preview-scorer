@@ -73,7 +73,7 @@ export const SCORING = {
 export const APP = {
   name: "SEO Meta Preview & Scorer",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "https://seo-meta-preview.vercel.app",
-  description: "Pixel-perfect SEO preview and real-time scoring tool",
+  description: "Preview your meta tags in Google, Bing, and social media — then score and fix them before you publish.",
 } as const;
 
 // Affiliate URLs
@@ -98,9 +98,9 @@ export const THEME = {
 
 // Example/placeholder values for empty state
 export const EXAMPLES = {
-  title: "Example Page Title | My Website",
+  title: "How to Write Meta Descriptions That Get Clicks (With Examples)",
   description:
-    "This is an example meta description that helps visitors understand what your page is about in search results. Aim for 155-160 characters.",
-  url: "https://example.com/sample-page",
-  keyword: "example page",
+    "A great meta description convinces searchers to click before they even reach your site. Learn the exact length, tone, and structure Google rewards — with real before-and-after examples.",
+  url: "https://yourblog.com/meta-description-guide",
+  keyword: "meta description tips",
 } as const;

@@ -15,42 +15,45 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SEO Meta Preview & Scorer",
+  title: "SEO Meta Preview & Scorer — Free SERP Preview Tool",
   description:
-    "See exactly how your pages appear in Google, Bing, and social media previews. Score your SEO metadata in real-time with zero API calls.",
+    "See exactly how your pages appear in Google, Bing, and social results before publishing. Pixel-perfect SERP previews for desktop and mobile, plus real-time SEO scoring — 100% free, zero tracking.",
   keywords: [
-    "SEO",
-    "meta preview",
-    "SERP",
-    "scoring",
-    "title",
-    "description",
+    "SERP preview tool",
+    "SEO meta preview",
+    "title tag checker",
+    "meta description checker",
     "Google preview",
+    "Bing preview",
+    "social card preview",
+    "OG tags",
+    "SEO scoring",
+    "meta tags",
   ],
-  authors: [{ name: "SEO Meta Preview" }],
-  creator: "SEO Meta Preview",
+  authors: [{ name: "SEO Meta Preview & Scorer" }],
+  creator: "SEO Meta Preview & Scorer",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL,
-    title: "SEO Meta Preview & Scorer",
+    title: "SEO Meta Preview & Scorer — Free SERP Preview Tool",
     description:
-      "Pixel-perfect SEO preview and real-time scoring tool. Free, zero API calls, 100% client-side.",
+      "Paste your title and meta description. Get pixel-perfect Google, Bing, and social previews plus a real-time SEO score — all client-side, no signup required.",
     siteName: "SEO Meta Preview & Scorer",
     images: [
       {
         url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/og`,
         width: 1200,
         height: 630,
-        alt: "SEO Meta Preview & Scorer",
+        alt: "SEO Meta Preview & Scorer — pixel-perfect SERP preview and real-time SEO scoring tool",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SEO Meta Preview & Scorer",
+    title: "SEO Meta Preview & Scorer — Free SERP Preview Tool",
     description:
-      "See how your pages appear in search results. Free, zero API calls.",
+      "See how your page looks in Google before you publish. Pixel-perfect previews for desktop, mobile, Bing, and social — plus real-time SEO scoring. Free, no signup.",
   },
 };
 
@@ -87,7 +90,8 @@ export default function RootLayout({
       >
         <noscript>
           <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-md m-4">
-            This tool requires JavaScript to run.
+            SEO Meta Preview &amp; Scorer requires JavaScript. Please enable it
+            in your browser settings to use the tool.
           </div>
         </noscript>
         {children}
