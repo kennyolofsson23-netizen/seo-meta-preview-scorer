@@ -49,24 +49,24 @@ export function AffiliateRecommendation({
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-        Recommended Tools
+        Level up your SEO
       </p>
 
       {showAhrefs && (
         <AffiliateCard
           href={AFFILIATES.ahrefs}
-          title="Ahrefs — Deep Keyword Research"
-          description="Your keyword score needs work. Find better keywords with Ahrefs' keyword explorer and improve your content strategy."
-          cta="Try Ahrefs →"
+          title="Ahrefs — Find Keywords That Actually Convert"
+          description="Your keyword isn't landing where it should. Ahrefs shows you which terms drive real traffic and exactly where to place them for maximum impact."
+          cta="Try Ahrefs free →"
         />
       )}
 
       {showSemrush && (
         <AffiliateCard
           href={AFFILIATES.semrush}
-          title="Semrush — Full Site SEO Audit"
-          description="Your overall SEO score is below 70. Run a complete site audit with Semrush to find and fix all SEO issues."
-          cta="Try Semrush →"
+          title="Semrush — Fix What's Really Hurting Your Rankings"
+          description="An SEO score below 70 usually means more is broken than just the meta tags. Semrush's site audit finds technical issues, thin content, and link gaps across your whole site."
+          cta="Try Semrush free →"
         />
       )}
     </div>
