@@ -1,236 +1,182 @@
 'use client'
 
-import { useState } from 'react'
-import { type PageMetadata } from '@/types'
-import {
-  scoreTitle,
-  scoreDescription,
-  scoreKeywordPresence,
-  calculateOverallScore,
-  validateUrl,
-} from '@/lib/scoring'
+import * as RadixTabs from '@radix-ui/react-tabs'
+import { LayoutDashboard, History, BarChart3, Code2 } from 'lucide-react'
+import { useMetaInput } from '@/lib/hooks/useMetaInput'
+import { useHistory } from '@/lib/hooks/useHistory'
+import { MetaInputForm } from '@/components/input/MetaInputForm'
+import { UrlFetchButton } from '@/components/input/UrlFetchButton'
+import { ScoreDashboard } from '@/components/scoring/ScoreDashboard'
+import { PreviewContainer } from '@/components/preview/PreviewContainer'
+import { AffiliateRecommendation } from '@/components/affiliate/AffiliateRecommendation'
+import { HistoryPanel } from '@/components/history/HistoryPanel'
+import { BulkCheckPanel } from '@/components/bulk/BulkCheckPanel'
+import { EmbedCodeGenerator } from '@/components/embed/EmbedCodeGenerator'
+import { cn } from '@/lib/utils'
+import type { HistoryEntry } from '@/lib/history'
 
 export function PreviewDashboard() {
-  const [metadata, setMetadata] = useState<PageMetadata>({
-    title: 'Example Page Title | My Website',
-    description: 'This is an example meta description that helps visitors understand what your page is about in search results.',
-    url: 'https://example.com/sample-page',
-    keyword: 'example page',
-  })
+  const {
+    metadata,
+    setMetadata,
+    titleScore,
+    descriptionScore,
+    keywordScore,
+    overall,
+    urlValidation,
+    mobileTruncation,
+  } = useMetaInput()
 
-  // Calculate scores
-  const titleScore = scoreTitle(metadata.title)
-  const descriptionScore = scoreDescription(metadata.description)
-  const keywordScore = scoreKeywordPresence(
-    metadata.title,
-    metadata.description,
-    metadata.keyword || ''
-  )
-  const overall = calculateOverallScore(
-    titleScore.score,
-    descriptionScore.score,
-    keywordScore.score
-  )
+  const { save } = useHistory()
 
-  const urlValidation = validateUrl(metadata.url)
+  // Save to history whenever metadata changes and has meaningful content
+  const saveToHistory = () => {
+    if (metadata.title.trim() || metadata.description.trim()) {
+      save({
+        title: metadata.title,
+        description: metadata.description,
+        url: metadata.url,
+        keyword: metadata.keyword ?? '',
+        overallScore: overall,
+      })
+    }
+  }
+
+  function handleHistorySelect(entry: HistoryEntry) {
+    setMetadata({
+      title: entry.title,
+      description: entry.description,
+      url: entry.url,
+      keyword: entry.keyword,
+    })
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Input Form */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-        <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">
-          Enter Your Page Information
-        </h2>
-
-        <div className="space-y-4">
-          {/* Title Input */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Page Title
-              <span className="text-slate-400 ml-1">({metadata.title.length} chars)</span>
-            </label>
-            <textarea
-              id="title"
-              value={metadata.title}
-              onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
-              placeholder="Enter your page title..."
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              rows={2}
-            />
-            <div className="mt-2">
-              <div className="flex gap-2">
-                <div className="h-2 flex-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      titleScore.status === 'good'
-                        ? 'bg-green-500'
-                        : titleScore.status === 'warning'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                    }`}
-                    style={{
-                      width: `${Math.min(100, (metadata.title.length / 60) * 100)}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                  {titleScore.score}%
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                {titleScore.message}
-              </p>
-            </div>
-          </div>
-
-          {/* Description Input */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Meta Description
-              <span className="text-slate-400 ml-1">({metadata.description.length} chars)</span>
-            </label>
-            <textarea
-              id="description"
-              value={metadata.description}
-              onChange={(e) => setMetadata({ ...metadata, description: e.target.value })}
-              placeholder="Enter your meta description..."
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              rows={3}
-            />
-            <div className="mt-2">
-              <div className="flex gap-2">
-                <div className="h-2 flex-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      descriptionScore.status === 'good'
-                        ? 'bg-green-500'
-                        : descriptionScore.status === 'warning'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                    }`}
-                    style={{
-                      width: `${Math.min(100, (metadata.description.length / 160) * 100)}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                  {descriptionScore.score}%
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                {descriptionScore.message}
-              </p>
-            </div>
-          </div>
-
-          {/* URL Input */}
-          <div>
-            <label htmlFor="url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              URL
-            </label>
-            <input
-              id="url"
-              type="url"
-              value={metadata.url}
-              onChange={(e) => setMetadata({ ...metadata, url: e.target.value })}
-              placeholder="https://example.com/page"
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-            />
-            {!urlValidation.valid && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                {urlValidation.error}
-              </p>
+    <RadixTabs.Root defaultValue="checker" className="space-y-0">
+      {/* Main navigation tabs */}
+      <RadixTabs.List
+        className="flex border-b border-border bg-card rounded-t-lg overflow-x-auto"
+        aria-label="Main sections"
+      >
+        {[
+          { value: 'checker', label: 'Checker', icon: LayoutDashboard },
+          { value: 'history', label: 'History', icon: History },
+          { value: 'bulk', label: 'Bulk Check', icon: BarChart3 },
+          { value: 'embed', label: 'Embed', icon: Code2 },
+        ].map(({ value, label, icon: Icon }) => (
+          <RadixTabs.Trigger
+            key={value}
+            value={value}
+            className={cn(
+              'flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors',
+              'text-muted-foreground hover:text-foreground',
+              'data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
             )}
-          </div>
+          >
+            <Icon className="h-4 w-4" aria-hidden="true" />
+            {label}
+          </RadixTabs.Trigger>
+        ))}
+      </RadixTabs.List>
 
-          {/* Keyword Input */}
-          <div>
-            <label htmlFor="keyword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Primary Keyword (Optional)
-            </label>
-            <input
-              id="keyword"
-              type="text"
-              value={metadata.keyword || ''}
-              onChange={(e) => setMetadata({ ...metadata, keyword: e.target.value })}
-              placeholder="e.g., 'SEO tips', 'how to optimize'"
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-            />
-            <div className="mt-2">
-              <div className="flex gap-2">
-                <div className="h-2 flex-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      keywordScore.status === 'good'
-                        ? 'bg-green-500'
-                        : keywordScore.status === 'warning'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                    }`}
-                    style={{
-                      width: `${keywordScore.score}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                  {keywordScore.score}%
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                {keywordScore.message}
-              </p>
+      {/* ─── CHECKER TAB ──────────────────────────────────────────────────── */}
+      <RadixTabs.Content value="checker" className="focus-visible:outline-none">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+          {/* Left column: input */}
+          <div className="space-y-4">
+            {/* URL fetch button */}
+            <div className="rounded-lg border border-border bg-card p-4">
+              <p className="text-sm font-medium mb-3">Auto-fill from URL</p>
+              <UrlFetchButton
+                url={metadata.url}
+                onFetch={(fetched) => {
+                  setMetadata({
+                    ...metadata,
+                    title: fetched.title || metadata.title,
+                    description: fetched.description || metadata.description,
+                    ogTitle: fetched.ogTitle || undefined,
+                    ogDescription: fetched.ogDescription || undefined,
+                    ogImage: fetched.ogImage || undefined,
+                  })
+                }}
+              />
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Overall Score Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            Overall SEO Score
-          </h2>
-          <div className="text-5xl font-bold">
-            <span
-              className={
-                overall >= 80
-                  ? 'text-green-600'
-                  : overall >= 50
-                    ? 'text-yellow-600'
-                    : 'text-red-600'
-              }
+            {/* Input form */}
+            <MetaInputForm
+              metadata={metadata}
+              onChange={(updated) => {
+                setMetadata(updated)
+              }}
+              titleScore={titleScore}
+              descriptionScore={descriptionScore}
+              keywordScore={keywordScore}
+              urlValidation={urlValidation}
+              mobileTruncation={mobileTruncation}
+            />
+
+            {/* Save to history button */}
+            <button
+              onClick={saveToHistory}
+              className="w-full rounded-md border border-border bg-muted/30 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
-              {overall}
-            </span>
-            <span className="text-2xl text-slate-400">/100</span>
+              Save to History
+            </button>
+
+            {/* Affiliate recommendations */}
+            <AffiliateRecommendation
+              keywordScore={keywordScore.score}
+              overallScore={overall}
+            />
+          </div>
+
+          {/* Right column: scores + previews */}
+          <div className="space-y-6">
+            {/* Score dashboard */}
+            <ScoreDashboard
+              title={metadata.title}
+              description={metadata.description}
+              keyword={metadata.keyword ?? ''}
+            />
+
+            {/* Preview container */}
+            <PreviewContainer
+              title={metadata.title}
+              description={metadata.description}
+              url={metadata.url}
+              keyword={metadata.keyword}
+              ogImage={metadata.ogImage}
+              ogTitle={metadata.ogTitle}
+              ogDescription={metadata.ogDescription}
+            />
           </div>
         </div>
-        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all ${
-              overall >= 80
-                ? 'bg-green-500'
-                : overall >= 50
-                  ? 'bg-yellow-500'
-                  : 'bg-red-500'
-            }`}
-            style={{ width: `${overall}%` }}
-          />
-        </div>
-      </div>
+      </RadixTabs.Content>
 
-      {/* Preview Tabs */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-        <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">
-          Preview
-        </h2>
-        <div className="text-sm text-slate-600 dark:text-slate-400">
-          <p>Preview components will be built in the next phase of development.</p>
-          <p className="mt-2">
-            This will include Google SERP preview, Bing preview, and social card preview.
-          </p>
-        </div>
-      </div>
-    </div>
+      {/* ─── HISTORY TAB ──────────────────────────────────────────────────── */}
+      <RadixTabs.Content
+        value="history"
+        className="focus-visible:outline-none rounded-b-lg border border-t-0 border-border bg-card p-6"
+      >
+        <HistoryPanel onSelect={handleHistorySelect} />
+      </RadixTabs.Content>
+
+      {/* ─── BULK CHECK TAB ───────────────────────────────────────────────── */}
+      <RadixTabs.Content
+        value="bulk"
+        className="focus-visible:outline-none rounded-b-lg border border-t-0 border-border bg-card p-6"
+      >
+        <BulkCheckPanel />
+      </RadixTabs.Content>
+
+      {/* ─── EMBED TAB ────────────────────────────────────────────────────── */}
+      <RadixTabs.Content
+        value="embed"
+        className="focus-visible:outline-none rounded-b-lg border border-t-0 border-border bg-card p-6"
+      >
+        <EmbedCodeGenerator />
+      </RadixTabs.Content>
+    </RadixTabs.Root>
   )
 }

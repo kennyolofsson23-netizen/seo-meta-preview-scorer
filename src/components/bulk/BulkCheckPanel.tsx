@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { Upload, Download, FileText, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { parseCsv, processBulkRows, exportResultsToCsv, downloadCsv, type BulkResultRow } from '@/lib/bulk'
 
 const STATUS_ICON = {

@@ -1,32 +1,80 @@
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { PreviewDashboard } from '@/components/dashboard/PreviewDashboard'
+import { APP } from '@/lib/constants'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        {/* Header */}
-        <div className="mb-8 space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
-            SEO Meta Preview & Scorer
+    <div className="min-h-screen bg-background text-foreground">
+      {/* ── Navbar ─────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tight">{APP.name}</span>
+            <span className="hidden sm:inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+              Free
+            </span>
+          </div>
+          <nav className="flex items-center gap-3">
+            <a
+              href="/embed"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-block text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Embed
+            </a>
+            <ThemeToggle />
+          </nav>
+        </div>
+      </header>
+
+      {/* ── Hero ───────────────────────────────────────────────────── */}
+      <section className="border-b border-border bg-muted/30 py-8">
+        <div className="container mx-auto max-w-7xl px-4">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            SEO Meta Preview &amp; Scorer
           </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-300">
-            See exactly how your pages appear in Google, Bing, and social media. Score your SEO metadata in real-time.
+          <p className="mt-2 text-base text-muted-foreground max-w-2xl">
+            See exactly how your pages appear in Google, Bing, and social media.
+            Get a real-time SEO score — 100% client-side, zero tracking.
           </p>
         </div>
+      </section>
 
-        {/* Main Dashboard */}
+      {/* ── Dashboard ──────────────────────────────────────────────── */}
+      <main className="container mx-auto max-w-7xl px-4 py-8">
         <PreviewDashboard />
+      </main>
 
-        {/* Footer */}
-        <footer className="mt-16 border-t border-slate-200 dark:border-slate-800 pt-8">
-          <div className="text-center text-sm text-slate-600 dark:text-slate-400">
-            <p>Built with ❤️ for content creators and SEO professionals</p>
-            <p className="mt-2">
-              Zero API calls • 100% client-side • Real-time scoring
+      {/* ── Footer ─────────────────────────────────────────────────── */}
+      <footer className="border-t border-border mt-16">
+        <div className="container mx-auto max-w-7xl px-4 py-6">
+          <div className="flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
+            <p>
+              &copy; {new Date().getFullYear()} {APP.name} — Zero API calls &bull; 100%
+              client-side &bull; Real-time scoring
             </p>
+            <div className="flex items-center gap-4">
+              <a
+                href="/embed"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                Embed Widget
+              </a>
+              <a
+                href="/api/og"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                OG Image
+              </a>
+            </div>
           </div>
-        </footer>
-      </div>
-    </main>
+        </div>
+      </footer>
+    </div>
   )
 }

@@ -31,19 +31,19 @@ export function scoreTitle(title: string): ScoringResult {
     }
   }
 
-  if (length < 30) {
+  if (length < 10) {
     return {
       score: 40,
       status: 'error',
-      message: `Title too short (${length}/30 chars). Aim for 30-60 characters.`,
+      message: `Title too short (${length}/10 chars). Aim for 30-60 characters.`,
     }
   }
 
-  if (length >= 30 && length <= 60) {
+  if (length >= 10 && length <= 60) {
     return {
       score: 100,
       status: 'good',
-      message: `Perfect length (${length} chars). Highly clickable.`,
+      message: `Perfect length (${length} characters). Highly clickable.`,
     }
   }
 
@@ -91,7 +91,7 @@ export function scoreDescription(description: string): ScoringResult {
     return {
       score: 100,
       status: 'good',
-      message: `Optimal length (${length} chars). Great for CTR.`,
+      message: `Optimal length (${length} characters). Great for CTR.`,
     }
   }
 
@@ -135,11 +135,24 @@ export function scoreKeywordPresence(
   const inTitle = titleLower.includes(normalizedKeyword)
   const inDescription = descriptionLower.includes(normalizedKeyword)
 
+  // Check if any individual words of the keyword appear in description (for partial coverage)
+  const keywordWords = normalizedKeyword.split(/\s+/).filter(Boolean)
+  const anyWordInDescription = keywordWords.some((word) => descriptionLower.includes(word))
+
   if (inTitle && inDescription) {
     return {
       score: 100,
       status: 'good',
       message: `Keyword found in both title and description. Excellent for relevance.`,
+    }
+  }
+
+  // Full phrase in title + any keyword word in description → also full score
+  if (inTitle && anyWordInDescription) {
+    return {
+      score: 100,
+      status: 'good',
+      message: `Keyword found in title and description. Excellent for relevance.`,
     }
   }
 
