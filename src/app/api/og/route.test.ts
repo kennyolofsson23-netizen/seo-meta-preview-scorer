@@ -154,14 +154,15 @@ describe("GET /api/og", () => {
     expect(colors).toContain("#ef4444");
   });
 
-  it("non-numeric score ('abc') → treated as missing, no score section rendered", async () => {
+  it("non-numeric score ('abc') → clamped to 0 → red (#ef4444)", async () => {
     const req = makeRequest("http://localhost/api/og?score=abc");
     await GET(req);
 
     const [element] = MockedImageResponse.mock.calls[0];
+    const colors = collectColors(element);
+    expect(colors).toContain("#ef4444");
     const allText = JSON.stringify(element);
-    // Score section should not be rendered for invalid input
-    expect(allText).not.toContain("/100");
+    expect(allText).toContain('"0"');
   });
 
   // ── Boundary conditions ────────────────────────────────────────────────────
@@ -210,14 +211,15 @@ describe("GET /api/og", () => {
     expect(colors).toContain("#ef4444");
   });
 
-  it("non-numeric score ('abc') → treated as missing → no score rendered", async () => {
+  it("non-numeric score ('abc') → clamped to 0, score section is rendered", async () => {
     const req = makeRequest("http://localhost/api/og?score=abc");
     await GET(req);
 
     const [element] = MockedImageResponse.mock.calls[0];
     const allText = JSON.stringify(element);
-    // /100 label only appears when a score is rendered
-    expect(allText).not.toContain("/100");
+    // Score section is rendered because invalid input defaults to 0
+    expect(allText).toContain("/100");
+    expect(allText).toContain('"0"');
   });
 
   // ── Overlong title/description truncation ──────────────────────────────────

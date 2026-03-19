@@ -9,8 +9,8 @@ const MAX_DESC_LEN = 200;
 function clampScore(raw: string | null): number | null {
   if (raw === null) return null;
   const n = parseInt(raw, 10);
-  // isNaN guard: default invalid (NaN/Infinity) score to 0 so it renders red
-  if (!Number.isFinite(n)) return 0;
+  // Explicit isNaN guard: default invalid score to 0 so it renders red (/100)
+  if (isNaN(n)) return 0;
   return Math.min(100, Math.max(0, n));
 }
 
