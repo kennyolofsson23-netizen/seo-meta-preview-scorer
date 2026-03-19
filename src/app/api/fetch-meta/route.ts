@@ -3,9 +3,6 @@ import dns from "dns";
 import https from "node:https";
 import http from "node:http";
 import type { IncomingMessage } from "node:http";
-// Self-import: allows vi.spyOn(routeModule, "_httpFetch") to intercept
-// calls from GET by going through the live module namespace object.
-import * as _routeModule from "./route";
 
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
@@ -49,9 +46,12 @@ export interface HttpFetchResult {
  * callback. This prevents DNS rebinding / TOCTOU attacks where an attacker
  * rotates a DNS record between the SSRF check and the actual connection.
  *
- * Exported so tests can spy/mock it without needing real network calls.
+ * Exported as `export let` so Vite's SSR transform (used by vitest) creates
+ * a getter+setter on the module namespace. When vi.spyOn(routeModule,
+ * "_httpFetch") assigns the spy via the setter, the local variable is updated
+ * in-place, making GET's direct call to _httpFetch() hit the spy.
  */
-export function _httpFetch(
+export let _httpFetch = function _httpFetchImpl(
   parsedUrl: URL,
   resolvedAddress: string,
   resolvedFamily: number,
@@ -146,7 +146,7 @@ export function _httpFetch(
 
     req.end();
   });
-}
+};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -204,8 +204,11 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    // Call through the module namespace so vi.spyOn intercepts in tests.
-    const response = await _routeModule._httpFetch(
+    // Call _httpFetch directly. Because _httpFetch is `export let`, Vite's SSR
+    // transform creates a getter+setter on the module namespace so that
+    // vi.spyOn(routeModule, "_httpFetch") updates the local variable via the
+    // setter — meaning this direct call hits the spy in tests.
+    const response = await _httpFetch(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // Mock dns so SSRF hostname resolution doesn't make real network calls in tests.
