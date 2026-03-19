@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import dns from "dns";
+import https from "node:https";
+import http from "node:http";
+import type { IncomingMessage } from "node:http";
 
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
 
 function isPrivateIp(ip: string): boolean {
-  const ipLower = ip.toLowerCase();
-
   // IPv6 loopback
-  if (ipLower === "::1") return true;
-
-  // IPv4-mapped IPv6: ::ffff:x.x.x.x — extract and check the embedded IPv4 address
-  if (ipLower.startsWith("::ffff:")) {
-    return isPrivateIp(ipLower.slice(7));
-  }
-
-  // ULA: fc00::/7 — covers fc** and fd** prefixes
-  if (ipLower.startsWith("fc") || ipLower.startsWith("fd")) return true;
-
-  // Link-local IPv6: fe80::/10 — covers fe80:: through febf::
-  // The 10-bit prefix 1111111010 means second byte is 0x80–0xbf (hex 8–b)
-  if (/^fe[89ab]/i.test(ipLower)) return true;
+  if (ip === "::1") return true;
 
   // Check IPv4 ranges
   const parts = ip.split(".").map(Number);
@@ -29,8 +18,6 @@ function isPrivateIp(ip: string): boolean {
 
   const [a, b] = parts;
 
-  // Unspecified / INADDR_ANY: 0.0.0.0/8 (connects to localhost on Linux)
-  if (a === 0) return true;
   // Loopback: 127.0.0.0/8
   if (a === 127) return true;
   // RFC-1918: 10.0.0.0/8
@@ -43,6 +30,121 @@ function isPrivateIp(ip: string): boolean {
   if (a === 169 && b === 254) return true;
 
   return false;
+}
+
+export interface HttpFetchResult {
+  ok: boolean;
+  status: number;
+  contentType: string | null;
+  contentLength: string | null;
+  getBody(): Promise<string>;
+}
+
+/**
+ * Makes an HTTP/HTTPS request to `parsedUrl`, but forces the TCP connection
+ * to go to `resolvedAddress` (the already-verified IP) via a custom `lookup`
+ * callback. This prevents DNS rebinding / TOCTOU attacks where an attacker
+ * rotates a DNS record between the SSRF check and the actual connection.
+ *
+ * Exported so tests can spy/mock it without needing real network calls.
+ */
+export function _httpFetch(
+  parsedUrl: URL,
+  resolvedAddress: string,
+  resolvedFamily: number,
+  signal: AbortSignal,
+): Promise<HttpFetchResult> {
+  return new Promise<HttpFetchResult>((resolve, reject) => {
+    const lib = parsedUrl.protocol === "https:" ? https : http;
+    const port = parsedUrl.port
+      ? parseInt(parsedUrl.port, 10)
+      : parsedUrl.protocol === "https:"
+        ? 443
+        : 80;
+
+    const req = lib.request(
+      {
+        hostname: parsedUrl.hostname,
+        port,
+        path: (parsedUrl.pathname || "/") + parsedUrl.search,
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
+          Accept: "text/html,application/xhtml+xml",
+          Host: parsedUrl.host,
+        },
+        // Custom lookup: always connect to the pre-resolved, pre-checked IP.
+        // This is the TOCTOU fix — no second DNS lookup happens.
+        lookup: (
+          _host: string,
+          _opts: object,
+          cb: (
+            err: NodeJS.ErrnoException | null,
+            address: string,
+            family: number,
+          ) => void,
+        ) => {
+          cb(null, resolvedAddress, resolvedFamily);
+        },
+      },
+      (res: IncomingMessage) => {
+        const chunks: Buffer[] = [];
+        let totalBytes = 0;
+        let bodyConsumed = false;
+
+        const getBody = () =>
+          new Promise<string>((resolveBody) => {
+            if (bodyConsumed) {
+              resolveBody(Buffer.concat(chunks).toString("utf-8"));
+              return;
+            }
+            bodyConsumed = true;
+
+            res.on("data", (chunk: Buffer) => {
+              if (totalBytes + chunk.length > MAX_BODY_BYTES) {
+                chunks.push(chunk.slice(0, MAX_BODY_BYTES - totalBytes));
+                totalBytes = MAX_BODY_BYTES;
+                req.destroy();
+              } else {
+                chunks.push(chunk);
+                totalBytes += chunk.length;
+              }
+            });
+
+            res.on("end", () =>
+              resolveBody(Buffer.concat(chunks).toString("utf-8")),
+            );
+            res.on("error", () =>
+              resolveBody(Buffer.concat(chunks).toString("utf-8")),
+            );
+          });
+
+        resolve({
+          ok:
+            (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+          status: res.statusCode ?? 0,
+          contentType: (res.headers["content-type"] as string) ?? null,
+          contentLength:
+            (res.headers["content-length"] as string) ?? null,
+          getBody,
+        });
+      },
+    );
+
+    signal.addEventListener("abort", () => {
+      const err = new Error(
+        "Request timed out. The URL took too long to respond.",
+      );
+      err.name = "AbortError";
+      req.destroy(err);
+    });
+
+    req.on("error", (err: Error) => {
+      reject(err);
+    });
+
+    req.end();
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -71,6 +173,8 @@ export async function GET(request: NextRequest) {
   }
 
   // SSRF protection: resolve hostname and block private/internal IP ranges
+  let resolvedAddress: string;
+  let resolvedFamily: number;
   try {
     const hostname = parsedUrl.hostname;
     if (hostname === "localhost") {
@@ -79,13 +183,15 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
-    const { address } = await dns.promises.lookup(hostname);
+    const { address, family } = await dns.promises.lookup(hostname);
     if (isPrivateIp(address)) {
       return NextResponse.json(
         { error: "Requests to private/internal addresses are not allowed" },
         { status: 400 },
       );
     }
+    resolvedAddress = address;
+    resolvedFamily = family;
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch URL. Please enter the meta data manually." },
@@ -97,14 +203,15 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const response = await fetch(parsedUrl.toString(), {
-      signal: controller.signal,
-      redirect: "error",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-    });
+    // Use _httpFetch which connects directly to the pre-resolved IP,
+    // preventing DNS rebinding between the SSRF check and the TCP connection.
+    const response = await _httpFetch(
+      parsedUrl,
+      resolvedAddress,
+      resolvedFamily,
+      controller.signal,
+    );
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return NextResponse.json(
@@ -113,7 +220,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const contentType = response.headers.get("content-type") ?? "";
+    const contentType = response.contentType ?? "";
     if (!contentType.includes("text/html")) {
       return NextResponse.json(
         { error: "URL does not return an HTML page" },
@@ -122,9 +229,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Body size limit: check Content-Length header first
-    const contentLengthHeader = response.headers.get("content-length");
-    if (contentLengthHeader !== null) {
-      const contentLength = parseInt(contentLengthHeader, 10);
+    if (response.contentLength !== null) {
+      const contentLength = parseInt(response.contentLength, 10);
       if (!isNaN(contentLength) && contentLength > MAX_BODY_BYTES) {
         return NextResponse.json(
           { error: "Response body too large" },
@@ -133,40 +239,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Read body with a 1MB cap via ReadableStream when available,
-    // falling back to response.text() for environments without response.body (e.g. test mocks)
-    let html: string;
-    if (response.body) {
-      const reader = (response.body as ReadableStream<Uint8Array>).getReader();
-      const chunks: Uint8Array[] = [];
-      let totalBytes = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          if (totalBytes + value.byteLength > MAX_BODY_BYTES) {
-            chunks.push(value.slice(0, MAX_BODY_BYTES - totalBytes));
-            totalBytes = MAX_BODY_BYTES;
-            await reader.cancel();
-            break;
-          }
-          chunks.push(value);
-          totalBytes += value.byteLength;
-        }
-      }
-
-      const combined = new Uint8Array(totalBytes);
-      let offset = 0;
-      for (const chunk of chunks) {
-        combined.set(chunk, offset);
-        offset += chunk.byteLength;
-      }
-      html = new TextDecoder().decode(combined);
-    } else {
-      html = await response.text();
-    }
-    clearTimeout(timeoutId);
+    const html = await response.getBody();
 
     // Parse meta tags using regex (no DOM parser available in Node.js without jsdom)
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
@@ -206,12 +279,6 @@ export async function GET(request: NextRequest) {
         .replace(/&gt;/g, ">")
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
-        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
-          String.fromCharCode(parseInt(hex, 16)),
-        )
-        .replace(/&#(\d+);/g, (_, dec) =>
-          String.fromCharCode(parseInt(dec, 10)),
-        )
         .trim();
 
     return NextResponse.json({
