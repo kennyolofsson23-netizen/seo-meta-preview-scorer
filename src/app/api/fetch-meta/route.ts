@@ -176,6 +176,49 @@ export const _httpFetch = {
   },
 };
 
+/**
+ * Extract an attribute value from a short, already-bounded tag string.
+ * Each branch is a simple anchored pattern with no nested quantifiers,
+ * so there is no risk of catastrophic backtracking.
+ */
+function getTagAttr(tag: string, attr: string): string | null {
+  // Escape any regex special chars in the attribute name (e.g. "og:title" is safe,
+  // but we escape defensively in case callers pass unexpected values in the future).
+  const escaped = attr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const dq = new RegExp(`\\b${escaped}\\s*=\\s*"([^"]*)"`, "i").exec(tag);
+  if (dq) return dq[1];
+  const sq = new RegExp(`\\b${escaped}\\s*=\\s*'([^']*)'`, "i").exec(tag);
+  if (sq) return sq[1];
+  return null;
+}
+
+/**
+ * Find the `content` attribute of the first <meta> tag where
+ * `attrName` equals `attrValue` (case-insensitive).
+ *
+ * The outer pattern uses [^>]{0,1024} — a bounded, non-backtracking
+ * character class — so catastrophic backtracking is impossible regardless
+ * of how malformed the HTML is.
+ */
+function findMetaContent(
+  html: string,
+  attrName: "name" | "property",
+  attrValue: string,
+): string | null {
+  // Extract individual <meta …> tags with a hard length cap.
+  // Tags longer than ~1024 chars are not matched (they are skipped, not hung on).
+  const metaTagRe = /<meta\b[^>]{0,1024}>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = metaTagRe.exec(html)) !== null) {
+    const tag = m[0];
+    const val = getTagAttr(tag, attrName);
+    if (val && val.toLowerCase() === attrValue.toLowerCase()) {
+      return getTagAttr(tag, "content");
+    }
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
@@ -268,36 +311,14 @@ export async function GET(request: NextRequest) {
 
     const html = await response.getBody();
 
-    // Parse meta tags using regex (no DOM parser available in Node.js without jsdom)
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const descMatch =
-      html.match(
-        /<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i,
-      ) ??
-      html.match(
-        /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i,
-      );
-    const ogTitleMatch =
-      html.match(
-        /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i,
-      ) ??
-      html.match(
-        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i,
-      );
-    const ogDescMatch =
-      html.match(
-        /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i,
-      ) ??
-      html.match(
-        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i,
-      );
-    const ogImageMatch =
-      html.match(
-        /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
-      ) ??
-      html.match(
-        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
-      );
+    // Parse meta tags using a safe two-step approach:
+    //   1. Extract individual bounded-length <meta> tags (prevents ReDoS).
+    //   2. Parse attributes from each short tag individually.
+    const titleMatch = html.match(/<title[^>]*>([^<]{0,512})<\/title>/i);
+    const metaDescription = findMetaContent(html, "name", "description");
+    const metaOgTitle = findMetaContent(html, "property", "og:title");
+    const metaOgDescription = findMetaContent(html, "property", "og:description");
+    const metaOgImage = findMetaContent(html, "property", "og:image");
 
     const decode = (str: string) =>
       str
@@ -310,10 +331,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       title: titleMatch ? decode(titleMatch[1]) : "",
-      description: descMatch ? decode(descMatch[1]) : "",
-      ogTitle: ogTitleMatch ? decode(ogTitleMatch[1]) : "",
-      ogDescription: ogDescMatch ? decode(ogDescMatch[1]) : "",
-      ogImage: ogImageMatch ? decode(ogImageMatch[1]) : "",
+      description: metaDescription ? decode(metaDescription) : "",
+      ogTitle: metaOgTitle ? decode(metaOgTitle) : "",
+      ogDescription: metaOgDescription ? decode(metaOgDescription) : "",
+      ogImage: metaOgImage ? decode(metaOgImage) : "",
       url: parsedUrl.toString(),
     });
   } catch (error) {
