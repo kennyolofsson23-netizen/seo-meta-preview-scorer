@@ -130,14 +130,14 @@ export function SocialCardPreview({
 
         {/* Text area */}
         <div className="p-3 bg-card">
-          <p className="text-xs uppercase text-muted-foreground tracking-wide">
-            {domain}
-          </p>
           <p className="font-semibold text-sm text-card-foreground line-clamp-2">
             {displayTitle}
           </p>
           <p className="text-xs text-muted-foreground mt-1 line-clamp-3">
             {displayDescription}
+          </p>
+          <p className="text-xs uppercase text-muted-foreground tracking-wide">
+            {domain}
           </p>
         </div>
       </div>
