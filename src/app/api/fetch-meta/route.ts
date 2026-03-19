@@ -120,12 +120,10 @@ export function _httpFetch(
           });
 
         resolve({
-          ok:
-            (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+          ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
           status: res.statusCode ?? 0,
           contentType: (res.headers["content-type"] as string) ?? null,
-          contentLength:
-            (res.headers["content-length"] as string) ?? null,
+          contentLength: (res.headers["content-length"] as string) ?? null,
           getBody,
         });
       },
