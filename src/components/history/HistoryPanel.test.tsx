@@ -136,7 +136,7 @@ describe("HistoryPanel", () => {
       expect(screen.getByText("Entry One")).toBeInTheDocument(),
     );
 
-    fireEvent.click(screen.getByLabelText("Clear all history"));
+    fireEvent.click(screen.getByLabelText("Clear all saved snapshots"));
 
     await waitFor(() => {
       expect(screen.queryByText("Entry One")).not.toBeInTheDocument();
@@ -148,7 +148,7 @@ describe("HistoryPanel", () => {
     seedHistory([{ title: "Accessible Entry" }]);
     render(<HistoryPanel onSelect={vi.fn()} />);
     await waitFor(() =>
-      expect(screen.getByRole("list", { name: /recent seo checks/i })).toBeInTheDocument(),
+      expect(screen.getByRole("list", { name: /saved seo checks/i })).toBeInTheDocument(),
     );
   });
 });
