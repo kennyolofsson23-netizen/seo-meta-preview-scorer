@@ -47,10 +47,10 @@ describe("HistoryPanel", () => {
     localStorageMock.clear();
   });
 
-  it("renders 'Recent Checks' heading", async () => {
+  it("renders 'Saved Snapshots' heading", async () => {
     render(<HistoryPanel onSelect={vi.fn()} />);
     await waitFor(() =>
-      expect(screen.getByText("Recent Checks")).toBeInTheDocument(),
+      expect(screen.getByText("Saved Snapshots")).toBeInTheDocument(),
     );
   });
 
@@ -58,7 +58,7 @@ describe("HistoryPanel", () => {
     render(<HistoryPanel onSelect={vi.fn()} />);
     await waitFor(() =>
       expect(
-        screen.getByText(/Your last 20 checks will appear here/i),
+        screen.getByText(/No snapshots yet/i),
       ).toBeInTheDocument(),
     );
   });
@@ -105,11 +105,11 @@ describe("HistoryPanel", () => {
     expect(onSelect.mock.calls[0][0].id).toBe("abc");
   });
 
-  it("shows 'Untitled' for entries with empty title", async () => {
+  it("shows '(no title)' for entries with empty title", async () => {
     seedHistory([{ title: "" }]);
     render(<HistoryPanel onSelect={vi.fn()} />);
     await waitFor(() =>
-      expect(screen.getByText("Untitled")).toBeInTheDocument(),
+      expect(screen.getByText("(no title)")).toBeInTheDocument(),
     );
   });
 

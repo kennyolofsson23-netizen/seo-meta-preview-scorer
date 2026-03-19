@@ -11,7 +11,7 @@ describe("ScreenshotButton", () => {
   it("renders export button", () => {
     const ref = { current: document.createElement("div") };
     render(<ScreenshotButton targetRef={ref} />);
-    expect(screen.getByRole("button", { name: /export/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /save preview as/i })).toBeTruthy();
   });
 
   it("shows loading state when capturing", async () => {

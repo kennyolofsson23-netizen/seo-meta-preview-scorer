@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   parseCsv,
   scoreBulkRow,
   processBulkRows,
   exportResultsToCsv,
+  downloadCsv,
 } from "./bulk";
 
 describe("bulk", () => {
@@ -85,6 +86,34 @@ My Page,My desc,https://example.com,SEO tips`;
   describe("processBulkRows", () => {
     it("processes up to 500 rows", () => {
       const rows = Array.from({ length: 600 }, (_, i) => ({
+        title: `Title ${i}`,
+        description: "A".repeat(150),
+        url: `https://example.com/${i}`,
+      }));
+      const results = processBulkRows(rows);
+      expect(results).toHaveLength(500);
+    });
+
+    it("PR-03: returns empty array for zero input rows", () => {
+      expect(processBulkRows([])).toEqual([]);
+    });
+
+    it("PR-01: perfect metadata row scores overallScore === 100", () => {
+      const rows = [
+        {
+          title: "Best SEO Meta Description Tips for Bloggers",
+          description:
+            "Write meta descriptions that earn more clicks — learn the right length, structure, and tone that Google actually rewards, with before-and-after examples.",
+          url: "https://yourblog.com/meta-description-guide",
+          keyword: "meta description",
+        },
+      ];
+      const results = processBulkRows(rows);
+      expect(results[0].overallScore).toBe(100);
+    });
+
+    it("PR-02: slices exactly to 500 when input has 501 rows", () => {
+      const rows = Array.from({ length: 501 }, (_, i) => ({
         title: `Title ${i}`,
         description: "A".repeat(150),
         url: `https://example.com/${i}`,
@@ -247,6 +276,102 @@ My Page,My desc,https://example.com,SEO tips`;
       const result = parseCsv(csv);
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe("Page Title");
+    });
+  });
+
+  // ─── downloadCsv ─────────────────────────────────────────────────────────────
+  // Requires DOM mocks for URL.createObjectURL and document.createElement
+
+  describe("downloadCsv", () => {
+    const mockCreateObjectURL = vi.fn().mockReturnValue("blob:fake-csv-url");
+    const mockRevokeObjectURL = vi.fn();
+    const mockClick = vi.fn();
+    const originalCreateElement = document.createElement.bind(document);
+
+    beforeEach(() => {
+      mockCreateObjectURL.mockClear();
+      mockRevokeObjectURL.mockClear();
+      mockClick.mockClear();
+
+      Object.defineProperty(URL, "createObjectURL", {
+        value: mockCreateObjectURL,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(URL, "revokeObjectURL", {
+        value: mockRevokeObjectURL,
+        writable: true,
+        configurable: true,
+      });
+
+      vi.spyOn(document, "createElement").mockImplementation((tag: string) => {
+        if (tag === "a") {
+          const el = originalCreateElement("a");
+          el.click = mockClick;
+          return el;
+        }
+        return originalCreateElement(tag);
+      });
+    });
+
+    it("DC-01: creates an anchor element with a 'download' attribute", () => {
+      downloadCsv("col1,col2\nval1,val2", "test.csv");
+      // createElement("a") was called
+      expect(document.createElement).toHaveBeenCalledWith("a");
+    });
+
+    it("DC-01b: the anchor has the correct download filename", () => {
+      let capturedEl: HTMLAnchorElement | null = null;
+      vi.spyOn(document, "createElement").mockImplementation((tag: string) => {
+        const el = originalCreateElement(tag as keyof HTMLElementTagNameMap);
+        if (tag === "a") {
+          el.click = mockClick;
+          capturedEl = el as HTMLAnchorElement;
+        }
+        return el;
+      });
+
+      downloadCsv("header\nvalue", "my-results.csv");
+      expect(capturedEl).not.toBeNull();
+      expect((capturedEl as HTMLAnchorElement).download).toBe("my-results.csv");
+    });
+
+    it("DC-02: URL.createObjectURL is called with a Blob", () => {
+      downloadCsv("data", "output.csv");
+      expect(mockCreateObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    });
+
+    it("DC-02b: the Blob has CSV content type", () => {
+      downloadCsv("data", "output.csv");
+      const [blob] = mockCreateObjectURL.mock.calls[0] as [Blob];
+      expect(blob.type).toContain("text/csv");
+    });
+
+    it("DC-03: URL.revokeObjectURL is called to prevent memory leaks", () => {
+      downloadCsv("data", "output.csv");
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-csv-url");
+    });
+
+    it("uses the default filename when none is provided", () => {
+      let capturedEl: HTMLAnchorElement | null = null;
+      vi.spyOn(document, "createElement").mockImplementation((tag: string) => {
+        const el = originalCreateElement(tag as keyof HTMLElementTagNameMap);
+        if (tag === "a") {
+          el.click = mockClick;
+          capturedEl = el as HTMLAnchorElement;
+        }
+        return el;
+      });
+
+      downloadCsv("col\nval");
+      expect((capturedEl as HTMLAnchorElement).download).toBe(
+        "seo-bulk-results.csv",
+      );
+    });
+
+    it("click() is called on the anchor to trigger the download", () => {
+      downloadCsv("data", "test.csv");
+      expect(mockClick).toHaveBeenCalled();
     });
   });
 });

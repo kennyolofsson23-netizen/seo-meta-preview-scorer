@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { cn, truncate, formatDate, debounce, generateId, isBrowser, delay } from "./utils";
+import {
+  cn,
+  truncate,
+  formatDate,
+  copyToClipboard,
+  debounce,
+  generateId,
+  isBrowser,
+  delay,
+} from "./utils";
 
 describe("utils", () => {
   describe("cn", () => {
@@ -170,6 +179,51 @@ describe("utils", () => {
       const id = generateId("");
       expect(typeof id).toBe("string");
       expect(id.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("copyToClipboard", () => {
+    it("UT-03: calls navigator.clipboard.writeText with the given text", async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal("navigator", {
+        ...navigator,
+        clipboard: { writeText },
+      });
+
+      const result = await copyToClipboard("Hello clipboard");
+      expect(writeText).toHaveBeenCalledWith("Hello clipboard");
+      expect(result).toBe(true);
+
+      vi.unstubAllGlobals();
+    });
+
+    it("returns false when clipboard.writeText throws", async () => {
+      const writeText = vi.fn().mockRejectedValue(new Error("Permission denied"));
+      vi.stubGlobal("navigator", {
+        ...navigator,
+        clipboard: { writeText },
+      });
+
+      const result = await copyToClipboard("some text");
+      expect(result).toBe(false);
+
+      vi.unstubAllGlobals();
+    });
+
+    it("returns true and calls writeText once per invocation", async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal("navigator", {
+        ...navigator,
+        clipboard: { writeText },
+      });
+
+      await copyToClipboard("first");
+      await copyToClipboard("second");
+      expect(writeText).toHaveBeenCalledTimes(2);
+      expect(writeText).toHaveBeenNthCalledWith(1, "first");
+      expect(writeText).toHaveBeenNthCalledWith(2, "second");
+
+      vi.unstubAllGlobals();
     });
   });
 
