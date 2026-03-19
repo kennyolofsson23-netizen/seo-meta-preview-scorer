@@ -55,7 +55,7 @@ function FieldProgress({
     <div className="flex items-center gap-2 mt-1">
       <div className="h-2 flex-1 rounded-full overflow-hidden bg-muted">
         <div
-          className={`h-full transition-all duration-150 ${barColor}`}
+          className={`h-full transition-all duration-300 ${barColor}`}
           style={{ width }}
           role="progressbar"
           aria-valuenow={value}

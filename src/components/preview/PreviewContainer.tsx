@@ -125,7 +125,7 @@ export function PreviewContainer({
               title="Copy shareable link"
               aria-label="Copy shareable link to clipboard"
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded text-muted-foreground transition-colors",
+                "flex h-11 w-11 items-center justify-center rounded text-muted-foreground transition-colors",
                 "hover:text-foreground hover:bg-muted",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               )}
@@ -147,7 +147,7 @@ export function PreviewContainer({
                   title="Embed on your site"
                   aria-label="Open embed code dialog"
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded text-muted-foreground transition-colors",
+                    "flex h-11 w-11 items-center justify-center rounded text-muted-foreground transition-colors",
                     "hover:text-foreground hover:bg-muted",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   )}
@@ -189,7 +189,7 @@ export function PreviewContainer({
                   }
                   title="Download preview"
                   className={cn(
-                    "flex h-8 items-center gap-1 rounded border border-border px-2 text-xs font-medium transition-colors",
+                    "flex h-11 items-center gap-1 rounded border border-border px-3 text-xs font-medium transition-colors",
                     "text-muted-foreground hover:text-foreground hover:bg-muted",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     "disabled:opacity-50 disabled:cursor-not-allowed",

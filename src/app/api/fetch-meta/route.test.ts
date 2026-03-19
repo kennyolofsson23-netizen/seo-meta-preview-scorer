@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // Mock dns so SSRF hostname resolution doesn't make real network calls in tests.
-// All test URLs resolve to a non-private IP (93.184.216.34 = example.com).
+// Default: resolves to a non-private IP (93.184.216.34 = example.com).
+// Individual SSRF tests override this with mockResolvedValueOnce.
 vi.mock("dns", () => ({
   default: {
     promises: {
@@ -15,6 +16,7 @@ vi.mock("dns", () => ({
 }));
 
 import { GET } from "./route";
+import dns from "dns";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -73,6 +75,125 @@ function stubFetchSuccess(
 describe("GET /api/fetch-meta", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  // ── SSRF / private IP blocking ────────────────────────────────────────────
+
+  describe("SSRF protection - private IP blocking", () => {
+    const mockedLookup = vi.mocked(dns.promises.lookup);
+
+    it("blocks loopback 127.0.0.1 (RFC loopback)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "127.0.0.1", family: 4 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://internal.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks 10.0.0.1 (RFC-1918 10.0.0.0/8)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "10.0.0.1", family: 4 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://corp.internal.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks 192.168.1.1 (RFC-1918 192.168.0.0/16)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "192.168.1.1",
+        family: 4,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://router.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks 172.16.0.1 (RFC-1918 172.16.0.0/12)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "172.16.0.1", family: 4 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://docker.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks 172.31.255.255 (top of RFC-1918 172.16.0.0/12 range)", async () => {
+      mockedLookup.mockResolvedValueOnce({
+        address: "172.31.255.255",
+        family: 4,
+      });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://host.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+    });
+
+    it("blocks ::1 (IPv6 loopback)", async () => {
+      mockedLookup.mockResolvedValueOnce({ address: "::1", family: 6 });
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://ipv6host.example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+
+    it("blocks the literal hostname 'localhost'", async () => {
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=http://localhost/secret",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/private|internal/i);
+    });
+  });
+
+  // ── Body size limit ────────────────────────────────────────────────────────
+
+  describe("body size limits", () => {
+    it("returns 400 when Content-Length header exceeds 1 MB", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          headers: {
+            get: (header: string) => {
+              if (header.toLowerCase() === "content-type")
+                return "text/html; charset=utf-8";
+              if (header.toLowerCase() === "content-length")
+                return String(1_048_577); // 1 MB + 1 byte
+              return null;
+            },
+          },
+          body: null,
+          text: async () => "<html></html>",
+        }),
+      );
+
+      const req = makeRequest(
+        "http://localhost:3000/api/fetch-meta?url=https://example.com",
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/too large/i);
+    });
   });
 
   // ── Missing / invalid parameters ──────────────────────────────────────────
