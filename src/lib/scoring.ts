@@ -27,7 +27,7 @@ export function scoreTitle(title: string): ScoringResult {
     return {
       score: 0,
       status: "error",
-      message: "Title is required",
+      message: "Add a title — Google won't show your page without one.",
     };
   }
 
@@ -35,7 +35,7 @@ export function scoreTitle(title: string): ScoringResult {
     return {
       score: 40,
       status: "error",
-      message: `Title too short (${length}/10 chars). Aim for 30-60 characters.`,
+      message: `Only ${length} characters — too short for Google to display well. Aim for 30–60.`,
     };
   }
 
@@ -43,7 +43,7 @@ export function scoreTitle(title: string): ScoringResult {
     return {
       score: 100,
       status: "good",
-      message: `Perfect length (${length} characters). Highly clickable.`,
+      message: `Good length at ${length} characters. Google's sweet spot is 30–60.`,
     };
   }
 
@@ -51,7 +51,7 @@ export function scoreTitle(title: string): ScoringResult {
     return {
       score: 80,
       status: "warning",
-      message: `Slightly long (${length} chars). May truncate on mobile. Ideal is 30-60.`,
+      message: `At ${length} chars, this may truncate on mobile search. Try trimming to under 60.`,
     };
   }
 
@@ -59,7 +59,7 @@ export function scoreTitle(title: string): ScoringResult {
   return {
     score: 50,
     status: "error",
-    message: `Title too long (${length} chars). Will be truncated to ~60 chars in Google SERP.`,
+    message: `Too long at ${length} chars — Google cuts titles off around 60. Shorten it.`,
   };
 }
 
@@ -75,7 +75,7 @@ export function scoreDescription(description: string): ScoringResult {
     return {
       score: 0,
       status: "error",
-      message: "Meta description is recommended for better CTR",
+      message: "Add a meta description — it's what convinces searchers to click through.",
     };
   }
 
@@ -83,7 +83,7 @@ export function scoreDescription(description: string): ScoringResult {
     return {
       score: 60,
       status: "warning",
-      message: `Too short (${length}/120 chars). Aim for 155-160 for optimal CTR.`,
+      message: `At ${length} chars, this is too short. Aim for 155–160 to fill Google's full snippet.`,
     };
   }
 
@@ -91,7 +91,7 @@ export function scoreDescription(description: string): ScoringResult {
     return {
       score: 100,
       status: "good",
-      message: `Optimal length (${length} characters). Great for CTR.`,
+      message: `Optimal at ${length} characters — displays in full on desktop and mobile.`,
     };
   }
 
@@ -99,7 +99,7 @@ export function scoreDescription(description: string): ScoringResult {
     return {
       score: 80,
       status: "warning",
-      message: `Slightly long (${length} chars). Will be truncated to ~160 on desktop, ~120 on mobile.`,
+      message: `At ${length} chars, Google may truncate this on mobile. Try trimming to 155–160.`,
     };
   }
 
@@ -107,7 +107,7 @@ export function scoreDescription(description: string): ScoringResult {
   return {
     score: 50,
     status: "error",
-    message: `Too long (${length} chars). Google truncates to ~160 chars. Current: "...${description.substring(155, 160)}..."`,
+    message: `Too long at ${length} chars — Google cuts descriptions at ~160. Visible text ends: "…${description.substring(155, 160)}…"`,
   };
 }
 
@@ -125,7 +125,7 @@ export function scoreKeywordPresence(
     return {
       score: 0,
       status: "error",
-      message: "Enter a keyword to check",
+      message: "Enter your target keyword to check if it appears in the title and description.",
     };
   }
 
@@ -145,7 +145,7 @@ export function scoreKeywordPresence(
     return {
       score: 100,
       status: "good",
-      message: `Keyword found in both title and description. Excellent for relevance.`,
+      message: `"${keyword}" is in both your title and description — excellent keyword placement.`,
     };
   }
 
@@ -154,7 +154,7 @@ export function scoreKeywordPresence(
     return {
       score: 100,
       status: "good",
-      message: `Keyword found in title and description. Excellent for relevance.`,
+      message: `"${keyword}" is in your title and related terms appear in your description. Good signal.`,
     };
   }
 
@@ -162,7 +162,7 @@ export function scoreKeywordPresence(
     return {
       score: 90,
       status: "good",
-      message: `Keyword found in title. Consider adding to description for extra relevance.`,
+      message: `"${keyword}" is in your title but not the description. Adding it there would strengthen relevance.`,
     };
   }
 
@@ -170,14 +170,14 @@ export function scoreKeywordPresence(
     return {
       score: 70,
       status: "warning",
-      message: `Keyword found in description. Adding to title would strengthen relevance.`,
+      message: `"${keyword}" is in your description but not the title. Adding it to the title would have more impact.`,
     };
   }
 
   return {
     score: 0,
     status: "error",
-    message: `Keyword "${keyword}" not found in title or description.`,
+    message: `"${keyword}" doesn't appear in either the title or description. Add it to improve relevance.`,
   };
 }
 
@@ -244,7 +244,7 @@ export function validateUrl(url: string): { valid: boolean; error?: string } {
   } catch {
     return {
       valid: false,
-      error: "Invalid URL format. Start with http:// or https://",
+      error: "That doesn't look like a valid URL. Make sure it starts with https://",
     };
   }
 }

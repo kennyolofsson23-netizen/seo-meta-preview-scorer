@@ -15,9 +15,9 @@ export interface ScoreCardProps {
 }
 
 const statusLabel: Record<ScoreCardProps["status"], string> = {
-  good: "Good",
-  warning: "Warning",
-  error: "Needs Work",
+  good: "Optimal",
+  warning: "Improve",
+  error: "Fix It",
 };
 
 export function ScoreCard({

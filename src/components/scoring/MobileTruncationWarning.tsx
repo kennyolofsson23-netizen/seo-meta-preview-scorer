@@ -39,19 +39,19 @@ export function MobileTruncationWarning({
       </svg>
       <div className="flex-1">
         <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
-          Mobile Truncation Warning
+          Mobile Search Will Cut This Off
         </p>
         <ul className="mt-1 space-y-1">
           {titleTruncated && (
             <li className="text-sm text-yellow-700 dark:text-yellow-400">
-              Title is {titleLength} chars — will be truncated on mobile (limit:
-              50 chars)
+              Your title is {titleLength} chars — Google mobile cuts off at 50.
+              Shorten it to avoid truncation.
             </li>
           )}
           {descriptionTruncated && (
             <li className="text-sm text-yellow-700 dark:text-yellow-400">
-              Description is {descriptionLength} chars — will be truncated on
-              mobile (limit: 120 chars)
+              Your description is {descriptionLength} chars — Google mobile cuts
+              off at 120. Trim it to display in full.
             </li>
           )}
         </ul>

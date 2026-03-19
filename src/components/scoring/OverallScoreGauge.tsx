@@ -28,7 +28,7 @@ export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
     <Card>
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Overall SEO Score</h2>
+          <h2 className="text-xl font-semibold">Your SEO Score</h2>
           <div>
             <span className={`text-5xl font-bold ${scoreColor}`}>
               {clamped}
@@ -41,7 +41,7 @@ export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
           aria-valuenow={clamped}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Overall SEO score: ${clamped} out of 100`}
+          aria-label={`Your SEO score is ${clamped} out of 100`}
           className="h-4 bg-muted rounded-full overflow-hidden"
         >
           <div
@@ -50,7 +50,7 @@ export function OverallScoreGauge({ overall }: OverallScoreGaugeProps) {
           />
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          Title 40% · Description 40% · Keyword 20%
+          Weighted: title 40% · description 40% · keyword 20%
         </p>
       </CardContent>
     </Card>
