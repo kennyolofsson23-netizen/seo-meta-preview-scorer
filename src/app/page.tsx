@@ -21,7 +21,7 @@ export default function Home() {
               rel="noopener noreferrer"
               className="hidden sm:inline-block text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Embed
+              Embed on Your Site
             </a>
             <ThemeToggle />
           </nav>
@@ -32,11 +32,13 @@ export default function Home() {
       <section className="border-b border-border bg-muted/30 py-8">
         <div className="container mx-auto max-w-7xl px-4">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            SEO Meta Preview &amp; Scorer
+            See how your page looks in Google — before you publish
           </h1>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            See exactly how your pages appear in Google, Bing, and social media.
-            Get a real-time SEO score — 100% client-side, zero tracking.
+            Paste your title and description to get pixel-perfect previews for
+            Google desktop, Google mobile, Bing, and social cards. Get an
+            instant SEO score with specific fixes. Free, no signup, nothing sent
+            to a server.
           </p>
         </div>
       </section>
@@ -51,8 +53,8 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <div className="flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
             <p>
-              &copy; {new Date().getFullYear()} {APP.name} — Zero API calls
-              &bull; 100% client-side &bull; Real-time scoring
+              &copy; {new Date().getFullYear()} {APP.name} &mdash; Zero API
+              calls &bull; No tracking &bull; 100% client-side
             </p>
             <div className="flex items-center gap-4">
               <a
@@ -61,7 +63,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="hover:text-foreground transition-colors"
               >
-                Embed Widget
+                Add to Your Site
               </a>
               <a
                 href="/api/og"
@@ -69,7 +71,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="hover:text-foreground transition-colors"
               >
-                OG Image
+                OG Image API
               </a>
             </div>
           </div>
