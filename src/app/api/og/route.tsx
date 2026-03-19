@@ -1,13 +1,26 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
+const MAX_TITLE_LEN = 70;
+const MAX_DESC_LEN = 200;
+
+function clampScore(raw: string | null): number | null {
+  if (raw === null) return null;
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(100, Math.max(0, n));
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const title = searchParams.get("title") ?? "SEO Meta Preview & Scorer";
-  const score = searchParams.get("score") ?? null;
-  const description =
+  const rawTitle = searchParams.get("title") ?? "SEO Meta Preview & Scorer";
+  const title = rawTitle.slice(0, MAX_TITLE_LEN);
+  const rawDescription =
     searchParams.get("description") ??
     "Pixel-perfect SEO preview and real-time scoring";
+  const description = rawDescription.slice(0, MAX_DESC_LEN);
+  const scoreNum = clampScore(searchParams.get("score"));
+  const score = scoreNum !== null ? String(scoreNum) : null;
 
   return new ImageResponse(
     <div

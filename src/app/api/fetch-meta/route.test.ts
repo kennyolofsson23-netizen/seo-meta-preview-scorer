@@ -167,7 +167,10 @@ describe("GET /api/fetch-meta", () => {
 
   describe("ReadableStream body reading", () => {
     it("reads the body via ReadableStream and parses meta tags correctly", async () => {
-      const html = makeHtml({ title: "Stream Title", description: "Stream desc" });
+      const html = makeHtml({
+        title: "Stream Title",
+        description: "Stream desc",
+      });
       const encoded = new TextEncoder().encode(html);
 
       const stream = new ReadableStream<Uint8Array>({
