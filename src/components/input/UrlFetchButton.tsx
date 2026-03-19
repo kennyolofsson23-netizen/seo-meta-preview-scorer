@@ -40,7 +40,7 @@ export function UrlFetchButton({
 
       if (!response.ok) {
         setError(
-          data.error ?? "Failed to fetch meta data. Please enter it manually.",
+          data.error ?? "Couldn't fetch that URL — try entering your meta tags manually.",
         );
         return;
       }
@@ -53,7 +53,7 @@ export function UrlFetchButton({
         ogImage: data.ogImage ?? "",
       });
     } catch {
-      setError("Failed to fetch URL. Please enter the meta data manually.");
+      setError("Connection error. Enter your title and description manually.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export function UrlFetchButton({
         onClick={handleFetch}
         disabled={isDisabled}
         aria-label={
-          loading ? "Fetching meta data..." : "Fetch meta data from URL"
+          loading ? "Importing metadata from URL…" : "Import meta tags from a live URL"
         }
       >
         {loading ? (
@@ -76,7 +76,7 @@ export function UrlFetchButton({
         ) : (
           <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
         )}
-        {loading ? "Fetching..." : "Fetch Meta"}
+        {loading ? "Importing…" : "Import from URL"}
       </Button>
 
       {error && (

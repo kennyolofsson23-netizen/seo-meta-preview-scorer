@@ -103,10 +103,10 @@ export function MetaInputForm({
         >
           {mobileTruncation.titleTruncated &&
           mobileTruncation.descriptionTruncated
-            ? "Your title and description will be truncated on mobile search results."
+            ? "Both your title and description are too long for Google mobile search — they'll be cut off in results."
             : mobileTruncation.titleTruncated
-              ? "Your title will be truncated on mobile search results (limit: 50 chars)."
-              : "Your description will be truncated on mobile search results (limit: 120 chars)."}
+              ? "Your title is too long for Google mobile search — it'll be cut off after 50 characters."
+              : "Your description is too long for Google mobile search — it'll be cut off after 120 characters."}
         </div>
       )}
 
@@ -131,7 +131,7 @@ export function MetaInputForm({
           rows={2}
           value={metadata.title}
           onChange={handleTitleChange}
-          placeholder="Enter your page title..."
+          placeholder="e.g. 10 SEO Mistakes That Kill Your Traffic (And How to Fix Them)"
           aria-describedby="meta-title-message"
         />
         <FieldProgress
@@ -169,7 +169,7 @@ export function MetaInputForm({
           rows={3}
           value={metadata.description}
           onChange={handleDescriptionChange}
-          placeholder="Enter your meta description..."
+          placeholder="e.g. Learn how to write compelling meta descriptions that improve click-through rates from search results. We cover length, tone, and real examples."
           aria-describedby="meta-description-message"
         />
         <FieldProgress
@@ -192,14 +192,14 @@ export function MetaInputForm({
           htmlFor="meta-url"
           className="block text-sm font-medium text-foreground mb-1"
         >
-          URL
+          Page URL
         </label>
         <Input
           id="meta-url"
           type="url"
           value={metadata.url}
           onChange={handleUrlChange}
-          placeholder="https://example.com/page"
+          placeholder="https://yoursite.com/page-slug"
           aria-describedby={!urlValidation.valid ? "meta-url-error" : undefined}
           aria-invalid={!urlValidation.valid}
           className={
@@ -223,15 +223,15 @@ export function MetaInputForm({
           htmlFor="meta-keyword"
           className="block text-sm font-medium text-foreground mb-1"
         >
-          Primary Keyword{" "}
-          <span className="text-muted-foreground font-normal">(Optional)</span>
+          Target Keyword{" "}
+          <span className="text-muted-foreground font-normal">(optional)</span>
         </label>
         <Input
           id="meta-keyword"
           type="text"
           value={metadata.keyword ?? ""}
           onChange={handleKeywordChange}
-          placeholder="e.g., 'SEO tips', 'how to optimize'"
+          placeholder="e.g. meta description tips"
           aria-describedby="meta-keyword-message"
         />
         <FieldProgress
