@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       </div>
 
       {/* Score if provided */}
-      {score && (
+      {score && scoreNum !== null && (
         <div
           style={{
             marginTop: "40px",
@@ -82,9 +82,9 @@ export async function GET(request: NextRequest) {
               fontSize: "96px",
               fontWeight: "bold",
               color:
-                scoreNum! >= 80
+                scoreNum >= 80
                   ? "#22c55e"
-                  : scoreNum! >= 50
+                  : scoreNum >= 50
                     ? "#eab308"
                     : "#ef4444",
               lineHeight: 1,
