@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import * as RadixTabs from "@radix-ui/react-tabs";
 import { LayoutDashboard, History, BarChart3, Code2 } from "lucide-react";
 import { useMetaInput } from "@/lib/hooks/useMetaInput";
+import { Input } from "@/components/ui/Input";
 import { useHistory } from "@/lib/hooks/useHistory";
 import { MetaInputForm } from "@/components/input/MetaInputForm";
 import { UrlFetchButton } from "@/components/input/UrlFetchButton";
@@ -28,6 +30,7 @@ export function PreviewDashboard() {
   } = useMetaInput();
 
   const { save } = useHistory();
+  const [fetchUrl, setFetchUrl] = useState("");
 
   // Save to history whenever metadata changes and has meaningful content
   const saveToHistory = () => {
@@ -90,19 +93,29 @@ export function PreviewDashboard() {
               <p className="text-sm font-medium mb-3">
                 Fetch live meta tags from a URL
               </p>
-              <UrlFetchButton
-                url={metadata.url}
-                onFetch={(fetched) => {
-                  setMetadata({
-                    ...metadata,
-                    title: fetched.title || metadata.title,
-                    description: fetched.description || metadata.description,
-                    ogTitle: fetched.ogTitle || undefined,
-                    ogDescription: fetched.ogDescription || undefined,
-                    ogImage: fetched.ogImage || undefined,
-                  });
-                }}
-              />
+              <div className="flex flex-col gap-2">
+                <Input
+                  type="url"
+                  value={fetchUrl}
+                  onChange={(e) => setFetchUrl(e.target.value)}
+                  placeholder="https://yoursite.com/page"
+                  aria-label="URL to fetch meta tags from"
+                />
+                <UrlFetchButton
+                  url={fetchUrl}
+                  onFetch={(fetched) => {
+                    setMetadata({
+                      ...metadata,
+                      title: fetched.title || metadata.title,
+                      description: fetched.description || metadata.description,
+                      url: fetchUrl || metadata.url,
+                      ogTitle: fetched.ogTitle || undefined,
+                      ogDescription: fetched.ogDescription || undefined,
+                      ogImage: fetched.ogImage || undefined,
+                    });
+                  }}
+                />
+              </div>
             </div>
 
             {/* Input form */}
