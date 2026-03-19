@@ -11,12 +11,35 @@ function isPrivateIp(ip: string): boolean {
   // IPv6 loopback
   if (ip === "::1") return true;
 
+  // IPv4-mapped IPv6: ::ffff:x.x.x.x — extract the IPv4 part and re-check
+  const lowerIp = ip.toLowerCase();
+  if (lowerIp.startsWith("::ffff:")) {
+    return isPrivateIp(lowerIp.slice(7));
+  }
+
+  // IPv6 addresses (contain colons but not IPv4-mapped)
+  if (ip.includes(":")) {
+    const firstGroup = lowerIp.split(":")[0];
+    if (firstGroup) {
+      const val = parseInt(firstGroup, 16);
+      if (!isNaN(val)) {
+        // ULA: fc00::/7 (covers fc00:: – fdff::)
+        if ((val & 0xfe00) === 0xfc00) return true;
+        // Link-local: fe80::/10 (covers fe80:: – febf::)
+        if ((val & 0xffc0) === 0xfe80) return true;
+      }
+    }
+    return false;
+  }
+
   // Check IPv4 ranges
   const parts = ip.split(".").map(Number);
   if (parts.length !== 4 || parts.some((p) => isNaN(p))) return false;
 
   const [a, b] = parts;
 
+  // INADDR_ANY: 0.0.0.0
+  if (a === 0) return true;
   // Loopback: 127.0.0.0/8
   if (a === 127) return true;
   // RFC-1918: 10.0.0.0/8
