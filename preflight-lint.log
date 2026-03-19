@@ -1,0 +1,4 @@
+
+> seo-meta-preview-scorer@0.1.0 lint
+> eslint . --ext .ts,.tsx
+
