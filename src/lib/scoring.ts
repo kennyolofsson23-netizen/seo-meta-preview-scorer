@@ -241,7 +241,7 @@ export function validateUrl(url: string): { valid: boolean; error?: string } {
   }
 
   try {
-    const parsed = new URL(url);
+    new URL(url);
     return { valid: true };
   } catch {
     return {

@@ -49,7 +49,7 @@ export function ScreenshotButton({
     <Button
       variant="outline"
       size="sm"
-      onClick={handleClick}
+      onClick={() => { void handleClick(); }}
       disabled={isCapturing}
       aria-busy={isCapturing}
       aria-label={
