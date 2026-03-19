@@ -63,7 +63,7 @@ export function BingPreview({
     <div
       role="region"
       aria-label="Bing search result preview"
-      className="max-w-[600px] bg-white dark:bg-[#1B1B1B] rounded p-3"
+      className="max-w-[600px] bg-white rounded p-3"
       data-testid="bing-preview"
     >
       {/* Title */}

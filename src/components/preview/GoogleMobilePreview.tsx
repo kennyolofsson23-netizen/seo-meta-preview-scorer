@@ -154,7 +154,7 @@ export function GoogleMobilePreview({
           </div>
         </div>
         {/* SERP Result */}
-        <div className="bg-white dark:bg-[#202124]">{content}</div>
+        <div className="bg-white">{content}</div>
       </div>
 
       {/* Mobile truncation warning */}
