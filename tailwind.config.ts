@@ -2,6 +2,7 @@ import type { Config } from 'tailwindcss'
 import animate from 'tailwindcss-animate'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -43,11 +44,27 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // SERP-accurate color tokens
+        'google-title': '#1a0dab',
+        'google-url': '#006621',
+        'google-desc': '#4d5156',
+        'google-title-dark': '#8ab4f8',
+        'google-url-dark': '#4caf50',
+        'google-desc-dark': '#bdc1c6',
+        'bing-title': '#001ba0',
+        'bing-url': '#006400',
+        'bing-desc': '#767676',
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'monospace'],
+        arial: ['Arial', 'sans-serif'],
+        segoe: ["'Segoe UI'", 'Arial', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {
