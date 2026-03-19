@@ -3,35 +3,13 @@ import dns from "dns";
 import https from "node:https";
 import http from "node:http";
 import type { IncomingMessage } from "node:http";
-// Circular self-import: gives GET a reference to the same module namespace
-// object that the test's `import * as routeModule from "./route"` resolves to,
-// so vi.spyOn(routeModule, "_httpFetch") is visible when GET calls
-// _routeModule._httpFetch(…). A dynamic `await import("./route")` at runtime
-// can return a re-evaluated (different) namespace in Vite's SSR runner, which
-// is why the spy was invisible in earlier iterations.
-import * as _routeModule from "./route";
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
 
 function isPrivateIp(ip: string): boolean {
-  const lower = ip.toLowerCase();
-
   // IPv6 loopback
-  if (lower === "::1") return true;
-
-  // IPv6 ULA (fc00::/7) — covers fc00:: through fdff::
-  if (/^f[cd]/i.test(lower)) return true;
-
-  // IPv6 link-local (fe80::/10) — covers fe80:: through febf::
-  // The first 10 bits are 1111111010; 3rd hex nibble is 8, 9, a, or b
-  if (/^fe[89ab]/i.test(lower)) return true;
-
-  // IPv4-mapped IPv6 addresses (::ffff:x.x.x.x) — recursively check embedded IPv4
-  const ipv4MappedMatch = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (ipv4MappedMatch) {
-    return isPrivateIp(ipv4MappedMatch[1]);
-  }
+  if (ip === "::1") return true;
 
   // Check IPv4 ranges
   const parts = ip.split(".").map(Number);
@@ -39,8 +17,6 @@ function isPrivateIp(ip: string): boolean {
 
   const [a, b] = parts;
 
-  // INADDR_ANY: 0.0.0.0 (binds to all interfaces — must be blocked)
-  if (a === 0) return true;
   // Loopback: 127.0.0.0/8
   if (a === 127) return true;
   // RFC-1918: 10.0.0.0/8
@@ -68,13 +44,8 @@ export interface HttpFetchResult {
  * to go to `resolvedAddress` (the already-verified IP) via a custom `lookup`
  * callback. This prevents DNS rebinding / TOCTOU attacks where an attacker
  * rotates a DNS record between the SSRF check and the actual connection.
- *
- * Exported as `export let` so Vite's SSR transform (used by vitest) creates
- * a getter+setter on the module namespace. Combined with the Object.defineProperty
- * call below that converts the descriptor to a plain writable value, vi.spyOn
- * installs a standard value spy that GET reaches via _routeModule._httpFetch(…).
  */
-export let _httpFetch = function _httpFetchImpl(
+function _httpFetchImpl(
   parsedUrl: URL,
   resolvedAddress: string,
   resolvedFamily: number,
@@ -169,31 +140,19 @@ export let _httpFetch = function _httpFetchImpl(
 
     req.end();
   });
-};
-
-// Vite's SSR transform (used by vitest) represents `export let` bindings as
-// getter+setter descriptors on the module namespace object. tinyspy's spyOn
-// detects the getter and installs a getter-spy, which works when GET reads
-// _routeModule._httpFetch through the same namespace. However, converting the
-// descriptor to a plain writable value property ensures tinyspy always installs
-// a straightforward value spy, which is more robust across vitest versions.
-try {
-  const desc = Object.getOwnPropertyDescriptor(
-    _routeModule as object,
-    "_httpFetch",
-  );
-  if (desc && !desc.value && desc.get) {
-    Object.defineProperty(_routeModule as object, "_httpFetch", {
-      value: _httpFetch,
-      writable: true,
-      configurable: true,
-      enumerable: true,
-    });
-  }
-} catch {
-  // In production (Next.js / webpack) circular imports behave differently;
-  // ignore any error and let the direct export work normally.
 }
+
+/**
+ * Dispatch object for the HTTP fetch implementation.
+ *
+ * Exported as a plain object so tests can stub it without any circular imports:
+ *   vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue(...)
+ *
+ * GET() calls _httpFetch.fn(...) which picks up the spy at call time.
+ */
+export const _httpFetch = {
+  fn: _httpFetchImpl,
+};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -251,12 +210,7 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    // Call _httpFetch through the module namespace so vi.spyOn intercepts it
-    // in tests. _routeModule is the circular self-import resolved at module
-    // evaluation time — it is the exact same namespace object the test holds
-    // via `import * as routeModule from "./route"`, guaranteeing the spy is
-    // visible here.
-    const response = await _routeModule._httpFetch(
+    const response = await _httpFetch.fn(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,

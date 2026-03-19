@@ -56,7 +56,7 @@ function stubFetchSuccess(
   html: string,
   contentType = "text/html; charset=utf-8",
 ) {
-  vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+  vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue({
     ok: true,
     status: 200,
     contentType,
@@ -250,7 +250,7 @@ describe("GET /api/fetch-meta", () => {
 
   describe("body size limits", () => {
     it("returns 400 when Content-Length header exceeds 1 MB", async () => {
-      vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+      vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue({
         ok: true,
         status: 200,
         contentType: "text/html; charset=utf-8",
@@ -431,7 +431,7 @@ describe("GET /api/fetch-meta", () => {
 
   describe("upstream fetch failures", () => {
     it("returns 400 when the fetched URL returns non-HTML content type", async () => {
-      vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+      vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue({
         ok: true,
         status: 200,
         contentType: "application/json",
@@ -449,7 +449,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("returns 502 when the upstream server returns a non-OK status", async () => {
-      vi.spyOn(routeModule, "_httpFetch").mockResolvedValue({
+      vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue({
         ok: false,
         status: 404,
         contentType: "text/html",
@@ -467,7 +467,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("returns 502 when fetch throws a network error", async () => {
-      vi.spyOn(routeModule, "_httpFetch").mockRejectedValue(
+      vi.spyOn(routeModule._httpFetch, "fn").mockRejectedValue(
         new Error("Network error"),
       );
 
@@ -482,7 +482,7 @@ describe("GET /api/fetch-meta", () => {
       const abortError = new Error("Aborted");
       abortError.name = "AbortError";
 
-      vi.spyOn(routeModule, "_httpFetch").mockRejectedValue(abortError);
+      vi.spyOn(routeModule._httpFetch, "fn").mockRejectedValue(abortError);
 
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://example.com",
