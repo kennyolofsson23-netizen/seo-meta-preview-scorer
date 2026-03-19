@@ -70,6 +70,17 @@ function stubFetchSuccess(
 // ────────────────────────────────────────────────────────────────────────────
 
 describe("GET /api/fetch-meta", () => {
+  beforeEach(() => {
+    // Re-establish the default DNS mock before each test because
+    // vi.restoreAllMocks() in afterEach resets the vi.fn() implementation
+    // that was set in the vi.mock factory, causing subsequent tests to see
+    // dns.promises.lookup return undefined and throw.
+    vi.mocked(dns.promises.lookup).mockResolvedValue({
+      address: "93.184.216.34",
+      family: 4,
+    });
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });

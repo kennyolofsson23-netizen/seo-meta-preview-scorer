@@ -3,6 +3,9 @@ import dns from "dns";
 import https from "node:https";
 import http from "node:http";
 import type { IncomingMessage } from "node:http";
+// Self-import: allows vi.spyOn(routeModule, "_httpFetch") to intercept
+// calls from GET by going through the live module namespace object.
+import * as _routeModule from "./route";
 
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
@@ -201,9 +204,8 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    // Use _httpFetch which connects directly to the pre-resolved IP,
-    // preventing DNS rebinding between the SSRF check and the TCP connection.
-    const response = await _httpFetch(
+    // Call through the module namespace so vi.spyOn intercepts in tests.
+    const response = await _routeModule._httpFetch(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,
