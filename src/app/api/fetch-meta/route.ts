@@ -3,6 +3,7 @@ import dns from "dns";
 import https from "node:https";
 import http from "node:http";
 import type { IncomingMessage } from "node:http";
+import * as _self from "./route";
 
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
@@ -204,11 +205,11 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    // Call _httpFetch directly. Because _httpFetch is `export let`, Vite's SSR
-    // transform creates a getter+setter on the module namespace so that
-    // vi.spyOn(routeModule, "_httpFetch") updates the local variable via the
-    // setter — meaning this direct call hits the spy in tests.
-    const response = await _httpFetch(
+    // Call through _self (the module's own namespace object) so that
+    // vi.spyOn(routeModule, "_httpFetch") — which replaces the namespace
+    // property — is visible here. _self and routeModule are the same cached
+    // module instance in vitest's module registry.
+    const response = await _self._httpFetch(
       parsedUrl,
       resolvedAddress,
       resolvedFamily,
