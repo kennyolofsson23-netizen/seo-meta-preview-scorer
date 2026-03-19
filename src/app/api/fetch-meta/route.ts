@@ -317,7 +317,11 @@ export async function GET(request: NextRequest) {
     const titleMatch = html.match(/<title[^>]*>([^<]{0,512})<\/title>/i);
     const metaDescription = findMetaContent(html, "name", "description");
     const metaOgTitle = findMetaContent(html, "property", "og:title");
-    const metaOgDescription = findMetaContent(html, "property", "og:description");
+    const metaOgDescription = findMetaContent(
+      html,
+      "property",
+      "og:description",
+    );
     const metaOgImage = findMetaContent(html, "property", "og:image");
 
     const decode = (str: string) =>
