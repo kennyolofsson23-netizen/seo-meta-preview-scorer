@@ -1,0 +1,312 @@
+[
+  {
+    "id": "F000",
+    "name": "Shared Infrastructure",
+    "priority": "infra",
+    "description": "Foundation: types, constants, utilities, layout, theme provider, shared UI components, test setup",
+    "acceptanceCriteria": [
+      "TypeScript types defined for PageMetadata, ScoreResult, SeoScores, PreviewOptions, ScreenshotConfig, WidgetOptions",
+      "SERP constants defined for Google Desktop, Google Mobile, Bing, and Social Card dimensions and styles",
+      "Root layout renders with Geist fonts, metadata, and theme support",
+      "Shared UI components (Button, Input, Textarea, Badge, Card, Tabs, Tooltip, ProgressBar) render correctly",
+      "Tailwind CSS configured with custom SERP-accurate color tokens",
+      "Vitest and Playwright configured and passing with empty test suites",
+      "CSP and security headers configured in next.config.ts",
+      "ESLint and TypeScript strict mode pass with zero errors"
+    ],
+    "dependencies": [],
+    "files": {
+      "types": "src/types/index.ts",
+      "constants": "src/lib/constants.ts",
+      "utils": "src/lib/utils.ts",
+      "layout": "src/app/layout.tsx",
+      "globals": "src/app/globals.css",
+      "config": "next.config.ts",
+      "buttonUi": "src/components/ui/Button.tsx",
+      "inputUi": "src/components/ui/Input.tsx",
+      "textareaUi": "src/components/ui/Textarea.tsx",
+      "badgeUi": "src/components/ui/Badge.tsx",
+      "cardUi": "src/components/ui/Card.tsx",
+      "tabsUi": "src/components/ui/Tabs.tsx",
+      "tooltipUi": "src/components/ui/Tooltip.tsx",
+      "progressBarUi": "src/components/ui/ProgressBar.tsx",
+      "themeToggle": "src/components/ui/ThemeToggle.tsx",
+      "testSetup": "src/test/setup.ts",
+      "testFixtures": "src/test/fixtures/meta-samples.ts"
+    }
+  },
+  {
+    "id": "F001",
+    "name": "Meta Input Form",
+    "priority": "P0",
+    "description": "Input form for title, meta description, URL, and keyword with real-time character counting",
+    "acceptanceCriteria": [
+      "Given the input form is displayed, when a user types in the title field, then the character count updates in real-time",
+      "Given the input form is displayed, when a user types in the description field, then the character count updates in real-time",
+      "Given a URL is entered, when it is invalid, then a validation error message appears below the field",
+      "Given all fields are empty, when the page loads, then placeholder example values are shown in the previews",
+      "Given the user types in any field, when the input changes, then all previews update within 16ms (single frame)"
+    ],
+    "dependencies": ["F000"],
+    "files": {
+      "ui": "src/components/input/MetaInputForm.tsx",
+      "charCounter": "src/components/input/CharacterCounter.tsx",
+      "hook": "src/lib/hooks/useMetaInput.ts",
+      "tests": "src/components/input/MetaInputForm.test.tsx"
+    }
+  },
+  {
+    "id": "F002",
+    "name": "Google Desktop SERP Preview",
+    "priority": "P0",
+    "description": "Pixel-perfect Google desktop search result preview with keyword bolding and truncation",
+    "acceptanceCriteria": [
+      "Given a title, description, and URL are entered, when the Google preview renders, then the title appears as a blue clickable link in Google's exact font (Google Sans / Arial, 20px)",
+      "Given a URL is entered, when the preview renders, then the URL appears in green text with breadcrumb format matching Google's current SERP style",
+      "Given a title longer than 60 characters, when the preview renders, then the title is visually truncated with an ellipsis at the pixel-accurate cutoff point",
+      "Given a description longer than 160 characters, when the preview renders, then the description is truncated with '...' matching Google's behavior",
+      "Given a keyword is entered, when it appears in the title or description, then it is displayed in bold in the preview (matching Google's keyword bolding)"
+    ],
+    "dependencies": ["F000", "F001"],
+    "files": {
+      "ui": "src/components/preview/GoogleDesktopPreview.tsx",
+      "truncation": "src/lib/truncation.ts",
+      "tests": "src/components/preview/GoogleDesktopPreview.test.tsx",
+      "truncationTests": "src/lib/truncation.test.ts"
+    }
+  },
+  {
+    "id": "F003",
+    "name": "Google Mobile SERP Preview",
+    "priority": "P0",
+    "description": "Pixel-perfect Google mobile search result preview with mobile-specific truncation",
+    "acceptanceCriteria": [
+      "Given a title is entered, when the mobile preview renders, then the title truncates at ~50 characters (matching Google mobile behavior)",
+      "Given a description is entered, when the mobile preview renders, then the description truncates at ~120 characters",
+      "Given the mobile preview is displayed, when rendered, then it uses mobile-width container (360px) with Google's mobile SERP styling",
+      "Given the mobile preview is active, when compared to desktop preview, then font sizes and spacing match Google's actual mobile SERP"
+    ],
+    "dependencies": ["F000", "F001", "F002"],
+    "files": {
+      "ui": "src/components/preview/GoogleMobilePreview.tsx",
+      "tests": "src/components/preview/GoogleMobilePreview.test.tsx"
+    }
+  },
+  {
+    "id": "F004",
+    "name": "SEO Score Dashboard",
+    "priority": "P0",
+    "description": "Comprehensive scoring dashboard with title, description, keyword, mobile truncation, and overall score",
+    "acceptanceCriteria": [
+      "Given a title is entered, when scored, then the title score shows green (30-60 chars), yellow (61-70 chars), or red (<30 or >70 chars) with specific feedback",
+      "Given a description is entered, when scored, then the description score shows green (120-160 chars), yellow (161-200 chars), or red (<120 or >200 chars)",
+      "Given a keyword is entered, when checked, then the keyword presence score indicates whether it appears in title, description, both, or neither",
+      "Given title and description are entered, when mobile truncation is checked, then a warning appears if title >50 chars or description >120 chars",
+      "Given all scores are calculated, when the overall score displays, then it is a weighted average (title 40%, description 40%, keyword 20%) shown as 0-100 with color coding"
+    ],
+    "dependencies": ["F000", "F001"],
+    "files": {
+      "engine": "src/lib/scoring.ts",
+      "dashboard": "src/components/scoring/ScoreDashboard.tsx",
+      "scoreCard": "src/components/scoring/ScoreCard.tsx",
+      "gauge": "src/components/scoring/OverallScoreGauge.tsx",
+      "mobileWarning": "src/components/scoring/MobileTruncationWarning.tsx",
+      "hook": "src/lib/hooks/useScores.ts",
+      "engineTests": "src/lib/scoring.test.ts",
+      "dashboardTests": "src/components/scoring/ScoreDashboard.test.tsx",
+      "gaugeTests": "src/components/scoring/OverallScoreGauge.test.tsx"
+    }
+  },
+  {
+    "id": "F005",
+    "name": "Bing SERP Preview",
+    "priority": "P0",
+    "description": "Pixel-perfect Bing search result preview with Bing-specific styling and truncation",
+    "acceptanceCriteria": [
+      "Given a title, description, and URL are entered, when the Bing preview renders, then the styling matches Bing's current SERP (Segoe UI font, different blue shade, different URL format)",
+      "Given a title longer than 65 characters, when the Bing preview renders, then it truncates at Bing's cutoff point (which differs from Google)",
+      "Given a description is entered, when the Bing preview renders, then it truncates at ~160 characters matching Bing's behavior"
+    ],
+    "dependencies": ["F000", "F001"],
+    "files": {
+      "ui": "src/components/preview/BingPreview.tsx",
+      "tests": "src/components/preview/BingPreview.test.tsx"
+    }
+  },
+  {
+    "id": "F006",
+    "name": "Social/OG Card Preview",
+    "priority": "P0",
+    "description": "Social media card preview (Facebook/LinkedIn format) with OG image placeholder",
+    "acceptanceCriteria": [
+      "Given OG title and description are entered (or fall back to regular title/description), when the social card renders, then it shows a large card format with image placeholder, title, description, and domain",
+      "Given no OG image URL is provided, when the preview renders, then a placeholder with dimensions (1200x630) and 'Add OG Image URL' prompt is shown",
+      "Given an OG image URL is provided, when valid, then the image loads in the preview card",
+      "Given the social card is displayed, when rendered, then it matches the Facebook/LinkedIn large card format (title below image, description below title, domain at bottom)"
+    ],
+    "dependencies": ["F000", "F001"],
+    "files": {
+      "ui": "src/components/preview/SocialCardPreview.tsx",
+      "tests": "src/components/preview/SocialCardPreview.test.tsx"
+    }
+  },
+  {
+    "id": "F007",
+    "name": "Preview Tab Container",
+    "priority": "P0",
+    "description": "Tabbed container organizing all preview types (Google Desktop, Google Mobile, Bing, Social Card)",
+    "acceptanceCriteria": [
+      "Given all preview components exist, when rendered in tabs, then each tab shows the correct preview",
+      "Given a tab is selected, when clicking a different tab, then the preview switches instantly",
+      "Given the preview container renders, when viewed on mobile viewport, then tabs stack or scroll horizontally"
+    ],
+    "dependencies": ["F000", "F002", "F003", "F005", "F006"],
+    "files": {
+      "ui": "src/components/preview/PreviewContainer.tsx",
+      "page": "src/app/page.tsx",
+      "dashboard": "src/components/dashboard/PreviewDashboard.tsx"
+    }
+  },
+  {
+    "id": "F008",
+    "name": "Screenshot Export",
+    "priority": "P1",
+    "description": "Download PNG screenshot of any preview with watermark branding",
+    "acceptanceCriteria": [
+      "Given any preview tab is active, when the user clicks 'Download Screenshot', then a PNG image of the preview is downloaded",
+      "Given the screenshot is generated, when downloaded, then the image includes only the preview area (not the input form or scores)",
+      "Given the screenshot is generated, when downloaded, then a small watermark 'Generated by [tool name] — [URL]' appears at the bottom",
+      "Given the download button is clicked, when generating, then a loading spinner shows and completes within 2 seconds"
+    ],
+    "dependencies": ["F000", "F007"],
+    "files": {
+      "engine": "src/lib/screenshot.ts",
+      "button": "src/components/export/ScreenshotButton.tsx",
+      "watermark": "src/components/export/ScreenshotWatermark.tsx",
+      "engineTests": "src/lib/screenshot.test.ts",
+      "buttonTests": "src/components/export/ScreenshotButton.test.tsx"
+    }
+  },
+  {
+    "id": "F009",
+    "name": "Embeddable Widget",
+    "priority": "P1",
+    "description": "Compact embeddable widget with iframe embed code generator and 'Powered by' backlink",
+    "acceptanceCriteria": [
+      "Given the embed page is visited, when the user clicks 'Get Embed Code', then a copyable HTML snippet is displayed",
+      "Given the embed code is pasted into any website, when the page loads, then a compact version of the tool renders in an iframe",
+      "Given the widget is embedded, when rendered, then it includes a 'Powered by [tool name]' link that opens in a new tab",
+      "Given the widget is embedded, when rendered, then it is responsive (min-width 320px, max-width 100%)",
+      "Given the widget is embedded, when a user interacts with it, then previews and scores work identically to the main tool"
+    ],
+    "dependencies": ["F000", "F007"],
+    "files": {
+      "engine": "src/lib/embed.ts",
+      "embedPage": "src/app/embed/page.tsx",
+      "widgetPage": "src/app/widget/page.tsx",
+      "wrapper": "src/components/embed/WidgetWrapper.tsx",
+      "codeGenerator": "src/components/embed/EmbedCodeGenerator.tsx",
+      "engineTests": "src/lib/embed.test.ts"
+    }
+  },
+  {
+    "id": "F010",
+    "name": "Dark Mode",
+    "priority": "P1",
+    "description": "System-aware dark mode toggle with localStorage persistence",
+    "acceptanceCriteria": [
+      "Given the tool loads, when the user's system preference is dark mode, then the tool renders in dark mode by default",
+      "Given the tool is in light mode, when the user clicks the theme toggle, then all UI elements switch to dark mode within 100ms",
+      "Given dark mode is active, when SERP previews render, then Google/Bing previews show in their light theme (since SERPs are always light)",
+      "Given the user toggles theme, when they revisit the tool, then their preference is persisted via localStorage"
+    ],
+    "dependencies": ["F000"],
+    "files": {
+      "hook": "src/lib/hooks/useTheme.ts",
+      "toggle": "src/components/ui/ThemeToggle.tsx"
+    }
+  },
+  {
+    "id": "F011",
+    "name": "Affiliate Recommendations",
+    "priority": "P1",
+    "description": "Contextual, non-intrusive affiliate CTAs for Ahrefs, Semrush, and SurferSEO in the score results area",
+    "acceptanceCriteria": [
+      "Given scores are displayed, when the keyword score is low, then an Ahrefs affiliate CTA appears suggesting deeper keyword research",
+      "Given scores are displayed, when the overall score is below 70, then a Semrush affiliate CTA appears suggesting a full site audit",
+      "Given affiliate CTAs are displayed, when rendered, then they appear only in the score area, never overlapping previews",
+      "Given affiliate CTAs are displayed, when clicked, then they open affiliate URLs in a new tab with rel='noopener sponsored'"
+    ],
+    "dependencies": ["F000", "F004"],
+    "files": {
+      "ui": "src/components/affiliate/AffiliateRecommendation.tsx"
+    }
+  },
+  {
+    "id": "F012",
+    "name": "Dynamic OG Image",
+    "priority": "P1",
+    "description": "Server-side OG image generation for shareable tool links showing score and preview",
+    "acceptanceCriteria": [
+      "Given the /api/og route is called with title and score params, when processed, then a 1200x630 PNG image is returned",
+      "Given the OG image is generated, when shared on social media, then it shows the tool branding with the score prominently displayed",
+      "Given no params are provided, when the route is called, then a default branded OG image is returned"
+    ],
+    "dependencies": ["F000"],
+    "files": {
+      "api": "src/app/api/og/route.ts"
+    }
+  },
+  {
+    "id": "F013",
+    "name": "History / Recent Checks",
+    "priority": "P2",
+    "description": "localStorage-based history of last 20 checks with one-click repopulation",
+    "acceptanceCriteria": [
+      "Given the user has performed at least one check, when they view history, then the last 20 checks are listed with title, score, and timestamp",
+      "Given history exists, when the user clicks a history entry, then the form repopulates with that entry's data",
+      "Given history is stored, when stored, then it uses localStorage (no server, no account required)",
+      "Given localStorage is full or disabled, when the tool loads, then it degrades gracefully with no history shown"
+    ],
+    "dependencies": ["F000", "F001", "F004"],
+    "files": {
+      "engine": "src/lib/history.ts",
+      "hook": "src/lib/hooks/useHistory.ts",
+      "ui": "src/components/history/HistoryPanel.tsx",
+      "engineTests": "src/lib/history.test.ts"
+    }
+  },
+  {
+    "id": "F014",
+    "name": "Bulk CSV Check",
+    "priority": "P2",
+    "description": "Upload CSV of titles/descriptions, score all rows, export results as CSV",
+    "acceptanceCriteria": [
+      "Given a CSV file with columns 'title', 'description', 'url', when uploaded, then all rows are scored and results displayed in a table",
+      "Given the CSV has up to 500 rows, when processed, then all rows complete within 5 seconds",
+      "Given bulk results are displayed, when the user clicks 'Export Results', then a CSV with scores and feedback downloads"
+    ],
+    "dependencies": ["F000", "F004"],
+    "files": {
+      "ui": "src/components/bulk/BulkCheckPanel.tsx",
+      "engine": "src/lib/bulk.ts",
+      "engineTests": "src/lib/bulk.test.ts"
+    }
+  },
+  {
+    "id": "F015",
+    "name": "URL Auto-Fetch",
+    "priority": "P2",
+    "description": "Paste a URL to auto-fetch and populate the page's current title, description, and OG data",
+    "acceptanceCriteria": [
+      "Given a URL is entered in the fetch field, when the user clicks 'Fetch', then the title, description, and OG data are extracted and populated",
+      "Given the fetch is in progress, when loading, then a spinner and 'Fetching...' indicator appears",
+      "Given the URL cannot be fetched (CORS, timeout), when the error occurs, then a clear error message appears suggesting manual entry"
+    ],
+    "dependencies": ["F000", "F001"],
+    "files": {
+      "api": "src/app/api/fetch-meta/route.ts",
+      "ui": "src/components/input/UrlFetchButton.tsx"
+    }
+  }
+]
