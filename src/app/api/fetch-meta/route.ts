@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import dns from "dns";
-import https from "node:https";
-import http from "node:http";
-import type { IncomingMessage } from "node:http";
 
 export const runtime = "nodejs";
 const TIMEOUT_MS = 8000;
@@ -64,126 +61,78 @@ export interface HttpFetchResult {
 }
 
 /**
- * Makes an HTTP/HTTPS request to `parsedUrl`, but forces the TCP connection
- * to go to `resolvedAddress` (the already-verified IP) via a custom `lookup`
- * callback. This prevents DNS rebinding / TOCTOU attacks where an attacker
- * rotates a DNS record between the SSRF check and the actual connection.
+ * Fetches a URL using the global fetch() API. SSRF protection is handled
+ * separately via DNS resolution before this is called.
  *
- * Exported as a plain object (`{ fn }`) so tests can stub it without any
- * circular-import tricks:
- *
+ * Exported as a plain object so tests can stub it:
  *   vi.spyOn(routeModule._httpFetch, "fn").mockResolvedValue(...)
- *
- * Because `_httpFetch` is the *same* object reference both inside the module
- * and on the module namespace, replacing `.fn` is visible to GET() immediately.
  */
 export const _httpFetch = {
-  fn: function _httpFetchImpl(
+  fn: async function _httpFetchImpl(
     parsedUrl: URL,
-    resolvedAddress: string,
-    resolvedFamily: number,
     signal: AbortSignal,
   ): Promise<HttpFetchResult> {
-    return new Promise<HttpFetchResult>((resolve, reject) => {
-      const lib = parsedUrl.protocol === "https:" ? https : http;
-      const port = parsedUrl.port
-        ? parseInt(parsedUrl.port, 10)
-        : parsedUrl.protocol === "https:"
-          ? 443
-          : 80;
-
-      const req = lib.request(
-        {
-          hostname: parsedUrl.hostname,
-          port,
-          path: (parsedUrl.pathname || "/") + parsedUrl.search,
-          method: "GET",
-          headers: {
-            "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
-            Accept: "text/html,application/xhtml+xml",
-            Host: parsedUrl.host,
-          },
-          // Custom lookup: always connect to the pre-resolved, pre-checked IP.
-          // This is the TOCTOU fix — no second DNS lookup happens.
-          lookup: (
-            _host: string,
-            _opts: object,
-            cb: (
-              err: NodeJS.ErrnoException | null,
-              address: string,
-              family: number,
-            ) => void,
-          ) => {
-            cb(null, resolvedAddress, resolvedFamily);
-          },
-        },
-        (res: IncomingMessage) => {
-          const chunks: Buffer[] = [];
-          let totalBytes = 0;
-          let bodyConsumed = false;
-
-          const getBody = () =>
-            new Promise<string>((resolveBody) => {
-              if (bodyConsumed) {
-                resolveBody(Buffer.concat(chunks).toString("utf-8"));
-                return;
-              }
-              bodyConsumed = true;
-
-              res.on("data", (chunk: Buffer) => {
-                if (totalBytes + chunk.length > MAX_BODY_BYTES) {
-                  chunks.push(chunk.slice(0, MAX_BODY_BYTES - totalBytes));
-                  totalBytes = MAX_BODY_BYTES;
-                  req.destroy();
-                } else {
-                  chunks.push(chunk);
-                  totalBytes += chunk.length;
-                }
-              });
-
-              res.on("end", () =>
-                resolveBody(Buffer.concat(chunks).toString("utf-8")),
-              );
-              res.on("error", () =>
-                resolveBody(Buffer.concat(chunks).toString("utf-8")),
-              );
-            });
-
-          resolve({
-            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
-            status: res.statusCode ?? 0,
-            contentType: (res.headers["content-type"] as string) ?? null,
-            contentLength: (res.headers["content-length"] as string) ?? null,
-            getBody,
-          });
-        },
-      );
-
-      signal.addEventListener("abort", () => {
-        const err = new Error(
-          "Request timed out. The URL took too long to respond.",
-        );
-        err.name = "AbortError";
-        req.destroy(err);
-      });
-
-      req.on("error", (err: Error) => {
-        reject(err);
-      });
-
-      req.end();
+    const response = await fetch(parsedUrl.toString(), {
+      method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; SEO-Meta-Preview-Bot/1.0)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      signal,
+      redirect: "follow",
     });
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      contentType: response.headers.get("content-type"),
+      contentLength: response.headers.get("content-length"),
+      getBody: async () => {
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        const truncated =
+          bytes.length > MAX_BODY_BYTES
+            ? bytes.slice(0, MAX_BODY_BYTES)
+            : bytes;
+        return new TextDecoder("utf-8").decode(truncated);
+      },
+    };
+  },
+};
+
+/**
+ * Resolve DNS for SSRF protection. Uses dns.resolve4/resolve6 which query
+ * DNS servers directly (works on Vercel serverless, unlike dns.lookup which
+ * uses the OS resolver and can fail).
+ */
+export const _dnsResolve = {
+  fn: async function _dnsResolveImpl(
+    hostname: string,
+  ): Promise<{ address: string; family: number }> {
+    try {
+      const addresses = await dns.promises.resolve4(hostname);
+      if (addresses.length > 0) {
+        return { address: addresses[0], family: 4 };
+      }
+    } catch {
+      // IPv4 failed, try IPv6
+    }
+    try {
+      const addresses = await dns.promises.resolve6(hostname);
+      if (addresses.length > 0) {
+        return { address: addresses[0], family: 6 };
+      }
+    } catch {
+      // IPv6 also failed
+    }
+    throw new Error("DNS resolution failed");
   },
 };
 
 /**
  * Extract an attribute value from a short, already-bounded tag string.
- * Each branch is a simple anchored pattern with no nested quantifiers,
- * so there is no risk of catastrophic backtracking.
  */
 function getTagAttr(tag: string, attr: string): string | null {
-  // Escape any regex special chars in the attribute name (e.g. "og:title" is safe,
-  // but we escape defensively in case callers pass unexpected values in the future).
   const escaped = attr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const dq = new RegExp(`\\b${escaped}\\s*=\\s*"([^"]*)"`, "i").exec(tag);
   if (dq) return dq[1];
@@ -193,20 +142,14 @@ function getTagAttr(tag: string, attr: string): string | null {
 }
 
 /**
- * Find the `content` attribute of the first <meta> tag where
- * `attrName` equals `attrValue` (case-insensitive).
- *
- * The outer pattern uses [^>]{0,1024} — a bounded, non-backtracking
- * character class — so catastrophic backtracking is impossible regardless
- * of how malformed the HTML is.
+ * Find the content attribute of a meta tag matching attrName=attrValue.
+ * Uses bounded regex to prevent ReDoS.
  */
 function findMetaContent(
   html: string,
   attrName: "name" | "property",
   attrValue: string,
 ): string | null {
-  // Extract individual <meta …> tags with a hard length cap.
-  // Tags longer than ~1024 chars are not matched (they are skipped, not hung on).
   const metaTagRe = /<meta\b[^>]{0,1024}>/gi;
   let m: RegExpExecArray | null;
   while ((m = metaTagRe.exec(html)) !== null) {
@@ -230,7 +173,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Validate URL
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(url);
@@ -244,9 +186,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
   }
 
-  // SSRF protection: resolve hostname and block private/internal IP ranges
-  let resolvedAddress: string;
-  let resolvedFamily: number;
+  // SSRF protection: resolve hostname and block private/internal IPs
   try {
     const hostname = parsedUrl.hostname;
     if (hostname === "localhost") {
@@ -255,35 +195,16 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
-    // Use dns.resolve4/resolve6 instead of dns.lookup — the latter uses the
-    // OS resolver which can fail on Vercel's serverless runtime.
-    let addresses: string[] = [];
-    let family = 4;
-    try {
-      addresses = await dns.promises.resolve4(hostname);
-    } catch {
-      // IPv4 failed, try IPv6
-      try {
-        addresses = await dns.promises.resolve6(hostname);
-        family = 6;
-      } catch {
-        // Both failed — fall through to the outer catch
-        throw new Error(`DNS resolution failed for ${hostname}`);
-      }
-    }
-    const address = addresses[0];
-    if (!address || isPrivateIp(address)) {
+    const { address } = await _dnsResolve.fn(hostname);
+    if (isPrivateIp(address)) {
       return NextResponse.json(
         { error: "Requests to private/internal addresses are not allowed" },
         { status: 400 },
       );
     }
-    resolvedAddress = address;
-    resolvedFamily = family;
-  } catch (dnsErr) {
-    const msg = dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
+  } catch {
     return NextResponse.json(
-      { error: `DNS resolution failed: ${msg}` },
+      { error: "Failed to resolve hostname. Please check the URL." },
       { status: 502 },
     );
   }
@@ -292,12 +213,7 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const response = await _httpFetch.fn(
-      parsedUrl,
-      resolvedAddress,
-      resolvedFamily,
-      controller.signal,
-    );
+    const response = await _httpFetch.fn(parsedUrl, controller.signal);
     clearTimeout(timeoutId);
 
     if (!response.ok) {
@@ -315,7 +231,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Body size limit: check Content-Length header first
     if (response.contentLength !== null) {
       const contentLength = parseInt(response.contentLength, 10);
       if (!isNaN(contentLength) && contentLength > MAX_BODY_BYTES) {
@@ -328,9 +243,6 @@ export async function GET(request: NextRequest) {
 
     const html = await response.getBody();
 
-    // Parse meta tags using a safe two-step approach:
-    //   1. Extract individual bounded-length <meta> tags (prevents ReDoS).
-    //   2. Parse attributes from each short tag individually.
     const titleMatch = html.match(/<title[^>]*>([^<]{0,512})<\/title>/i);
     const metaDescription = findMetaContent(html, "name", "description");
     const metaOgTitle = findMetaContent(html, "property", "og:title");
