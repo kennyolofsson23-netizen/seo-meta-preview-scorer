@@ -280,9 +280,10 @@ export async function GET(request: NextRequest) {
     }
     resolvedAddress = address;
     resolvedFamily = family;
-  } catch {
+  } catch (dnsErr) {
+    const msg = dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
     return NextResponse.json(
-      { error: "Failed to fetch URL. Please enter the meta data manually." },
+      { error: `DNS resolution failed: ${msg}` },
       { status: 502 },
     );
   }
@@ -364,8 +365,9 @@ export async function GET(request: NextRequest) {
         { status: 504 },
       );
     }
+    const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to fetch URL. Please enter the meta data manually." },
+      { error: `Failed to fetch URL: ${msg}` },
       { status: 502 },
     );
   }
