@@ -8,9 +8,8 @@ import { NextRequest } from "next/server";
 vi.mock("dns", () => ({
   default: {
     promises: {
-      lookup: vi
-        .fn()
-        .mockResolvedValue({ address: "93.184.216.34", family: 4 }),
+      resolve4: vi.fn().mockResolvedValue(["93.184.216.34"]),
+      resolve6: vi.fn().mockRejectedValue(new Error("no AAAA record")),
     },
   },
 }));
@@ -74,11 +73,13 @@ describe("GET /api/fetch-meta", () => {
     // Re-establish the default DNS mock before each test because
     // vi.restoreAllMocks() in afterEach resets the vi.fn() implementation
     // that was set in the vi.mock factory, causing subsequent tests to see
-    // dns.promises.lookup return undefined and throw.
-    vi.mocked(dns.promises.lookup).mockResolvedValue({
-      address: "93.184.216.34",
-      family: 4,
-    });
+    // dns.promises.resolve4 return undefined and throw.
+    vi.mocked(dns.promises.resolve4).mockResolvedValue([
+      "93.184.216.34",
+    ] as any);
+    vi.mocked(dns.promises.resolve6).mockRejectedValue(
+      new Error("no AAAA record"),
+    );
   });
 
   afterEach(() => {
@@ -88,10 +89,22 @@ describe("GET /api/fetch-meta", () => {
   // ── SSRF / private IP blocking ────────────────────────────────────────────
 
   describe("SSRF protection - private IP blocking", () => {
-    const mockedLookup = vi.mocked(dns.promises.lookup);
+    const mockedResolve4 = vi.mocked(dns.promises.resolve4);
+    const mockedResolve6 = vi.mocked(dns.promises.resolve6);
+
+    /** Mock resolve4 to return a private IPv4 address */
+    function mockPrivateIpv4(ip: string) {
+      mockedResolve4.mockResolvedValueOnce([ip] as any);
+    }
+
+    /** Mock resolve4 to fail, resolve6 to return a private IPv6 address */
+    function mockPrivateIpv6(ip: string) {
+      mockedResolve4.mockRejectedValueOnce(new Error("no A record"));
+      mockedResolve6.mockResolvedValueOnce([ip] as any);
+    }
 
     it("blocks loopback 127.0.0.1 (RFC loopback)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "127.0.0.1", family: 4 });
+      mockPrivateIpv4("127.0.0.1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://internal.example.com",
       );
@@ -102,7 +115,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks 10.0.0.1 (RFC-1918 10.0.0.0/8)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "10.0.0.1", family: 4 });
+      mockPrivateIpv4("10.0.0.1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://corp.internal.example.com",
       );
@@ -113,10 +126,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks 192.168.1.1 (RFC-1918 192.168.0.0/16)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "192.168.1.1",
-        family: 4,
-      });
+      mockPrivateIpv4("192.168.1.1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://router.example.com",
       );
@@ -127,7 +137,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks 172.16.0.1 (RFC-1918 172.16.0.0/12)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "172.16.0.1", family: 4 });
+      mockPrivateIpv4("172.16.0.1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://docker.example.com",
       );
@@ -138,10 +148,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks 172.31.255.255 (top of RFC-1918 172.16.0.0/12 range)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "172.31.255.255",
-        family: 4,
-      });
+      mockPrivateIpv4("172.31.255.255");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://host.example.com",
       );
@@ -150,7 +157,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks ::1 (IPv6 loopback)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "::1", family: 6 });
+      mockPrivateIpv6("::1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://ipv6host.example.com",
       );
@@ -171,7 +178,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks 0.0.0.0 (INADDR_ANY)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "0.0.0.0", family: 4 });
+      mockPrivateIpv4("0.0.0.0");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://inaddr-any.example.com",
       );
@@ -182,7 +189,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks fc00::1 (IPv6 ULA fc00::/7)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "fc00::1", family: 6 });
+      mockPrivateIpv6("fc00::1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://ula.example.com",
       );
@@ -193,10 +200,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks fd12:3456::1 (IPv6 ULA fd00::/8)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "fd12:3456::1",
-        family: 6,
-      });
+      mockPrivateIpv6("fd12:3456::1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://ula2.example.com",
       );
@@ -207,7 +211,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks fe80::1 (IPv6 link-local fe80::/10)", async () => {
-      mockedLookup.mockResolvedValueOnce({ address: "fe80::1", family: 6 });
+      mockPrivateIpv6("fe80::1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://linklocal.example.com",
       );
@@ -218,10 +222,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks ::ffff:127.0.0.1 (IPv4-mapped loopback)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "::ffff:127.0.0.1",
-        family: 6,
-      });
+      mockPrivateIpv6("::ffff:127.0.0.1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://mapped-loopback.example.com",
       );
@@ -232,10 +233,7 @@ describe("GET /api/fetch-meta", () => {
     });
 
     it("blocks ::ffff:192.168.1.1 (IPv4-mapped private)", async () => {
-      mockedLookup.mockResolvedValueOnce({
-        address: "::ffff:192.168.1.1",
-        family: 6,
-      });
+      mockPrivateIpv6("::ffff:192.168.1.1");
       const req = makeRequest(
         "http://localhost:3000/api/fetch-meta?url=https://mapped-private.example.com",
       );

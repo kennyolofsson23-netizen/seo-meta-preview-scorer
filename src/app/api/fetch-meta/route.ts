@@ -255,8 +255,24 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
-    const { address, family } = await dns.promises.lookup(hostname);
-    if (isPrivateIp(address)) {
+    // Use dns.resolve4/resolve6 instead of dns.lookup — the latter uses the
+    // OS resolver which can fail on Vercel's serverless runtime.
+    let addresses: string[] = [];
+    let family = 4;
+    try {
+      addresses = await dns.promises.resolve4(hostname);
+    } catch {
+      // IPv4 failed, try IPv6
+      try {
+        addresses = await dns.promises.resolve6(hostname);
+        family = 6;
+      } catch {
+        // Both failed — fall through to the outer catch
+        throw new Error(`DNS resolution failed for ${hostname}`);
+      }
+    }
+    const address = addresses[0];
+    if (!address || isPrivateIp(address)) {
       return NextResponse.json(
         { error: "Requests to private/internal addresses are not allowed" },
         { status: 400 },
