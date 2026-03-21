@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -95,6 +96,14 @@ export default function RootLayout({
           </div>
         </noscript>
         {children}
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            defer
+            data-domain="usetools.dev"
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
