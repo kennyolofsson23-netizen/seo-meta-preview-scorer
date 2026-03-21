@@ -42,9 +42,9 @@ export function AffiliateRecommendation({
   overallScore,
 }: AffiliateRecommendationProps) {
   const showSurfer = keywordScore < 70;
-  const showSemrush = overallScore < 70;
+  const showMangools = overallScore < 70;
 
-  if (!showSurfer && !showSemrush) return null;
+  if (!showSurfer && !showMangools) return null;
 
   return (
     <div className="space-y-2">
@@ -61,12 +61,12 @@ export function AffiliateRecommendation({
         />
       )}
 
-      {showSemrush && (
+      {showMangools && (
         <AffiliateCard
-          href={AFFILIATES.semrush}
-          title="Semrush — Fix What's Really Hurting Your Rankings"
-          description="An SEO score below 70 usually means more is broken than just the meta tags. Semrush's site audit finds technical issues, thin content, and link gaps across your whole site."
-          cta="Try Semrush free →"
+          href={AFFILIATES.mangools}
+          title="Mangools — Find Keywords You Can Actually Rank For"
+          description="An SEO score below 70 means you need more than meta tag fixes. Mangools shows you low-competition keywords, tracks your rankings, and audits your whole site."
+          cta="Try Mangools free →"
         />
       )}
     </div>

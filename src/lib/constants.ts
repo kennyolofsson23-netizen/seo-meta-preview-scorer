@@ -81,8 +81,8 @@ export const APP = {
 export const AFFILIATES = {
   surferSeo:
     process.env.NEXT_PUBLIC_SURFERSEO_AFFILIATE_URL ?? "https://surferseo.com",
-  semrush:
-    process.env.NEXT_PUBLIC_SEMRUSH_AFFILIATE_URL ?? "https://semrush.com",
+  mangools:
+    process.env.NEXT_PUBLIC_MANGOOLS_AFFILIATE_URL ?? "https://mangools.com?a=a69bf02726aee0807d9369187",
 } as const;
 
 // History config
