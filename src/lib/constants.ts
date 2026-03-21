@@ -79,11 +79,10 @@ export const APP = {
 
 // Affiliate URLs
 export const AFFILIATES = {
-  ahrefs: process.env.NEXT_PUBLIC_AHREFS_AFFILIATE_URL ?? "https://ahrefs.com",
-  semrush:
-    process.env.NEXT_PUBLIC_SEMRUSH_AFFILIATE_URL ?? "https://semrush.com",
   surferSeo:
     process.env.NEXT_PUBLIC_SURFERSEO_AFFILIATE_URL ?? "https://surferseo.com",
+  semrush:
+    process.env.NEXT_PUBLIC_SEMRUSH_AFFILIATE_URL ?? "https://semrush.com",
 } as const;
 
 // History config

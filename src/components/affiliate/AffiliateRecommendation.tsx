@@ -41,10 +41,10 @@ export function AffiliateRecommendation({
   keywordScore,
   overallScore,
 }: AffiliateRecommendationProps) {
-  const showAhrefs = keywordScore < 70;
+  const showSurfer = keywordScore < 70;
   const showSemrush = overallScore < 70;
 
-  if (!showAhrefs && !showSemrush) return null;
+  if (!showSurfer && !showSemrush) return null;
 
   return (
     <div className="space-y-2">
@@ -52,12 +52,12 @@ export function AffiliateRecommendation({
         Level up your SEO
       </p>
 
-      {showAhrefs && (
+      {showSurfer && (
         <AffiliateCard
-          href={AFFILIATES.ahrefs}
-          title="Ahrefs — Find Keywords That Actually Convert"
-          description="Your keyword isn't landing where it should. Ahrefs shows you which terms drive real traffic and exactly where to place them for maximum impact."
-          cta="Try Ahrefs free →"
+          href={AFFILIATES.surferSeo}
+          title="SurferSEO — Content That Actually Ranks"
+          description="Your keyword score needs work. SurferSEO analyzes top-ranking pages and tells you exactly which terms to add, how many times, and where — so your content climbs the SERPs."
+          cta="Try SurferSEO free →"
         />
       )}
 
