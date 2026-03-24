@@ -77,7 +77,7 @@ const themeScript = `
 `;
 
 // Static JSON-LD structured data — no user input, XSS risk is zero
-const jsonLd = JSON.stringify({
+const webAppJsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: "SEO Meta Preview & Scorer",
@@ -101,6 +101,57 @@ const jsonLd = JSON.stringify({
     "Embeddable widget",
     "No signup required",
   ],
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", ".hero-description"],
+  },
+});
+
+const organizationJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "usetools.dev",
+  url: "https://usetools.dev",
+  sameAs: ["https://github.com/kennyolofsson23-netizen"],
+});
+
+const faqJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is an SEO meta preview?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "An SEO meta preview is a visual simulation of how your web page appears in search engine results pages (SERPs). It renders your title tag and meta description exactly as Google or Bing would display them, including pixel-accurate truncation at character limits. This lets you catch cut-off text before publishing.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How is the SEO score calculated?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The SEO score is calculated client-side by evaluating your title tag and meta description against current best-practice guidelines. It checks character count, pixel width (titles should stay under ~600px), keyword placement, uniqueness signals, and truncation risk. Each field receives an individual score that combines into an overall rating from 0–100.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What search engines are supported?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "SEO Meta Preview & Scorer supports Google desktop, Google mobile, and Bing SERP previews. It also renders Open Graph social card previews as they appear on platforms like Facebook, LinkedIn, and Slack. Each preview uses the correct font metrics and pixel widths for that specific search engine.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is this tool free to use?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. SEO Meta Preview & Scorer is completely free to use. There is no account, no paywall, and no usage limit. All analysis runs entirely in your browser — your data never leaves your device.",
+      },
+    },
+  ],
 });
 
 export default function RootLayout({
@@ -118,7 +169,15 @@ export default function RootLayout({
         {/* JSON-LD structured data — static content, no XSS risk */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd }}
+          dangerouslySetInnerHTML={{ __html: webAppJsonLd }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: organizationJsonLd }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: faqJsonLd }}
         />
       </head>
       <body
