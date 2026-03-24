@@ -18,7 +18,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SEO Meta Preview & Scorer — Free SERP Preview Tool",
   description:
-    "See exactly how your pages appear in Google, Bing, and social results before publishing. Pixel-perfect SERP previews for desktop and mobile, plus real-time SEO scoring — 100% free, zero tracking.",
+    "Preview your title and meta description in Google, Bing, and social cards. Real-time SEO scoring, truncation detection — free, no signup.",
+  alternates: {
+    canonical: "https://seo-meta-preview-scorer.usetools.dev",
+  },
   keywords: [
     "SERP preview tool",
     "SEO meta preview",

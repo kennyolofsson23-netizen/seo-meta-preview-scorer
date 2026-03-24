@@ -35,10 +35,13 @@ export default function Home() {
             See your page in Google before you publish
           </h1>
           <p className="mt-2 text-base text-muted-foreground max-w-2xl">
-            Preview your title and meta description across Google desktop,
-            Google mobile, Bing, and social cards. Catch truncation, score your
-            metadata, and fix issues before they cost you clicks. Free, instant,
-            no account needed.
+            SEO Meta Preview &amp; Scorer is a free browser-based tool for SEO
+            professionals, developers, and content teams. It renders
+            pixel-accurate previews of title tags and meta descriptions as they
+            appear in Google desktop, Google mobile, Bing, and Open Graph social
+            cards. The tool scores each field against current SEO guidelines,
+            flags truncation in real time, and requires no account or
+            server-side processing — all analysis runs client-side.
           </p>
         </div>
       </section>
