@@ -41,16 +41,26 @@ export function AffiliateRecommendation({
   keywordScore,
   overallScore,
 }: AffiliateRecommendationProps) {
+  const showSemrush = overallScore < 80;
   const showSurfer = keywordScore < 70;
   const showMangools = overallScore < 70;
 
-  if (!showSurfer && !showMangools) return null;
+  if (!showSemrush && !showSurfer && !showMangools) return null;
 
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
         Level up your SEO
       </p>
+
+      {showSemrush && (
+        <AffiliateCard
+          href={AFFILIATES.semrush}
+          title="Semrush — The All-in-One SEO Toolkit"
+          description="Go beyond meta tags. Semrush gives you keyword research, site audits, competitor analysis, and rank tracking — everything you need to dominate search."
+          cta="Try Semrush free →"
+        />
+      )}
 
       {showSurfer && (
         <AffiliateCard

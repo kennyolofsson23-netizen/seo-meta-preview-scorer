@@ -79,6 +79,8 @@ export const APP = {
 
 // Affiliate URLs
 export const AFFILIATES = {
+  semrush:
+    process.env.NEXT_PUBLIC_SEMRUSH_AFFILIATE_URL ?? "https://semrush.sjv.io/c/7103952/3367878/13053",
   surferSeo:
     process.env.NEXT_PUBLIC_SURFERSEO_AFFILIATE_URL ?? "https://surferseo.com",
   mangools:
