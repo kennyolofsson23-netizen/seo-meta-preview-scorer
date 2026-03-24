@@ -73,6 +73,33 @@ const themeScript = `
 })();
 `;
 
+// Static JSON-LD structured data — no user input, XSS risk is zero
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "SEO Meta Preview & Scorer",
+  description:
+    "See exactly how your pages appear in Google, Bing, and social results before publishing. Pixel-perfect SERP previews for desktop and mobile, plus real-time SEO scoring — 100% free, zero tracking.",
+  url: "https://seo-meta-preview-scorer.usetools.dev",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any",
+  browserRequirements: "Requires JavaScript",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  featureList: [
+    "Google desktop and mobile SERP preview",
+    "Bing SERP preview",
+    "Open Graph social card preview",
+    "Real-time SEO scoring",
+    "Truncation detection",
+    "Embeddable widget",
+    "No signup required",
+  ],
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -85,6 +112,11 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {/* Prevent FOUC for dark mode */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* JSON-LD structured data — static content, no XSS risk */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
