@@ -82,7 +82,7 @@ const webAppJsonLd = JSON.stringify({
   "@type": "WebApplication",
   name: "SEO Meta Preview & Scorer",
   description:
-    "See exactly how your pages appear in Google, Bing, and social results before publishing. Pixel-perfect SERP previews for desktop and mobile, plus real-time SEO scoring — 100% free, zero tracking.",
+    "Free browser-based tool that checks 12 SEO signals across 4 preview formats (Google desktop, Google mobile, Bing, Open Graph). Validates title tags against Google's 60-character / 600-pixel limit and meta descriptions against the 155–160 character optimal range, then scores each field on a 0–100 scale. Zero data collection, no signup required.",
   url: "https://seo.usetools.dev",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any",
@@ -93,17 +93,21 @@ const webAppJsonLd = JSON.stringify({
     priceCurrency: "USD",
   },
   featureList: [
-    "Google desktop and mobile SERP preview",
-    "Bing SERP preview",
-    "Open Graph social card preview",
-    "Real-time SEO scoring",
-    "Truncation detection",
+    "Google desktop SERP preview (600px title container)",
+    "Google mobile SERP preview (360px, 50-char title limit)",
+    "Bing SERP preview (560px, 65-char title limit)",
+    "Open Graph social card preview (1200×630px, 65-char title)",
+    "Real-time SEO scoring on a 0–100 scale",
+    "12 SEO signal checks per page",
+    "Weighted scoring formula: title 40%, description 40%, keyword 20%",
+    "Mobile truncation detection",
+    "Keyword placement analysis",
     "Embeddable widget",
-    "No signup required",
+    "No signup required — zero data collection",
   ],
   speakable: {
     "@type": "SpeakableSpecification",
-    cssSelector: ["h1", ".hero-description"],
+    cssSelector: ["h1", ".hero-description", "#tool-description"],
   },
 });
 
@@ -124,7 +128,7 @@ const faqJsonLd = JSON.stringify({
       name: "What is an SEO meta preview?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "An SEO meta preview is a visual simulation of how your web page appears in search engine results pages (SERPs). It renders your title tag and meta description exactly as Google or Bing would display them, including pixel-accurate truncation at character limits. This lets you catch cut-off text before publishing.",
+        text: "An SEO meta preview is a visual simulation of how your web page appears in search engine results pages (SERPs). It renders your title tag (optimal: 30–60 characters, max 600 pixels wide) and meta description (optimal: 155–160 characters) exactly as Google or Bing would display them, including pixel-accurate truncation. This tool checks all 4 preview formats (Google desktop, Google mobile, Bing, and Open Graph social cards) simultaneously.",
       },
     },
     {
@@ -132,7 +136,7 @@ const faqJsonLd = JSON.stringify({
       name: "How is the SEO score calculated?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "The SEO score is calculated client-side by evaluating your title tag and meta description against current best-practice guidelines. It checks character count, pixel width (titles should stay under ~600px), keyword placement, uniqueness signals, and truncation risk. Each field receives an individual score that combines into an overall rating from 0–100.",
+        text: "The SEO score uses a weighted formula: title tag (40%), meta description (40%), and keyword placement (20%). Each component scores from 0 to 100 based on character count, pixel width (titles must stay under 600 pixels), keyword presence, and truncation risk. The three scores combine into an overall rating where 80+ indicates well-optimized tags and below 50 flags critical issues.",
       },
     },
     {
@@ -140,7 +144,7 @@ const faqJsonLd = JSON.stringify({
       name: "What search engines are supported?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "SEO Meta Preview & Scorer supports Google desktop, Google mobile, and Bing SERP previews. It also renders Open Graph social card previews as they appear on platforms like Facebook, LinkedIn, and Slack. Each preview uses the correct font metrics and pixel widths for that specific search engine.",
+        text: "The tool renders 4 preview formats: Google desktop (600px title container), Google mobile (360px, 50-char title limit), Bing (560px, 65-char title limit), and Open Graph social cards (1200×630px image, 65-char title, 155-char description) as they appear on Facebook, LinkedIn, and Slack. Each preview uses the correct font family, font size, and pixel widths for that specific search engine.",
       },
     },
     {
