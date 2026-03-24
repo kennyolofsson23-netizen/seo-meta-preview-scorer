@@ -1,0 +1,27 @@
+# SEO Meta Preview & Scorer
+
+> Free, instant SERP preview and SEO scoring tool — no signup, no tracking, all client-side.
+
+## Description
+
+SEO Meta Preview & Scorer lets you paste a page title and meta description to see exactly how your page will appear in Google (desktop and mobile), Bing, and social media cards — before you publish. It provides pixel-perfect SERP previews, real-time character and pixel-width scoring, truncation warnings, and actionable SEO recommendations.
+
+## Features
+
+- Pixel-perfect Google desktop and mobile SERP previews
+- Bing SERP preview
+- Open Graph / social card preview (Facebook, LinkedIn, Twitter/X)
+- Real-time SEO scoring: title length, description length, keyword placement
+- Truncation detection with visual indicators
+- Embeddable widget for third-party sites
+- 100% client-side — your data never leaves your browser
+- Dark mode support
+- No account required, completely free
+
+## URL
+
+https://seo-meta-preview-scorer.usetools.dev
+
+## Part of
+
+usetools.dev — free web tools

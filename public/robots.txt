@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://seo-meta-preview-scorer.usetools.dev/sitemap.xml
