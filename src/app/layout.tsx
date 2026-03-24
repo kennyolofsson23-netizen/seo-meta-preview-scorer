@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description:
     "Preview your title and meta description in Google, Bing, and social cards. Real-time SEO scoring, truncation detection — free, no signup.",
   alternates: {
-    canonical: "https://seo-meta-preview-scorer.usetools.dev",
+    canonical: "https://seo.usetools.dev",
   },
   keywords: [
     "SERP preview tool",
@@ -83,7 +83,7 @@ const webAppJsonLd = JSON.stringify({
   name: "SEO Meta Preview & Scorer",
   description:
     "See exactly how your pages appear in Google, Bing, and social results before publishing. Pixel-perfect SERP previews for desktop and mobile, plus real-time SEO scoring — 100% free, zero tracking.",
-  url: "https://seo-meta-preview-scorer.usetools.dev",
+  url: "https://seo.usetools.dev",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any",
   browserRequirements: "Requires JavaScript",

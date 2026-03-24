@@ -20,7 +20,7 @@ SEO Meta Preview & Scorer lets you paste a page title and meta description to se
 
 ## URL
 
-https://seo-meta-preview-scorer.usetools.dev
+https://seo.usetools.dev
 
 ## Part of
 
